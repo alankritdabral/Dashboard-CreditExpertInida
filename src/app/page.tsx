@@ -22,14 +22,17 @@ export default function RootPage() {
   }, [user, loading, router]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-slate-300">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-14 h-14 rounded-2xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center shadow-lg shadow-blue-500/10">
-          <Loader2 className="w-7 h-7 text-blue-400 animate-spin" />
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F6F9FC] text-[#0A2540] p-4">
+      <div className="flex flex-col items-center gap-4 animate-fadeIn">
+        <img
+          src="/img/logo_with_name.webp"
+          alt="Credit Expert India"
+          className="h-10 w-auto object-contain"
+        />
+        <div className="flex items-center gap-2.5 text-xs font-semibold text-slate-500 bg-white border border-slate-200/80 px-4 py-2 rounded-full shadow-2xs">
+          <Loader2 className="w-4 h-4 text-[#3F8EFC] animate-spin" />
+          <span>Opening Credit Expert India Workplace...</span>
         </div>
-        <p className="text-xs uppercase tracking-widest text-slate-400 font-semibold">
-          Loading Credit Expert India Operations Portal...
-        </p>
       </div>
     </div>
   );

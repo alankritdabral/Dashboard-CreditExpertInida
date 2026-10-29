@@ -1,23 +1,33 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Manrope } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Credit Expert India - Operations & Admin Dashboard",
-  description: "Secure operational control center for Credit Expert India. CIBIL bureau pull portal, cross-branch management, and analytics.",
+  title: {
+    default: "Credit Expert India — Operations & Admin Dashboard",
+    template: "%s | Credit Expert India",
+  },
+  description:
+    "Authorized operational control center for Credit Expert India. CIBIL bureau pull portal, cross-branch management, lender eligibility engine, and analytics.",
   icons: {
-    icon: "/img/logo.png",
+    icon: [
+      { url: "/favicon.ico", type: "image/x-icon", sizes: "any" },
+      { url: "/favicon.ico", type: "image/x-icon", sizes: "48x48" },
+      { url: "/img/logo.png", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
   },
 };
 
@@ -27,8 +37,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full`}>
-      <body className="min-h-full bg-slate-950 text-slate-100 antialiased selection:bg-blue-600 selection:text-white flex flex-col">
+    <html lang="en" className={`${inter.variable} ${manrope.variable} h-full scroll-smooth`}>
+      <body className="min-h-full bg-[#F6F9FC] text-[#0A2540] font-sans antialiased selection:bg-[#3F8EFC] selection:text-white flex flex-col">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
