@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebaseAdmin";
 import { verifySessionToken } from "@/lib/user-service";
 import { parseBureauData } from "@/lib/bureauParsers";
+import { reportsListCache } from "@/lib/api-caches";
 
 function generateSearchTokens(name: string = "", mobile: string = "", pan: string = ""): string[] {
   const tokens = new Set<string>();
@@ -43,6 +44,12 @@ export async function GET(req: NextRequest) {
 
     if (!adminDb || typeof adminDb.collection !== "function") {
       return NextResponse.json({ success: true, reports: [] });
+    }
+
+    const cacheKey = JSON.stringify([effectiveBranch, source, start, end, limitQuery]);
+    const cachedReports = reportsListCache.get(cacheKey);
+    if (cachedReports) {
+      return NextResponse.json({ success: true, reports: cachedReports });
     }
 
     let queryRef: any = adminDb.collection("credit_reports");
@@ -135,6 +142,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    reportsListCache.set(cacheKey, reports);
     return NextResponse.json({ success: true, reports });
   } catch (err: any) {
     console.error("GET /api/reports error:", err);
@@ -250,6 +258,7 @@ export async function POST(req: NextRequest) {
 
     if (adminDb && typeof adminDb.collection === "function") {
       await adminDb.collection("credit_reports").doc(docId).set(docPayload, { merge: true });
+      reportsListCache.clear();
     }
 
     return NextResponse.json({

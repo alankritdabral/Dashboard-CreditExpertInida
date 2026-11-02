@@ -1,5 +1,6 @@
 import { adminDb } from "@/lib/firebaseAdmin";
 import { getWhatsappDlrDetails, WhatsappDlrData } from "@/lib/messagebotWhatsapp";
+import { TtlCache } from "@/lib/ttl-cache";
 
 export interface WhatsappMessageRecord {
   id?: string;
@@ -46,6 +47,14 @@ export interface WhatsappLogStats {
 
 const COLLECTION_NAME = "whatsapp_messages";
 
+// Raw recent-messages read, shared by every search/status/type filter combination
+// (filtering is done in memory). Cleared whenever a message is written or synced.
+const recentMessagesCache = new TtlCache<WhatsappMessageRecord[]>(15_000, 5);
+
+export function invalidateWhatsappMessagesCache() {
+  recentMessagesCache.clear();
+}
+
 /**
  * 1. Save WhatsApp Message Log into Firestore
  */
@@ -91,6 +100,7 @@ export async function saveWhatsappMessageLog(
     };
 
     const docRef = await adminDb.collection(COLLECTION_NAME).add(docData);
+    invalidateWhatsappMessagesCache();
     return docRef.id;
   } catch (error) {
     console.error("[whatsappLogs:saveWhatsappMessageLog Error]", error);
@@ -124,16 +134,21 @@ export async function getWhatsappMessageLogs(options?: {
     }
 
     const maxLimit = Math.min(options?.limit || 100, 300);
-    const snapshot = await adminDb
-      .collection(COLLECTION_NAME)
-      .orderBy("createdAt", "desc")
-      .limit(maxLimit)
-      .get();
+    const cacheKey = String(maxLimit);
+    let allMessages = recentMessagesCache.get(cacheKey);
+    if (!allMessages) {
+      const snapshot = await adminDb
+        .collection(COLLECTION_NAME)
+        .orderBy("createdAt", "desc")
+        .limit(maxLimit)
+        .get();
 
-    let allMessages: WhatsappMessageRecord[] = snapshot.docs.map((doc: any) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+      allMessages = snapshot.docs.map((doc: any) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as WhatsappMessageRecord[];
+      recentMessagesCache.set(cacheKey, allMessages);
+    }
 
     // In-memory stats on recent records
     let totalDelivered = 0;
@@ -283,6 +298,7 @@ export async function syncWhatsappMessageDlr(
           batch.update(doc.ref, updatePayload);
         });
         await batch.commit();
+        invalidateWhatsappMessagesCache();
 
         const updatedDoc = querySnapshot.docs[0];
         return {

@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { CibilFetchForm } from "@/components/CibilFetchForm";
 import { CreditReportDashboard } from "@/components/CreditReportDashboard";
 import { DashboardHeader, NavTabItem } from "@/components/DashboardHeader";
+import { AdminSidebar } from "@/components/AdminSidebar";
 import * as XLSX from "xlsx";
 import {
   Database,
@@ -368,21 +369,24 @@ export default function AdminDashboardPage() {
   return (
     <div className="min-h-screen bg-[#F6F9FC] text-[#0A2540] flex flex-col font-sans">
       {/* Website-Style Navigation Header */}
-      <DashboardHeader
+      <DashboardHeader tabs={[]} activeTab={activeTab} onTabChange={() => {}} />
+
+      <div className="flex-1 flex flex-col lg:flex-row w-full">
+      <AdminSidebar
         tabs={navTabs}
         activeTab={activeTab}
-        onTabChange={(tabId) => setActiveTab(tabId)}
+        onTabChange={(tabId) => (tabId === "whatsapp" ? router.push("/admin/whatsapp") : setActiveTab(tabId))}
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 p-4 sm:p-8 max-w-7xl mx-auto w-full space-y-6">
+      <main className="flex-1 min-w-0 p-4 sm:p-8 max-w-7xl mx-auto w-full space-y-6">
         {/* ============================================================== */}
         {/* TAB 1: ALL REPORTS */}
         {/* ============================================================== */}
         {activeTab === "reports" && (
           <div className="space-y-4 animate-fadeIn">
             {/* Filter Controls Bar */}
-            <div className="bg-white border border-slate-200/90 p-5 rounded-3xl space-y-3.5 shadow-sm">
+            <div className="bg-white border border-slate-200/90 p-4 sm:p-5 rounded-3xl space-y-3.5 shadow-sm">
               <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
                 {/* Search */}
                 <div className="relative flex-1">
@@ -392,17 +396,17 @@ export default function AdminDashboardPage() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search by Applicant Name, PAN, Mobile, or Branch..."
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-medium"
+                    className="max-sm:min-h-11 w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 max-sm:text-base text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-medium"
                   />
                 </div>
 
                 {/* Filters */}
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap [&>select]:flex-1 [&>select]:min-w-[140px] sm:[&>select]:flex-none">
                   {/* Branch filter */}
                   <select
                     value={selectedBranchFilter}
                     onChange={(e) => setSelectedBranchFilter(e.target.value)}
-                    className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 font-medium focus:outline-none focus:bg-white focus:border-[#3F8EFC]"
+                    className="max-sm:min-h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 max-sm:text-base text-xs text-slate-700 font-medium focus:outline-none focus:bg-white focus:border-[#3F8EFC]"
                   >
                     <option value="all">All Branches</option>
                     <option value="Rudrapur">Rudrapur</option>
@@ -417,7 +421,7 @@ export default function AdminDashboardPage() {
                   <select
                     value={selectedSourceFilter}
                     onChange={(e) => setSelectedSourceFilter(e.target.value)}
-                    className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 font-medium focus:outline-none focus:bg-white focus:border-[#3F8EFC]"
+                    className="max-sm:min-h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 max-sm:text-base text-xs text-slate-700 font-medium focus:outline-none focus:bg-white focus:border-[#3F8EFC]"
                   >
                     <option value="all">All Sources</option>
                     <option value="dashboard_branch">Branch Workplace</option>
@@ -430,7 +434,7 @@ export default function AdminDashboardPage() {
                   <select
                     value={selectedBureauFilter}
                     onChange={(e) => setSelectedBureauFilter(e.target.value)}
-                    className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 font-medium focus:outline-none focus:bg-white focus:border-[#3F8EFC]"
+                    className="max-sm:min-h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 max-sm:text-base text-xs text-slate-700 font-medium focus:outline-none focus:bg-white focus:border-[#3F8EFC]"
                   >
                     <option value="all">All Bureaus</option>
                     <option value="v1">CIBIL (TransUnion)</option>
@@ -442,7 +446,7 @@ export default function AdminDashboardPage() {
                   <button
                     onClick={fetchAllReports}
                     disabled={reportsLoading}
-                    className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all shadow-2xs"
+                    className="max-sm:min-h-11 max-sm:min-w-11 p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all shadow-2xs"
                     title="Refresh Reports"
                   >
                     <RefreshCw className={`w-3.5 h-3.5 ${reportsLoading ? "animate-spin" : ""}`} />
@@ -450,7 +454,7 @@ export default function AdminDashboardPage() {
 
                   <button
                     onClick={exportToExcel}
-                    className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-md shadow-emerald-600/20 cursor-pointer"
+                    className="max-sm:min-h-11 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-md shadow-emerald-600/20 cursor-pointer"
                   >
                     <FileSpreadsheet className="w-3.5 h-3.5" />
                     Export Excel
@@ -467,14 +471,14 @@ export default function AdminDashboardPage() {
                   type="date"
                   value={reportStartDate}
                   onChange={(e) => setReportStartDate(e.target.value)}
-                  className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-800 focus:outline-none focus:border-[#3F8EFC]"
+                  className="max-sm:min-h-11 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 max-sm:text-base text-xs text-slate-800 focus:outline-none focus:border-[#3F8EFC]"
                 />
                 <span>to</span>
                 <input
                   type="date"
                   value={reportEndDate}
                   onChange={(e) => setReportEndDate(e.target.value)}
-                  className="bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-800 focus:outline-none focus:border-[#3F8EFC]"
+                  className="max-sm:min-h-11 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 max-sm:text-base text-xs text-slate-800 focus:outline-none focus:border-[#3F8EFC]"
                 />
                 {(reportStartDate || reportEndDate) && (
                   <button
@@ -482,12 +486,12 @@ export default function AdminDashboardPage() {
                       setReportStartDate("");
                       setReportEndDate("");
                     }}
-                    className="text-xs text-red-600 font-semibold hover:underline cursor-pointer"
+                    className="max-sm:min-h-11 text-xs text-red-600 font-semibold hover:underline cursor-pointer"
                   >
                     Clear dates
                   </button>
                 )}
-                <span className="ml-auto text-slate-400 font-medium">
+                <span className="sm:ml-auto text-slate-400 font-medium">
                   Showing {paginatedReports.length} of {filteredReports.length} reports
                 </span>
               </div>
@@ -496,7 +500,7 @@ export default function AdminDashboardPage() {
             {/* Reports Table in Clean White Card */}
             <div className="bg-white border border-slate-200/90 rounded-3xl overflow-hidden shadow-xl shadow-slate-900/5">
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+                <table className="w-full min-w-[720px] text-left text-xs">
                   <thead className="bg-slate-50/90 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200">
                     <tr>
                       <th className="p-4">Applicant</th>
@@ -536,7 +540,7 @@ export default function AdminDashboardPage() {
                             {report.pan}
                           </td>
                           <td className="p-4">
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex flex-wrap items-center gap-1.5">
                               <span className="uppercase text-[10px] font-bold text-slate-500">
                                 {report.bureau}
                               </span>
@@ -583,13 +587,13 @@ export default function AdminDashboardPage() {
                             <div className="flex items-center justify-end gap-1.5">
                               <button
                                 onClick={() => handleOpenReportModal(report.id)}
-                                className="px-3 py-1.5 bg-[#3F8EFC] hover:bg-blue-600 text-white rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs shadow-[#3F8EFC]/20"
+                                className="max-sm:min-h-11 px-3 py-1.5 bg-[#3F8EFC] hover:bg-blue-600 text-white rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 shadow-xs shadow-[#3F8EFC]/20"
                               >
                                 <Eye className="w-3.5 h-3.5" /> View
                               </button>
                               <button
                                 onClick={() => handleDeleteReport(report.id)}
-                                className="p-1.5 bg-red-50 hover:bg-red-600 text-red-600 hover:text-white rounded-lg text-xs transition-all cursor-pointer border border-red-200 hover:border-transparent"
+                                className="max-sm:min-h-11 max-sm:min-w-11 p-1.5 bg-red-50 hover:bg-red-600 text-red-600 hover:text-white rounded-lg text-xs transition-all cursor-pointer border border-red-200 hover:border-transparent"
                                 title="Delete Report"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -620,23 +624,23 @@ export default function AdminDashboardPage() {
 
               {/* Pagination controls */}
               {totalPages > 1 && (
-                <div className="p-4 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between">
+                <div className="p-4 border-t border-slate-100 bg-slate-50/70 flex flex-wrap items-center justify-between gap-3">
                   <span className="text-xs text-slate-600 font-medium">
                     Page <strong className="text-slate-900">{page}</strong> of{" "}
                     <strong className="text-slate-900">{totalPages}</strong>
                   </span>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <button
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
                       disabled={page === 1}
-                      className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-700 disabled:opacity-40 cursor-pointer shadow-2xs hover:bg-slate-50"
+                      className="max-sm:min-h-11 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-700 disabled:opacity-40 cursor-pointer shadow-2xs hover:bg-slate-50"
                     >
                       Previous
                     </button>
                     <button
                       onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                       disabled={page === totalPages}
-                      className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-700 disabled:opacity-40 cursor-pointer shadow-2xs hover:bg-slate-50"
+                      className="max-sm:min-h-11 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-700 disabled:opacity-40 cursor-pointer shadow-2xs hover:bg-slate-50"
                     >
                       Next
                     </button>
@@ -671,7 +675,7 @@ export default function AdminDashboardPage() {
 
               <button
                 onClick={() => setShowAddUserModal(true)}
-                className="px-4 py-2.5 bg-[#3F8EFC] hover:bg-blue-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-[#3F8EFC]/20 transition-all cursor-pointer"
+                className="max-sm:min-h-11 px-4 py-2.5 bg-[#3F8EFC] hover:bg-blue-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-[#3F8EFC]/20 transition-all cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" /> Add Branch User
               </button>
@@ -680,7 +684,7 @@ export default function AdminDashboardPage() {
             {/* Users Table */}
             <div className="bg-white border border-slate-200/90 rounded-3xl overflow-hidden shadow-xl shadow-slate-900/5">
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+                <table className="w-full min-w-[640px] text-left text-xs">
                   <thead className="bg-slate-50/90 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200">
                     <tr>
                       <th className="p-4">Employee Name</th>
@@ -708,7 +712,7 @@ export default function AdminDashboardPage() {
                         <td className="p-4">
                           <button
                             onClick={() => handleToggleUserStatus(u)}
-                            className={`px-3 py-1 rounded-full text-[11px] font-bold border transition-all cursor-pointer ${
+                            className={`max-sm:min-h-11 px-3 py-1 rounded-full text-[11px] font-bold border transition-all cursor-pointer ${
                               u.status === "Active"
                                 ? "bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100"
                                 : "bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
@@ -720,7 +724,7 @@ export default function AdminDashboardPage() {
                         <td className="p-4 text-right">
                           <button
                             onClick={() => handleDeleteBranchUser(u.id)}
-                            className="p-1.5 bg-red-50 hover:bg-red-600 text-red-600 hover:text-white rounded-lg text-xs transition-all cursor-pointer border border-red-200 hover:border-transparent"
+                            className="max-sm:min-h-11 max-sm:min-w-11 p-1.5 bg-red-50 hover:bg-red-600 text-red-600 hover:text-white rounded-lg text-xs transition-all cursor-pointer border border-red-200 hover:border-transparent"
                             title="Delete User"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -749,8 +753,8 @@ export default function AdminDashboardPage() {
         {activeTab === "activity" && (
           <div className="space-y-6 animate-fadeIn">
             {/* KPI Cards in clean white cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-              <div className="bg-white border border-slate-200/90 p-6 rounded-3xl shadow-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-white border border-slate-200/90 p-4 sm:p-6 rounded-3xl shadow-sm">
                 <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                   Total Bureau Pulls
                 </span>
@@ -758,7 +762,7 @@ export default function AdminDashboardPage() {
                 <p className="text-[11px] text-slate-500 mt-1">Cross-branch & online aggregate</p>
               </div>
 
-              <div className="bg-white border border-slate-200/90 p-6 rounded-3xl shadow-sm">
+              <div className="bg-white border border-slate-200/90 p-4 sm:p-6 rounded-3xl shadow-sm">
                 <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                   Active Branches
                 </span>
@@ -768,7 +772,7 @@ export default function AdminDashboardPage() {
                 <p className="text-[11px] text-slate-500 mt-1">Operational branch centers</p>
               </div>
 
-              <div className="bg-white border border-slate-200/90 p-6 rounded-3xl shadow-sm">
+              <div className="bg-white border border-slate-200/90 p-4 sm:p-6 rounded-3xl shadow-sm">
                 <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                   Avg Bureau Latency
                 </span>
@@ -776,7 +780,7 @@ export default function AdminDashboardPage() {
                 <p className="text-[11px] text-slate-500 mt-1">Direct IDSPay API response</p>
               </div>
 
-              <div className="bg-white border border-slate-200/90 p-6 rounded-3xl shadow-sm">
+              <div className="bg-white border border-slate-200/90 p-4 sm:p-6 rounded-3xl shadow-sm">
                 <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                   Staff Accounts
                 </span>
@@ -786,7 +790,7 @@ export default function AdminDashboardPage() {
             </div>
 
             {/* Branch Breakdown */}
-            <div className="bg-white border border-slate-200/90 rounded-3xl p-6 shadow-sm">
+            <div className="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-6 shadow-sm">
               <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-[#3F8EFC]" />
                 Reports Fetched by Branch
@@ -796,7 +800,7 @@ export default function AdminDashboardPage() {
                   const pct = reports.length > 0 ? Math.round((count / reports.length) * 100) : 0;
                   return (
                     <div key={branch} className="space-y-1">
-                      <div className="flex items-center justify-between text-xs">
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                         <span className="font-bold text-slate-800">{branch}</span>
                         <span className="font-mono text-slate-500">
                           {count} reports ({pct}%)
@@ -821,7 +825,7 @@ export default function AdminDashboardPage() {
         {/* ============================================================== */}
         {activeTab === "logs" && (
           <div className="space-y-4 animate-fadeIn">
-            <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs">
+            <div className="flex flex-wrap items-center justify-between gap-2 bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs">
               <div className="relative flex-1 max-w-md">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
@@ -829,14 +833,14 @@ export default function AdminDashboardPage() {
                   value={logFilterQuery}
                   onChange={(e) => setLogFilterQuery(e.target.value)}
                   placeholder="Filter logs by event or request ID..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#3F8EFC]"
+                  className="max-sm:min-h-11 w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 max-sm:text-base text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#3F8EFC]"
                 />
               </div>
 
               <button
                 onClick={fetchLogs}
                 disabled={logsLoading}
-                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                className="max-sm:min-h-11 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${logsLoading ? "animate-spin" : ""}`} />
                 Refresh Logs
@@ -846,7 +850,7 @@ export default function AdminDashboardPage() {
             {/* Logs Table */}
             <div className="bg-white border border-slate-200/90 rounded-3xl overflow-hidden shadow-xl shadow-slate-900/5">
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs font-mono">
+                <table className="w-full min-w-[640px] text-left text-xs font-mono">
                   <thead className="bg-slate-50/90 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200">
                     <tr>
                       <th className="p-4">Time</th>
@@ -884,7 +888,7 @@ export default function AdminDashboardPage() {
                         <td className="p-4 text-right">
                           <button
                             onClick={() => setViewingLog(log)}
-                            className="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-[11px] font-bold transition-all cursor-pointer"
+                            className="max-sm:min-h-11 px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-[11px] font-bold transition-all cursor-pointer"
                           >
                             Inspect JSON
                           </button>
@@ -941,7 +945,7 @@ export default function AdminDashboardPage() {
                     value={waMobile}
                     onChange={(e) => setWaMobile(e.target.value.replace(/\D/g, ""))}
                     placeholder="9876543210"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-mono font-medium"
+                    className="max-sm:min-h-11 w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 max-sm:text-base text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-mono font-medium"
                   />
                 </div>
 
@@ -952,7 +956,7 @@ export default function AdminDashboardPage() {
                   <select
                     value={waTemplate}
                     onChange={(e) => setWaTemplate(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#3F8EFC] font-medium"
+                    className="max-sm:min-h-11 w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 max-sm:text-base text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#3F8EFC] font-medium"
                   >
                     <option value="report_download">CIBIL Report Download Link Notification</option>
                     <option value="emi_reminder">Loan EMI Payment Alert</option>
@@ -969,14 +973,14 @@ export default function AdminDashboardPage() {
                     value={waMessage}
                     onChange={(e) => setWaMessage(e.target.value)}
                     placeholder="Hello! Your Credit Expert India credit analysis report has been generated. Access it here..."
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-medium"
+                    className="max-sm:min-h-11 w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 max-sm:text-base text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-medium"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={waSending}
-                  className="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all cursor-pointer"
+                  className="max-sm:min-h-11 w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 transition-all cursor-pointer"
                 >
                   {waSending ? (
                     <>
@@ -995,19 +999,20 @@ export default function AdminDashboardPage() {
           </div>
         )}
       </main>
+      </div>
 
       {/* Add User Modal */}
       {showAddUserModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl space-y-5 animate-fadeIn border border-slate-200">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-md max-h-[92dvh] overflow-y-auto rounded-3xl p-4 sm:p-6 shadow-2xl space-y-5 animate-fadeIn border border-slate-200">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                 <Users className="w-4 h-4 text-[#3F8EFC]" />
                 Add New Branch User
               </h3>
               <button
                 onClick={() => setShowAddUserModal(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-all cursor-pointer"
+                className="max-sm:min-h-11 max-sm:min-w-11 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-all cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1024,7 +1029,7 @@ export default function AdminDashboardPage() {
                   value={newUserName}
                   onChange={(e) => setNewUserName(e.target.value)}
                   placeholder="e.g. Amit Patel"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#3F8EFC] font-medium"
+                  className="max-sm:min-h-11 w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 max-sm:text-base text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#3F8EFC] font-medium"
                 />
               </div>
 
@@ -1038,7 +1043,7 @@ export default function AdminDashboardPage() {
                   value={newUserEmail}
                   onChange={(e) => setNewUserEmail(e.target.value)}
                   placeholder="amit.rudrapur@creditexpertindia.com"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#3F8EFC] font-medium"
+                  className="max-sm:min-h-11 w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 max-sm:text-base text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#3F8EFC] font-medium"
                 />
               </div>
 
@@ -1049,7 +1054,7 @@ export default function AdminDashboardPage() {
                 <select
                   value={newUserBranch}
                   onChange={(e) => setNewUserBranch(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#3F8EFC] font-medium"
+                  className="max-sm:min-h-11 w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 max-sm:text-base text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#3F8EFC] font-medium"
                 >
                   <option value="Rudrapur">Rudrapur</option>
                   <option value="Delhi">Delhi</option>
@@ -1067,14 +1072,14 @@ export default function AdminDashboardPage() {
                   required
                   value={newUserPassword}
                   onChange={(e) => setNewUserPassword(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#3F8EFC] font-mono font-medium"
+                  className="max-sm:min-h-11 w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 max-sm:text-base text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#3F8EFC] font-mono font-medium"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={userActionLoading}
-                className="w-full py-3 rounded-xl bg-[#3F8EFC] hover:bg-blue-600 text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-[#3F8EFC]/20"
+                className="max-sm:min-h-11 w-full py-3 rounded-xl bg-[#3F8EFC] hover:bg-blue-600 text-white text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 shadow-lg shadow-[#3F8EFC]/20"
               >
                 {userActionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                 Create Branch Account
@@ -1086,9 +1091,9 @@ export default function AdminDashboardPage() {
 
       {/* Report Modal */}
       {viewingReport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white text-slate-900 w-full max-w-6xl max-h-[92vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-200">
-            <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-slate-50 sticky top-0 z-10">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white text-slate-900 w-full max-w-6xl max-h-[92dvh] rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-200">
+            <div className="flex items-start sm:items-center justify-between gap-3 p-4 sm:p-5 border-b border-slate-100 bg-slate-50 sticky top-0 z-10">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                   <CreditCard className="w-5 h-5 text-[#3F8EFC]" />
@@ -1103,13 +1108,13 @@ export default function AdminDashboardPage() {
               </div>
               <button
                 onClick={() => setViewingReport(null)}
-                className="w-9 h-9 flex items-center justify-center rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 transition-all cursor-pointer"
+                className="max-sm:min-h-11 max-sm:min-w-11 w-9 h-9 shrink-0 flex items-center justify-center rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 transition-all cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="flex-1 p-6 overflow-y-auto bg-slate-50">
+            <div className="flex-1 p-3 sm:p-6 overflow-y-auto bg-slate-50">
               <CreditReportDashboard
                 bureau={viewingReport.bureau}
                 cibilData={viewingReport.raw_api_data}
@@ -1128,9 +1133,9 @@ export default function AdminDashboardPage() {
 
       {/* Inspect Log Modal */}
       {viewingLog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-800 w-full max-w-3xl max-h-[85vh] rounded-2xl p-5 flex flex-col space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-slate-800 w-full max-w-3xl max-h-[85dvh] rounded-2xl p-5 flex flex-col space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
               <div>
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <FileWarning className="w-4 h-4 text-[#3F8EFC]" />
@@ -1142,7 +1147,7 @@ export default function AdminDashboardPage() {
               </div>
               <button
                 onClick={() => setViewingLog(null)}
-                className="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white"
+                className="max-sm:min-h-11 max-sm:min-w-11 w-7 h-7 shrink-0 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>

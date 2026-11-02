@@ -65,22 +65,56 @@ export async function POST(req: NextRequest) {
     }
 
     let endpoint = "";
+    const b = bodyPayload as {
+      first_name?: string;
+      last_name?: string;
+      mobile?: string;
+      pan?: string;
+      dob?: string;
+      gender?: string;
+    };
+
+    // Each IDSPay endpoint takes its own field names (same shapes as the public website's form).
+    let providerBody: Record<string, unknown>;
+    if (requestedBureau.startsWith("v1")) {
+      // TransUnion (CIBIL)
+      endpoint = "https://javabackend.idspay.in/api/v1/prod/srv5/transunion-Score-Hybrid";
+      const g = (b.gender || "").toLowerCase();
+      providerBody = {
+        forename: b.first_name,
+        surname: b.last_name,
+        phone_number: b.mobile,
+        gender: g === "male" ? "Male" : g === "female" ? "Female" : "Other",
+        pan_id: b.pan,
+        date_of_birth: b.dob || undefined,
+      };
+    } else if (requestedBureau.startsWith("crif")) {
+      endpoint = "https://javabackend.idspay.in/api/v1/prod/crif/Credit-ScoreV4";
+      providerBody = {
+        first_name: b.first_name,
+        last_name: b.last_name,
+        mobile_no: b.mobile,
+        name_lookup: 0,
+      };
+    } else if (requestedBureau.startsWith("experian")) {
+      endpoint = "https://javabackend.idspay.in/api/v1/prod/srv2/credit-report/experian";
+      providerBody = {
+        first_name: b.first_name,
+        last_name: b.last_name,
+        mobile_no: b.mobile,
+        pan: b.pan,
+        dob: b.dob || undefined,
+      };
+    } else {
+      return NextResponse.json({ error: "Unsupported bureau format." }, { status: 400 });
+    }
+
     const finalPayload = {
       api_id: apiId,
       api_key: apiKey,
       token_id: tokenId,
-      ...bodyPayload,
+      ...providerBody,
     };
-
-    if (requestedBureau.startsWith("v1")) {
-      endpoint = "https://javabackend.idspay.in/api/v1/prod/srv5/transunion-Score-Hybrid";
-    } else if (requestedBureau.startsWith("crif")) {
-      endpoint = "https://javabackend.idspay.in/api/v1/prod/crif/Credit-ScoreV4";
-    } else if (requestedBureau.startsWith("experian")) {
-      endpoint = "https://javabackend.idspay.in/api/v1/prod/srv2/credit-report/experian";
-    } else {
-      return NextResponse.json({ error: "Unsupported bureau format." }, { status: 400 });
-    }
 
     const res = await fetch(endpoint, {
       method: "POST",
@@ -97,6 +131,18 @@ export async function POST(req: NextRequest) {
     } else {
       const text = await res.text();
       responseData = { raw: text };
+    }
+
+    if (!res.ok) {
+      // Surface the provider's reason (never log credentials) so 4xx failures are diagnosable.
+      console.warn(`[IDSPay ${requestedBureau}] HTTP ${res.status}:`, JSON.stringify(responseData).slice(0, 4000));
+      if (responseData && typeof responseData === "object" && (!responseData.error || typeof responseData.error === "object") && !(typeof responseData.message === "string" && responseData.message)) {
+        const detail =
+          responseData.detail || responseData.errors || responseData.msg || responseData.raw || responseData.status;
+        responseData.error =
+          `[${requestedBureau}] ` +
+          (typeof detail === "string" ? detail : detail ? JSON.stringify(detail).slice(0, 300) : `Provider returned HTTP ${res.status}`);
+      }
     }
 
     // Async record log to Firestore system_logs

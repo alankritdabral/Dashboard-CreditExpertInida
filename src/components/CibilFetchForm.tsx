@@ -9,7 +9,6 @@ import {
   Phone,
   CreditCard,
   Calendar,
-  MapPin,
   CheckCircle,
   AlertCircle,
   Loader2,
@@ -32,10 +31,6 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
   const [pan, setPan] = useState("");
   const [dob, setDob] = useState("");
   const [gender, setGender] = useState<"Male" | "Female">("Male");
-  const [address, setAddress] = useState("");
-  const [pincode, setPincode] = useState("");
-  const [city, setCity] = useState("");
-  const [state, setState] = useState("");
   const [bureau, setBureau] = useState("v1"); // v1 = CIBIL, crif = CRIF, experian = Experian
 
   const [loading, setLoading] = useState(false);
@@ -80,13 +75,8 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
         last_name: lastName.trim(),
         mobile: cleanMobile,
         pan: cleanPan,
-        dob: dob || "1990-01-01",
+        dob: dob || undefined,
         gender: gender.toLowerCase(),
-        address: address || "City Center",
-        pincode: pincode || "110001",
-        city: city || "Delhi",
-        state: state || "Delhi",
-        consent: "Y",
       };
 
       // 2. Call IDSPay API proxy
@@ -102,7 +92,8 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
       const resData = await apiRes.json();
 
       if (!apiRes.ok && !resData.data && !resData.raw_api_data) {
-        throw new Error(resData.error || resData.message || "Bureau request failed");
+        const reason = resData.error?.message || resData.error || resData.message;
+        throw new Error(typeof reason === "string" ? reason : JSON.stringify(reason) || "Bureau request failed");
       }
 
       const bureauPayload = resData.data || resData;
@@ -162,18 +153,14 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
     setMobile("");
     setPan("");
     setDob("");
-    setAddress("");
-    setPincode("");
-    setCity("");
-    setState("");
     setError(null);
   };
 
   if (reportResult) {
     return (
       <div className="space-y-6 animate-fadeIn">
-        <div className="flex items-center justify-between bg-white border border-slate-200/90 p-5 rounded-2xl shadow-sm">
-          <div className="flex items-center gap-3.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-slate-200/90 p-4 sm:p-5 rounded-2xl shadow-sm">
+          <div className="flex items-center gap-3.5 min-w-0">
             <div className="w-11 h-11 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center shrink-0">
               <CheckCircle className="w-6 h-6" />
             </div>
@@ -191,14 +178,14 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
 
           <button
             onClick={resetForm}
-            className="px-4 py-2.5 bg-[#3F8EFC] hover:bg-blue-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-[#3F8EFC]/20 transition-all cursor-pointer"
+            className="w-full sm:w-auto justify-center min-h-[44px] px-4 py-2.5 bg-[#3F8EFC] hover:bg-blue-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-[#3F8EFC]/20 transition-all cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" /> Fetch Another Applicant
           </button>
         </div>
 
         {/* Interactive Bureau Dashboard */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl overflow-hidden border border-slate-200 text-slate-900">
+        <div className="bg-white rounded-3xl p-3 sm:p-8 shadow-xl overflow-hidden border border-slate-200 text-slate-900">
           <CreditReportDashboard
             bureau={reportResult.bureau}
             cibilData={reportResult.raw_api_data}
@@ -212,8 +199,8 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header Info Banner matching website */}
-      <div className="bg-white border border-slate-200/90 p-6 rounded-3xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+      <div className="bg-white border border-slate-200/90 p-4 sm:p-6 rounded-3xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-4 min-w-0">
           <div className="w-13 h-13 rounded-2xl bg-blue-50 border border-blue-100 text-[#3F8EFC] flex items-center justify-center shrink-0 shadow-xs">
             <Search className="w-6 h-6" />
           </div>
@@ -226,10 +213,10 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
           </div>
         </div>
 
-        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-50 border border-slate-200 text-xs shadow-2xs">
+        <div className="flex flex-wrap items-center gap-2 max-w-full px-3.5 py-1.5 rounded-full bg-slate-50 border border-slate-200 text-xs shadow-2xs">
           <Shield className="w-3.5 h-3.5 text-emerald-600" />
           <span className="text-slate-500 font-medium">Attribution:</span>
-          <span className="text-slate-900 font-bold">{user?.name} ({effectiveBranch})</span>
+          <span className="text-slate-900 font-bold break-words">{user?.name} ({effectiveBranch})</span>
         </div>
       </div>
 
@@ -244,7 +231,7 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
       )}
 
       {/* Main Form */}
-      <form onSubmit={handleFetch} className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 space-y-6 shadow-xl shadow-slate-900/5">
+      <form onSubmit={handleFetch} className="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-8 space-y-6 shadow-xl shadow-slate-900/5">
         {/* Section 1: Bureau Selection */}
         <div>
           <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2.5">
@@ -293,7 +280,7 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   placeholder="e.g. Rahul"
-                  className="w-full bg-slate-50/70 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-medium"
+                  className="w-full bg-slate-50/70 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 min-h-[44px] text-base sm:text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-medium"
                 />
               </div>
             </div>
@@ -308,7 +295,7 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   placeholder="e.g. Sharma"
-                  className="w-full bg-slate-50/70 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-medium"
+                  className="w-full bg-slate-50/70 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 min-h-[44px] text-base sm:text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-medium"
                 />
               </div>
             </div>
@@ -324,7 +311,7 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
                   value={mobile}
                   onChange={(e) => setMobile(e.target.value.replace(/\D/g, ""))}
                   placeholder="9876543210"
-                  className="w-full bg-slate-50/70 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-mono font-medium"
+                  className="w-full bg-slate-50/70 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 min-h-[44px] text-base sm:text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-mono font-medium"
                 />
               </div>
             </div>
@@ -340,7 +327,7 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
                   value={pan}
                   onChange={(e) => setPan(e.target.value.toUpperCase())}
                   placeholder="ABCDE1234F"
-                  className="w-full bg-slate-50/70 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-mono uppercase font-bold"
+                  className="w-full bg-slate-50/70 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 min-h-[44px] text-base sm:text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-mono uppercase font-bold"
                 />
               </div>
             </div>
@@ -353,7 +340,7 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
                   type="date"
                   value={dob}
                   onChange={(e) => setDob(e.target.value)}
-                  className="w-full bg-slate-50/70 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-medium"
+                  className="w-full bg-slate-50/70 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 min-h-[44px] text-base sm:text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-medium"
                 />
               </div>
             </div>
@@ -364,7 +351,7 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
                 <button
                   type="button"
                   onClick={() => setGender("Male")}
-                  className={`py-2.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                  className={`py-3 min-h-[44px] rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                     gender === "Male"
                       ? "bg-[#3F8EFC] text-white border-[#3F8EFC] shadow-sm"
                       : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
@@ -375,7 +362,7 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
                 <button
                   type="button"
                   onClick={() => setGender("Female")}
-                  className={`py-2.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                  className={`py-3 min-h-[44px] rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                     gender === "Female"
                       ? "bg-[#3F8EFC] text-white border-[#3F8EFC] shadow-sm"
                       : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
@@ -388,65 +375,8 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
           </div>
         </div>
 
-        {/* Section 3: Address & Location Details */}
-        <div className="space-y-3.5 pt-4 border-t border-slate-100">
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-            3. Address & Location Details
-          </label>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="sm:col-span-3">
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Street Address</label>
-              <div className="relative">
-                <MapPin className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="Plot No. / Area / Landmark"
-                  className="w-full bg-slate-50/70 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-medium"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">PIN Code</label>
-              <input
-                type="text"
-                maxLength={6}
-                value={pincode}
-                onChange={(e) => setPincode(e.target.value.replace(/\D/g, ""))}
-                placeholder="110001"
-                className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-mono font-medium"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">City</label>
-              <input
-                type="text"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                placeholder="e.g. Rudrapur"
-                className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-medium"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">State</label>
-              <input
-                type="text"
-                value={state}
-                onChange={(e) => setState(e.target.value)}
-                placeholder="e.g. Uttarakhand"
-                className="w-full bg-slate-50/70 border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-medium"
-              />
-            </div>
-          </div>
-        </div>
-
         {/* Action Button matching website */}
-        <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
           <div className="text-xs text-slate-500">
             Queries the official bureau API and persists the report with full attribution.
           </div>
@@ -454,7 +384,7 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
           <button
             type="submit"
             disabled={loading}
-            className="px-7 py-3.5 rounded-xl bg-[#3F8EFC] hover:bg-blue-600 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-[#3F8EFC]/25 transition-all cursor-pointer shrink-0"
+            className="w-full sm:w-auto justify-center min-h-[48px] px-7 py-3.5 rounded-xl bg-[#3F8EFC] hover:bg-blue-600 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-[#3F8EFC]/25 transition-all cursor-pointer shrink-0"
           >
             {loading ? (
               <>

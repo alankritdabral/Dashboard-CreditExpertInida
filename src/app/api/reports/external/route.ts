@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebaseAdmin";
+import { reportsListCache } from "@/lib/api-caches";
 import { parseBureauData } from "@/lib/bureauParsers";
 
 function generateSearchTokens(name: string = "", mobile: string = "", pan: string = ""): string[] {
@@ -95,6 +96,7 @@ export async function POST(req: NextRequest) {
 
     if (adminDb && typeof adminDb.collection === "function") {
       await adminDb.collection("credit_reports").doc(docId).set(docPayload, { merge: true });
+      reportsListCache.clear();
     }
 
     return NextResponse.json({

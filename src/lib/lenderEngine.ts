@@ -906,7 +906,7 @@ export function analyzeLenderEligibility({
 
     // ─── Global FOIR Logic ──────────────────────────────────────────────
     const hasRunningHL = allLoans.some((l: any) => l.type === "Home Loan" && Number(l.currentOutstanding || 0) > 0);
-    const effectiveMaxFoir = hasRunningHL ? Math.max(70, lender.maxFoir) : 70;
+    let effectiveMaxFoir = hasRunningHL ? Math.max(70, lender.maxFoir) : 70;
     customOutput.maxFOIR = `${effectiveMaxFoir}%`;
 
     // ─── Location warning ──────────────────────────────────────────────
@@ -1482,13 +1482,48 @@ export function analyzeLenderEligibility({
         }
       }
 
-      // FOIR & capacity
+      // FOIR grid: risk segment × company category × NTH segment (policy §2–3)
+      const isHighRisk = profile.riskSegment === "high";
+      const catIdx =
+        employerTier === "A+" || employerTier === "A" ? 0 :
+        employerTier === "B" || employerTier === "GOVT" ? 1 :
+        employerTier === "C" || employerTier === "D" ? 2 : 3; // Unknown → Cat E (conservative)
+      const incIdx =
+        nth > 250000 ? 0 : nth > 150000 ? 1 : nth > 75000 ? 2 : nth >= 50000 ? 3 : 4;
+      const grid: (number | null)[][] = isHighRisk
+        ? [
+            [75, 75, 70, 65, 60],
+            [70, 70, 65, 60, 50],
+            [65, 60, 55, 55, 50],
+            [60, 55, 50, null, null],
+          ]
+        : [
+            [80, 80, 75, 70, 65],
+            [75, 70, 65, 65, 60],
+            [70, 65, 60, 60, 55],
+            [65, 60, 55, 50, 50],
+          ];
+      const gridFoir = grid[catIdx][incIdx];
+
+      if (gridFoir === null) {
+        isEligible = false;
+        rejectionReasons.push("High-risk Cat E applicants with Prime or Others income are not allowed");
+      } else {
+        effectiveMaxFoir = gridFoir;
+        customOutput.maxFOIR = `${gridFoir}%`;
+        customOutput.poonawallaFOIR = gridFoir;
+      }
+      if (profile.cityTier !== "Metro") {
+        warnings.push("FOIR grid is defined only for Metro, Tier 1 and Tier 2 cities");
+      }
+
+      // FOIR & capacity (CC 5% / gold 1% obligation rules via calculateObligation)
       let totalEmi = 0;
       allLoans.forEach((l: any) => {
-        totalEmi += Number(l.emi || 0);
+        totalEmi += calculateObligation(l, lender);
       });
       const maxEmi = nth * (effectiveMaxFoir / 100);
-      const unusedCap = Math.max(0, maxEmi - totalEmi);
+      const unusedCap = isEligible ? Math.max(0, maxEmi - totalEmi) : 0;
       customOutput.poonawallaUnusedCapacity = Math.floor(unusedCap);
 
       if (unusedCap > 0) {
@@ -1499,6 +1534,9 @@ export function analyzeLenderEligibility({
         );
       } else {
         customOutput.poonawallaMaxLoan = 0;
+      }
+      if (isHighRisk) {
+        customOutput.poonawallaMaxLoan = Math.min(customOutput.poonawallaMaxLoan, 3000000);
       }
 
       // Geo limit warning

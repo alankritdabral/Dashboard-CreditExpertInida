@@ -1,6 +1,7 @@
 import { adminDb } from "./firebaseAdmin";
 import { UserAccount, UserSession, UserRole } from "./types";
 import crypto from "crypto";
+import { TtlCache } from "./ttl-cache";
 
 const SEED_USERS: UserAccount[] = [
   {
@@ -53,12 +54,66 @@ const SEED_USERS: UserAccount[] = [
 const inMemoryUsers = new Map<string, UserAccount>();
 SEED_USERS.forEach((u) => inMemoryUsers.set(u.email.toLowerCase(), u));
 
+// Session checks hit getUserByEmail on every page load; cache hits for a minute.
+// Only found users are cached, so failed lookups always re-check Firestore.
+const userByEmailCache = new TtlCache<UserAccount>(60_000, 200);
+const allUsersCache = new TtlCache<UserAccount[]>(30_000, 1);
+
+function invalidateUserCaches() {
+  userByEmailCache.clear();
+  allUsersCache.clear();
+}
+
 export async function getUserByEmail(email: string): Promise<UserAccount | null> {
   const normalized = email.toLowerCase().trim();
+  const rawEmail = email.trim();
+
+  const cached = userByEmailCache.get(normalized);
+  if (cached) return cached;
+
+  const found = await lookupUserByEmail(normalized, rawEmail);
+  if (found) userByEmailCache.set(normalized, found);
+  return found;
+}
+
+async function lookupUserByEmail(normalized: string, rawEmail: string): Promise<UserAccount | null> {
 
   // Try Firestore if available
   if (adminDb && typeof adminDb.collection === "function") {
     try {
+      // 1. Check primary "users" collection (supports both normalized and original casing)
+      let userSnap = await adminDb
+        .collection("users")
+        .where("email", "==", normalized)
+        .limit(1)
+        .get();
+
+      if (userSnap.empty && rawEmail !== normalized) {
+        userSnap = await adminDb
+          .collection("users")
+          .where("email", "==", rawEmail)
+          .limit(1)
+          .get();
+      }
+
+      if (!userSnap.empty) {
+        const doc = userSnap.docs[0];
+        const data = doc.data();
+        const role: UserRole = data.role === "admin" ? "admin" : "branch";
+        return {
+          id: doc.id,
+          name: data.name || data.displayName || "User",
+          email: data.email || normalized,
+          password: data.password || "",
+          role,
+          branch: data.branch || "All",
+          employeeId: data.employeeId || doc.id,
+          status: data.status || "Active",
+          createdAt: data.createdAt || new Date().toISOString(),
+        } as UserAccount;
+      }
+
+      // 2. Check "dashboard_users" collection
       const snap = await adminDb
         .collection("dashboard_users")
         .where("email", "==", normalized)
@@ -75,14 +130,44 @@ export async function getUserByEmail(email: string): Promise<UserAccount | null>
   }
 
   // Memory fallback
-  return inMemoryUsers.get(normalized) || null;
+  const fallback = inMemoryUsers.get(normalized) || null;
+  return fallback;
 }
 
 export async function getAllBranchUsers(): Promise<UserAccount[]> {
+  const cachedList = allUsersCache.get("all");
+  if (cachedList) return cachedList;
+  const list = await loadAllBranchUsers();
+  allUsersCache.set("all", list);
+  return list;
+}
+
+async function loadAllBranchUsers(): Promise<UserAccount[]> {
   const list: UserAccount[] = [];
 
   if (adminDb && typeof adminDb.collection === "function") {
     try {
+      // 1. Fetch from primary "users" collection
+      const userSnap = await adminDb.collection("users").get();
+      if (!userSnap.empty) {
+        userSnap.docs.forEach((d: any) => {
+          const data = d.data();
+          list.push({
+            id: d.id,
+            name: data.name || "User",
+            email: data.email,
+            password: data.password,
+            role: data.role === "admin" ? "admin" : "branch",
+            branch: data.branch || "All",
+            employeeId: data.employeeId || d.id,
+            status: data.status || "Active",
+            createdAt: data.createdAt || new Date().toISOString(),
+          } as UserAccount);
+        });
+        return list;
+      }
+
+      // 2. Fallback to "dashboard_users" collection
       const snap = await adminDb.collection("dashboard_users").get();
       if (!snap.empty) {
         snap.docs.forEach((d: any) => {
@@ -121,6 +206,7 @@ export async function createBranchAccount(accountData: {
 
   // Save to memory
   inMemoryUsers.set(normalizedEmail, newAccount);
+  invalidateUserCaches();
 
   // Save to Firestore
   if (adminDb && typeof adminDb.collection === "function") {
@@ -138,6 +224,7 @@ export async function updateUserAccount(
   id: string,
   updates: Partial<UserAccount>
 ): Promise<boolean> {
+  invalidateUserCaches();
   for (const [key, user] of inMemoryUsers.entries()) {
     if (user.id === id) {
       inMemoryUsers.set(key, { ...user, ...updates });
@@ -159,6 +246,7 @@ export async function updateUserAccount(
 
 export async function updateUserPassword(email: string, newPassword: string): Promise<boolean> {
   const normalized = email.toLowerCase().trim();
+  invalidateUserCaches();
   const user = inMemoryUsers.get(normalized);
   if (user) {
     user.password = newPassword;
@@ -166,6 +254,19 @@ export async function updateUserPassword(email: string, newPassword: string): Pr
 
   if (adminDb && typeof adminDb.collection === "function") {
     try {
+      // 1. Update in "users" collection
+      const userSnap = await adminDb
+        .collection("users")
+        .where("email", "==", normalized)
+        .limit(1)
+        .get();
+
+      if (!userSnap.empty) {
+        await userSnap.docs[0].ref.update({ password: newPassword });
+        return true;
+      }
+
+      // 2. Update in "dashboard_users" collection
       const snap = await adminDb
         .collection("dashboard_users")
         .where("email", "==", normalized)
@@ -174,6 +275,8 @@ export async function updateUserPassword(email: string, newPassword: string): Pr
 
       if (!snap.empty) {
         await snap.docs[0].ref.update({ password: newPassword });
+      } else if (user) {
+        await adminDb.collection("dashboard_users").doc(user.id).set({ ...user, password: newPassword });
       }
     } catch (err) {
       console.error("Failed to update password in Firestore:", err);
@@ -184,6 +287,7 @@ export async function updateUserPassword(email: string, newPassword: string): Pr
 }
 
 export async function deleteBranchUser(id: string): Promise<boolean> {
+  invalidateUserCaches();
   for (const [key, user] of inMemoryUsers.entries()) {
     if (user.id === id) {
       inMemoryUsers.delete(key);

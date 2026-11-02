@@ -37,7 +37,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${manrope.variable} h-full scroll-smooth`}>
+    <html
+      lang="en"
+      data-scroll-behavior="smooth"
+      className={`${inter.variable} ${manrope.variable} h-full scroll-smooth`}
+    >
       <body className="min-h-full bg-[#F6F9FC] text-[#0A2540] font-sans antialiased selection:bg-[#3F8EFC] selection:text-white flex flex-col">
         <AuthProvider>{children}</AuthProvider>
       </body>

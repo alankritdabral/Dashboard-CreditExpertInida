@@ -12,9 +12,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const user = await getUserByEmail(email);
+    const cleanEmail = email.trim();
+    const cleanPassword = typeof password === "string" ? password.trim() : password;
 
-    if (!user || user.password !== password) {
+    const user = await getUserByEmail(cleanEmail);
+
+    if (!user) {
+      console.warn(`[Auth Login] User not found for email: "${cleanEmail}"`);
+      return NextResponse.json(
+        { success: false, error: "Invalid work email or password." },
+        { status: 401 }
+      );
+    }
+
+    if (user.password !== password && user.password !== cleanPassword) {
+      console.warn(`[Auth Login] Password mismatch for email: "${cleanEmail}". Default password is Password@123`);
       return NextResponse.json(
         { success: false, error: "Invalid work email or password." },
         { status: 401 }
