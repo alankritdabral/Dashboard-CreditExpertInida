@@ -1,5 +1,6 @@
 "use client";
 
+import { createPortal } from "react-dom";
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Calculator, Download, X, MessageCircle, Loader2 } from "lucide-react";
 import { RefinanceSummaryCard, CARD_WIDTH } from "./RefinanceSummaryCard";
@@ -256,8 +257,22 @@ export function EmiCalculator() {
     }
   };
 
-  const defaultMessage = (name: string) =>
-    `Hi${name.trim() ? " " + name.trim() : ""}, as discussed, here is your loan refinance summary from Credit Expert India. You can lower your EMI and save on interest by refinancing. Please check the details above and let us know if you'd like to proceed.`;
+  const defaultMessage = (name: string) => {
+    const n = name.trim();
+    const rate = calc ? Number(calc.specialRate.toFixed(2)) : 9.99;
+    const where = bank !== "None" ? ` in ${bank}` : "";
+    return `Dear ${n || "Sir"}
+
+I am calling you regarding reducing your high rate of interest on running loan${where}.
+
+The rate of interest will be reduce to ${rate}% onwards.
+
+👉 Please open the attached image once. Your exact revised EMI and potential benefit are mentioned there.
+
+Kindly check calculation and confirm when can i call you
+
+Thanks & Regards`;
+  };
 
   // Pre-render the PNG when the modal opens so the click handler can use it instantly
   // (browsers only allow clipboard/share while the click's user activation is still fresh).
@@ -407,9 +422,11 @@ export function EmiCalculator() {
 
       {/* Send-to-customer modal */}
       {shareOpen && results && (
-        <Modal onClose={() => setShareOpen(false)} title="Send Summary to Customer" wide subtitle="Opens the customer's WhatsApp chat with your message. The image is copied — paste it and press Send.">
+        <Modal onClose={() => setShareOpen(false)} title="Send Summary to Customer" full subtitle="Opens the customer's WhatsApp chat with your message. The image is copied — paste it and press Send.">
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,400px)] gap-6 items-start lg:flex-1 lg:min-h-0 lg:h-full">
           <PreviewViewport r={results} />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+          <div className="lg:self-center">
+          <div className="grid grid-cols-1 gap-3">
             <div>
               <label className={labelCls} htmlFor="cust-name">Customer Name</label>
               <input id="cust-name" className={inputCls} value={custName} maxLength={60} onChange={(e) => setCustName(e.target.value)} placeholder="e.g. Rahul Sharma" autoComplete="off" />
@@ -424,9 +441,9 @@ export function EmiCalculator() {
           </div>
           <div className="mt-3">
             <label className={labelCls} htmlFor="cust-msg">Message</label>
-            <textarea id="cust-msg" rows={4} className={inputCls} value={custMessage || defaultMessage(custName)} onChange={(e) => setCustMessage(e.target.value)} />
+            <textarea id="cust-msg" rows={20} className={`${inputCls} !text-sm leading-relaxed resize-y`} value={custMessage || defaultMessage(custName)} onChange={(e) => setCustMessage(e.target.value)} />
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 mt-4">
+          <div className="flex flex-col gap-2 mt-4">
             <button type="button" disabled={busy !== null || !pngReady} onClick={openChat} className={`${primaryBtn} flex-1 !bg-[#25D366] hover:!bg-[#1fb757]`}>
               {!pngReady ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageCircle className="w-4 h-4" />}
               {!pngReady ? "Preparing image…" : "Copy Image & Open WhatsApp Chat"}
@@ -434,6 +451,8 @@ export function EmiCalculator() {
             <button type="button" disabled={busy !== null} onClick={downloadImage} className={subBtn}>
               {busy === "download" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} Download PNG
             </button>
+          </div>
+          </div>
           </div>
         </Modal>
       )}
@@ -558,7 +577,38 @@ function Results({
 /* Modal + scaled preview                                               */
 /* ------------------------------------------------------------------ */
 
-function Modal({ title, subtitle, onClose, wide, children }: { title: string; subtitle?: string; onClose: () => void; wide?: boolean; children: React.ReactNode }) {
+type ModalProps = { title: string; subtitle?: string; onClose: () => void; wide?: boolean; full?: boolean; children: React.ReactNode };
+
+// Rendered into <body> so no animated/transformed ancestor can offset "fixed" positioning,
+// and the page behind is locked so the popup always opens at the top of the viewport.
+function Modal(props: ModalProps) {
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+  return createPortal(<ModalInner {...props} />, document.body);
+}
+
+function ModalInner({ title, subtitle, onClose, wide, full, children }: ModalProps) {
+  if (full) {
+    return (
+      <div role="dialog" aria-modal="true" aria-label={title} className="fixed inset-0 z-[9999] bg-white overflow-y-auto lg:overflow-hidden">
+        <div className="mx-auto w-full max-w-6xl min-h-full lg:h-full lg:min-h-0 p-4 sm:p-5 flex flex-col">
+          <div className="flex items-start justify-between gap-3 mb-3 shrink-0">
+            <div>
+              <h2 className="text-lg font-bold text-[#0A2540]">{title}</h2>
+              {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
+            </div>
+            <button type="button" aria-label="Close" onClick={onClose} className="min-w-[44px] min-h-[44px] -m-2 flex items-center justify-center text-slate-400 hover:text-slate-700 cursor-pointer">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          {children}
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="fixed inset-0 z-[9999] bg-black/60 flex items-start sm:items-center justify-center p-3 overflow-y-auto" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div role="dialog" aria-modal="true" aria-label={title} className={`bg-white rounded-2xl shadow-2xl w-full ${wide ? "max-w-xl" : "max-w-sm"} p-4 sm:p-6 my-auto max-h-[calc(100dvh-1.5rem)] overflow-y-auto`}>
@@ -578,27 +628,34 @@ function Modal({ title, subtitle, onClose, wide, children }: { title: string; su
 }
 
 function PreviewViewport({ r }: { r: CalcResult }) {
-  const wrapRef = useRef<HTMLDivElement>(null);
+  const areaRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(0.3);
-  const [height, setHeight] = useState(0);
+  const [box, setBox] = useState({ scale: 0.3, w: 0, h: 0 });
 
   useLayoutEffect(() => {
     const measure = () => {
-      const w = wrapRef.current?.clientWidth || 320;
-      const sc = w / CARD_WIDTH;
-      setScale(sc);
-      setHeight((cardRef.current?.scrollHeight || 1300) * sc);
+      const area = areaRef.current;
+      if (!area) return;
+      const cardH = cardRef.current?.scrollHeight || 1330;
+      const desktop = window.matchMedia("(min-width: 1024px)").matches;
+      const byWidth = (area.clientWidth || 320) / CARD_WIDTH;
+      // Desktop: fit inside the available height too, so nothing scrolls.
+      const scale = desktop && area.clientHeight > 0 ? Math.min(byWidth, area.clientHeight / cardH) : byWidth;
+      setBox({ scale, w: CARD_WIDTH * scale, h: cardH * scale });
     };
     measure();
+    const ro = new ResizeObserver(measure);
+    if (areaRef.current) ro.observe(areaRef.current);
     window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
+    return () => { ro.disconnect(); window.removeEventListener("resize", measure); };
   }, [r]);
 
   return (
-    <div ref={wrapRef} className="relative w-full overflow-hidden rounded-xl border border-slate-200 bg-[#0A1B38]" style={{ height }}>
-      <div ref={cardRef} style={{ position: "absolute", top: 0, left: 0, width: CARD_WIDTH, transform: `scale(${scale})`, transformOrigin: "top left", pointerEvents: "none", userSelect: "none" }}>
-        <RefinanceSummaryCard r={r} />
+    <div ref={areaRef} className="w-full lg:h-full lg:min-h-0 flex items-center justify-center">
+      <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-[#0A1B38]" style={{ width: box.w || "100%", height: box.h }}>
+        <div ref={cardRef} style={{ position: "absolute", top: 0, left: 0, width: CARD_WIDTH, transform: `scale(${box.scale})`, transformOrigin: "top left", pointerEvents: "none", userSelect: "none" }}>
+          <RefinanceSummaryCard r={r} />
+        </div>
       </div>
     </div>
   );
