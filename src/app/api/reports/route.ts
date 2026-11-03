@@ -56,49 +56,31 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: true, ...cachedPage });
     }
 
-    let queryRef: any = adminDb.collection("credit_reports");
-
-    if (effectiveBranch && effectiveBranch !== "all" && effectiveBranch !== "All") {
-      queryRef = queryRef.where("branch", "==", effectiveBranch);
-    }
-
-    if (source && source !== "all") {
-      queryRef = queryRef.where("source", "==", source);
-    }
-
-    if (bureau && bureau !== "all") {
-      queryRef = queryRef.where("bureau", "==", bureau);
-    }
-
-    if (rawQuery) {
-      // search_tokens holds the PAN (upper), mobile, full lowercase name and each name word
-      const token = /^[a-z]{5}\d{4}[a-z]$/i.test(rawQuery)
+    const branchScoped = !!effectiveBranch && effectiveBranch !== "all" && effectiveBranch !== "All";
+    const searchToken = rawQuery
+      ? /^[a-z]{5}\d{4}[a-z]$/i.test(rawQuery)
         ? rawQuery.toUpperCase()
         : /^\d+$/.test(rawQuery)
           ? rawQuery
-          : rawQuery.toLowerCase();
-      queryRef = queryRef.where("search_tokens", "array-contains", token);
-    }
-
-    if (start && end) {
-      queryRef = queryRef.where("created_at", ">=", new Date(start)).where("created_at", "<=", new Date(end));
-    }
+          : rawQuery.toLowerCase()
+      : null;
 
     let total: number | undefined;
-    if (withTotal) {
-      const countSnap = await queryRef.count().get();
-      total = countSnap.data().count;
-    }
+    let snapshot: { docs: any[] };
 
-    queryRef = queryRef.orderBy("created_at", "desc");
-    if (cursor) {
-      const cursorSeconds = Number(cursor);
-      if (Number.isFinite(cursorSeconds)) queryRef = queryRef.startAfter(new Date(cursorSeconds * 1000));
-    }
-    // One extra doc tells us whether another page exists without a second query
-    queryRef = queryRef.limit(pageSize + 1);
-
-    queryRef = queryRef.select(
+    if (branchScoped && start && end) {
+      // Date-windowed branch view (e.g. "last 24h"): only a date range hits the query, which
+      // Firestore serves from its automatic single-field index. Branch/source/bureau/search are
+      // filtered in memory, so no composite index is needed and branch names match
+      // case-insensitively (older records were saved as "delhi", newer ones as "Delhi").
+      const wanted = String(effectiveBranch).trim().toLowerCase();
+      const windowSnap = await adminDb
+        .collection("credit_reports")
+        .where("created_at", ">=", new Date(start))
+        .where("created_at", "<=", new Date(end))
+        .orderBy("created_at", "desc")
+        .limit(2000)
+        .select(
       "name",
       "mobile",
       "pan",
@@ -113,9 +95,62 @@ export async function GET(req: NextRequest) {
       "fetched_by_email",
       "search_tokens",
       "fallbackData"
-    );
+        )
+        .get();
 
-    const snapshot = await queryRef.get();
+      let docs: any[] = windowSnap.docs.filter((d: any) => String(d.data().branch || "").trim().toLowerCase() === wanted);
+      if (source && source !== "all") docs = docs.filter((d: any) => d.data().source === source);
+      if (bureau && bureau !== "all") docs = docs.filter((d: any) => d.data().bureau === bureau);
+      if (searchToken) docs = docs.filter((d: any) => (d.data().search_tokens || []).includes(searchToken));
+      if (withTotal) total = docs.length;
+
+      if (cursor) {
+        const cursorSeconds = Number(cursor);
+        if (Number.isFinite(cursorSeconds)) docs = docs.filter((d: any) => (d.data().created_at?._seconds ?? 0) < cursorSeconds);
+      }
+      snapshot = { docs: docs.slice(0, pageSize + 1) };
+    } else {
+      let queryRef: any = adminDb.collection("credit_reports");
+
+      if (branchScoped) queryRef = queryRef.where("branch", "==", effectiveBranch);
+      if (source && source !== "all") queryRef = queryRef.where("source", "==", source);
+      if (bureau && bureau !== "all") queryRef = queryRef.where("bureau", "==", bureau);
+      // search_tokens holds the PAN (upper), mobile, full lowercase name and each name word
+      if (searchToken) queryRef = queryRef.where("search_tokens", "array-contains", searchToken);
+      if (start && end) {
+        queryRef = queryRef.where("created_at", ">=", new Date(start)).where("created_at", "<=", new Date(end));
+      }
+
+      if (withTotal) {
+        const countSnap = await queryRef.count().get();
+        total = countSnap.data().count;
+      }
+
+      queryRef = queryRef.orderBy("created_at", "desc");
+      if (cursor) {
+        const cursorSeconds = Number(cursor);
+        if (Number.isFinite(cursorSeconds)) queryRef = queryRef.startAfter(new Date(cursorSeconds * 1000));
+      }
+      // One extra doc tells us whether another page exists without a second query
+      queryRef = queryRef.limit(pageSize + 1);
+      queryRef = queryRef.select(
+      "name",
+      "mobile",
+      "pan",
+      "bureau",
+      "credit_score",
+      "created_at",
+      "branch",
+      "source",
+      "fetched_by",
+      "fetched_by_type",
+      "fetched_by_name",
+      "fetched_by_email",
+      "search_tokens",
+      "fallbackData"
+      );
+      snapshot = await queryRef.get();
+    }
 
     const pageDocs = snapshot.docs.slice(0, pageSize);
     const hasMore = snapshot.docs.length > pageSize;
