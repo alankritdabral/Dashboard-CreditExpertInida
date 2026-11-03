@@ -56,26 +56,54 @@ export default function AdminDashboardPage() {
   const [selectedSourceFilter, setSelectedSourceFilter] = useState("all");
   const [selectedBureauFilter, setSelectedBureauFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [reportStartDate, setReportStartDate] = useState("");
   const [reportEndDate, setReportEndDate] = useState("");
   const [viewingReport, setViewingReport] = useState<any | null>(null);
   const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [totalReports, setTotalReports] = useState<number | null>(null);
+  // cursors[i] is the cursor used to load page i + 1 (page 1 has none)
+  const [cursors, setCursors] = useState<(string | null)[]>([null]);
   const pageSize = 12;
 
-  const fetchAllReports = async () => {
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 400);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  const buildReportsUrl = (cursor: string | null, size: number, withTotal: boolean) => {
+    const params = new URLSearchParams({ pageSize: String(size), _t: String(Date.now()) });
+    if (cursor) params.set("cursor", cursor);
+    if (withTotal) params.set("withTotal", "1");
+    if (selectedBranchFilter !== "all") params.set("branch", selectedBranchFilter);
+    if (selectedSourceFilter !== "all") params.set("source", selectedSourceFilter);
+    if (selectedBureauFilter !== "all") params.set("bureau", selectedBureauFilter);
+    if (debouncedSearch) params.set("q", debouncedSearch);
+    if (reportStartDate && reportEndDate) {
+      params.set("startDate", reportStartDate);
+      params.set("endDate", reportEndDate);
+    }
+    return `/api/reports?${params.toString()}`;
+  };
+
+  // Loads exactly one page; moving between pages issues a new request.
+  const fetchReportsPage = async (targetPage: number, cursor: string | null) => {
     setReportsLoading(true);
     try {
-      let url = `/api/reports?limit=1000&_t=${Date.now()}`;
-      if (selectedBranchFilter !== "all") url += `&branch=${encodeURIComponent(selectedBranchFilter)}`;
-      if (selectedSourceFilter !== "all") url += `&source=${encodeURIComponent(selectedSourceFilter)}`;
-      if (reportStartDate && reportEndDate) {
-        url += `&startDate=${encodeURIComponent(reportStartDate)}&endDate=${encodeURIComponent(reportEndDate)}`;
-      }
-
-      const res = await fetch(url);
+      const res = await fetch(buildReportsUrl(cursor, pageSize, targetPage === 1));
       const data = await res.json();
       if (data.success) {
         setReports(data.reports || []);
+        setHasMore(!!data.hasMore);
+        if (typeof data.total === "number") setTotalReports(data.total);
+        setPage(targetPage);
+        setCursors((prev) => {
+          const next = prev.slice(0, targetPage);
+          next[targetPage - 1] = cursor;
+          if (data.nextCursor) next[targetPage] = data.nextCursor;
+          return next;
+        });
       }
     } catch (e) {
       console.error("Failed to load reports:", e);
@@ -84,32 +112,17 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const fetchAllReports = () => fetchReportsPage(1, null);
+
   useEffect(() => {
     if (user?.role === "admin") {
-      fetchAllReports();
+      setCursors([null]);
+      fetchReportsPage(1, null);
     }
-  }, [user, selectedBranchFilter, selectedSourceFilter, reportStartDate, reportEndDate]);
+  }, [user, selectedBranchFilter, selectedSourceFilter, selectedBureauFilter, debouncedSearch, reportStartDate, reportEndDate]);
 
-  const filteredReports = useMemo(() => {
-    return reports.filter((r) => {
-      if (selectedBureauFilter !== "all" && r.bureau !== selectedBureauFilter) return false;
-      if (!searchQuery.trim()) return true;
-      const q = searchQuery.toLowerCase().trim();
-      return (
-        r.name?.toLowerCase().includes(q) ||
-        r.pan?.toLowerCase().includes(q) ||
-        r.mobile?.includes(q) ||
-        r.branch?.toLowerCase().includes(q) ||
-        r.fetched_by_name?.toLowerCase().includes(q)
-      );
-    });
-  }, [reports, searchQuery, selectedBureauFilter]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredReports.length / pageSize));
-  const paginatedReports = useMemo(() => {
-    const start = (page - 1) * pageSize;
-    return filteredReports.slice(start, start + pageSize);
-  }, [filteredReports, page]);
+  const totalPages = totalReports !== null ? Math.max(1, Math.ceil(totalReports / pageSize)) : page + (hasMore ? 1 : 0);
+  const paginatedReports = reports;
 
   const handleOpenReportModal = async (reportId: string) => {
     try {
@@ -138,8 +151,23 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const exportToExcel = () => {
-    const exportData = filteredReports.map((r) => ({
+  const exportToExcel = async () => {
+    // Export pulls the filtered set page by page only when the user asks for it
+    const all: CreditReportRecord[] = [];
+    let cursor: string | null = null;
+    try {
+      do {
+        const res: Response = await fetch(buildReportsUrl(cursor, 100, false));
+        const data: any = await res.json();
+        if (!data.success) break;
+        all.push(...(data.reports || []));
+        cursor = data.nextCursor || null;
+      } while (cursor);
+    } catch (e) {
+      console.error("Export failed:", e);
+      return;
+    }
+    const exportData = all.map((r) => ({
       Applicant_Name: r.name,
       PAN: r.pan,
       Mobile: r.mobile,
@@ -263,14 +291,59 @@ export default function AdminDashboardPage() {
   // ==========================================
   // TAB 4: ACTIVITY & ANALYTICS
   // ==========================================
-  const branchBreakdown = useMemo(() => {
-    const counts: Record<string, number> = {};
-    reports.forEach((r) => {
-      const b = r.branch || "Unknown";
-      counts[b] = (counts[b] || 0) + 1;
-    });
-    return counts;
-  }, [reports]);
+  const [branchBreakdown, setBranchBreakdown] = useState<Record<string, number>>({});
+  const [statsTotal, setStatsTotal] = useState(0);
+
+  useEffect(() => {
+    if (activeTab !== "activity") return;
+    fetch("/api/reports/stats")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) {
+          setBranchBreakdown(data.branches || {});
+          setStatsTotal(data.total || 0);
+        }
+      })
+      .catch((e) => console.error("Failed to load report stats:", e));
+  }, [activeTab]);
+
+  type ActivityRow = {
+    id: string; name: string; mobile: string; pan: string; bureau: string;
+    credit_score: number | null; branch: string; fetched_by_name: string;
+    fetched_by_email: string; created_at: { seconds: number } | null;
+  };
+  const [employees, setEmployees] = useState<{ name: string; email: string; branch: string; count: number }[]>([]);
+  const [histBranch, setHistBranch] = useState("");
+  const [histEmail, setHistEmail] = useState("");
+  const [histRows, setHistRows] = useState<ActivityRow[]>([]);
+  const [histLoading, setHistLoading] = useState(false);
+
+  useEffect(() => {
+    if (activeTab !== "activity") return;
+    fetch("/api/reports/activity")
+      .then((r) => r.json())
+      .then((data) => data.success && setEmployees(data.employees || []))
+      .catch((e) => console.error("Failed to load employees:", e));
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== "activity" || (!histBranch && !histEmail)) {
+      setHistRows([]);
+      return;
+    }
+    const qs = histEmail ? `email=${encodeURIComponent(histEmail)}` : `branch=${encodeURIComponent(histBranch)}`;
+    let cancelled = false;
+    setHistLoading(true);
+    fetch(`/api/reports/activity?${qs}`)
+      .then((r) => r.json())
+      .then((data) => { if (!cancelled) setHistRows(data.success ? data.reports || [] : []); })
+      .catch((e) => console.error("Failed to load history:", e))
+      .finally(() => { if (!cancelled) setHistLoading(false); });
+    return () => { cancelled = true; };
+  }, [activeTab, histBranch, histEmail]);
+
+  const branchEmployees = employees.filter((e) => !histBranch || e.branch === histBranch);
+  const histEmployee = employees.find((e) => e.email === histEmail);
 
   // ==========================================
   // TAB 5: SYSTEM LOGS
@@ -352,7 +425,7 @@ export default function AdminDashboardPage() {
   };
 
   const navTabs: NavTabItem[] = [
-    { id: "reports", label: "All Reports", icon: Database, count: reports.length },
+    { id: "reports", label: "All Reports", icon: Database, count: totalReports ?? reports.length },
     { id: "fetch", label: "Fetch CIBIL", icon: CreditCard },
     { id: "users", label: "Branch Users", icon: Users, count: branchUsers.length },
     { id: "activity", label: "Activity", icon: Activity },
@@ -495,7 +568,7 @@ export default function AdminDashboardPage() {
                   </button>
                 )}
                 <span className="sm:ml-auto text-slate-400 font-medium">
-                  Showing {paginatedReports.length} of {filteredReports.length} reports
+                  Showing {paginatedReports.length}{totalReports !== null ? ` of ${totalReports}` : ""} reports
                 </span>
               </div>
             </div>
@@ -626,7 +699,7 @@ export default function AdminDashboardPage() {
               </div>
 
               {/* Pagination controls */}
-              {totalPages > 1 && (
+              {(page > 1 || hasMore) && (
                 <div className="p-4 border-t border-slate-100 bg-slate-50/70 flex flex-wrap items-center justify-between gap-3">
                   <span className="text-xs text-slate-600 font-medium">
                     Page <strong className="text-slate-900">{page}</strong> of{" "}
@@ -634,15 +707,15 @@ export default function AdminDashboardPage() {
                   </span>
                   <div className="flex flex-wrap items-center gap-2">
                     <button
-                      onClick={() => setPage((p) => Math.max(1, p - 1))}
-                      disabled={page === 1}
+                      onClick={() => fetchReportsPage(page - 1, cursors[page - 2] ?? null)}
+                      disabled={page === 1 || reportsLoading}
                       className="max-sm:min-h-11 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-700 disabled:opacity-40 cursor-pointer shadow-2xs hover:bg-slate-50"
                     >
                       Previous
                     </button>
                     <button
-                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                      disabled={page === totalPages}
+                      onClick={() => fetchReportsPage(page + 1, cursors[page] ?? null)}
+                      disabled={!hasMore || reportsLoading}
                       className="max-sm:min-h-11 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-700 disabled:opacity-40 cursor-pointer shadow-2xs hover:bg-slate-50"
                     >
                       Next
@@ -764,7 +837,7 @@ export default function AdminDashboardPage() {
                 <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                   Total Bureau Pulls
                 </span>
-                <span className="text-3xl font-extrabold text-slate-900">{reports.length}</span>
+                <span className="text-3xl font-extrabold text-slate-900">{statsTotal}</span>
                 <p className="text-[11px] text-slate-500 mt-1">Cross-branch & online aggregate</p>
               </div>
 
@@ -803,7 +876,7 @@ export default function AdminDashboardPage() {
               </h3>
               <div className="space-y-3.5">
                 {Object.entries(branchBreakdown).map(([branch, count]) => {
-                  const pct = reports.length > 0 ? Math.round((count / reports.length) * 100) : 0;
+                  const pct = statsTotal > 0 ? Math.round((count / statsTotal) * 100) : 0;
                   return (
                     <div key={branch} className="space-y-1">
                       <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
@@ -822,6 +895,93 @@ export default function AdminDashboardPage() {
                   );
                 })}
               </div>
+            </div>
+
+            {/* Branch / employee pull history */}
+            <div className="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-6 shadow-sm space-y-4">
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <User className="w-4 h-4 text-[#3F8EFC]" />
+                CIBIL Pull History
+              </h3>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <select
+                  value={histBranch}
+                  onChange={(e) => { setHistBranch(e.target.value); setHistEmail(""); }}
+                  className="max-sm:min-h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 max-sm:text-base text-xs text-slate-700 font-medium focus:outline-none focus:border-[#3F8EFC]"
+                >
+                  <option value="">Select branch</option>
+                  {Object.entries(branchBreakdown).map(([b, c]) => (
+                    <option key={b} value={b}>{b} ({c})</option>
+                  ))}
+                </select>
+                <select
+                  value={histEmail}
+                  onChange={(e) => setHistEmail(e.target.value)}
+                  className="max-sm:min-h-11 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 max-sm:text-base text-xs text-slate-700 font-medium focus:outline-none focus:border-[#3F8EFC]"
+                >
+                  <option value="">{histBranch ? "All employees in branch" : "Select employee"}</option>
+                  {branchEmployees.map((e) => (
+                    <option key={e.email} value={e.email}>
+                      {e.name}{histBranch ? "" : ` (${e.branch})`} - {e.count}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {!histBranch && !histEmail ? (
+                <p className="text-xs text-slate-500">Pick a branch to see its CIBIL pulls, or an employee to see their history.</p>
+              ) : (
+                <>
+                  <p className="text-xs text-slate-500">
+                    {histEmployee
+                      ? `${histEmployee.name} (${histEmployee.branch}) - ${histEmployee.count} pulls, latest ${histRows.length} shown`
+                      : `${histBranch} - latest ${histRows.length} pulls`}
+                  </p>
+                  <div className="overflow-x-auto border border-slate-200 rounded-2xl">
+                    <table className="w-full text-xs text-left">
+                      <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px]">
+                        <tr>
+                          <th className="px-3 py-2.5">Applicant</th>
+                          <th className="px-3 py-2.5">PAN</th>
+                          <th className="px-3 py-2.5">Bureau</th>
+                          <th className="px-3 py-2.5">Score</th>
+                          <th className="px-3 py-2.5">Pulled by</th>
+                          <th className="px-3 py-2.5">Date</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {histLoading ? (
+                          <tr><td colSpan={6} className="px-3 py-6 text-center text-slate-400">Loading...</td></tr>
+                        ) : histRows.length === 0 ? (
+                          <tr><td colSpan={6} className="px-3 py-6 text-center text-slate-400">No CIBIL pulls found.</td></tr>
+                        ) : (
+                          histRows.map((r) => (
+                            <tr key={r.id} className="text-slate-700">
+                              <td className="px-3 py-2.5 font-semibold text-slate-900">{r.name}<span className="block font-mono font-normal text-slate-400">{r.mobile}</span></td>
+                              <td className="px-3 py-2.5 font-mono">{r.pan}</td>
+                              <td className="px-3 py-2.5 uppercase">{r.bureau}</td>
+                              <td className="px-3 py-2.5 font-bold">{r.credit_score ?? "-"}</td>
+                              <td className="px-3 py-2.5">
+                                <button
+                                  type="button"
+                                  onClick={() => { setHistBranch(r.branch); setHistEmail(r.fetched_by_email); }}
+                                  className="font-semibold text-[#3F8EFC] hover:underline cursor-pointer text-left"
+                                >
+                                  {r.fetched_by_name}
+                                </button>
+                                <span className="block text-slate-400">{r.branch}</span>
+                              </td>
+                              <td className="px-3 py-2.5 whitespace-nowrap">
+                                {r.created_at ? new Date(r.created_at.seconds * 1000).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "-"}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}

@@ -35,7 +35,11 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const start = searchParams.get("startDate");
     const end = searchParams.get("endDate");
-    const limitQuery = searchParams.get("limit") || "1000";
+    const pageSize = Math.min(Math.max(parseInt(searchParams.get("pageSize") || searchParams.get("limit") || "12") || 12, 1), 100);
+    const cursor = searchParams.get("cursor");
+    const bureau = searchParams.get("bureau");
+    const rawQuery = (searchParams.get("q") || "").trim();
+    const withTotal = searchParams.get("withTotal") === "1";
     const requestedBranch = searchParams.get("branch");
     const source = searchParams.get("source");
 
@@ -43,13 +47,13 @@ export async function GET(req: NextRequest) {
     let effectiveBranch = session.role === "branch" ? session.branch : requestedBranch;
 
     if (!adminDb || typeof adminDb.collection !== "function") {
-      return NextResponse.json({ success: true, reports: [] });
+      return NextResponse.json({ success: true, reports: [], hasMore: false, nextCursor: null });
     }
 
-    const cacheKey = JSON.stringify([effectiveBranch, source, start, end, limitQuery]);
-    const cachedReports = reportsListCache.get(cacheKey);
-    if (cachedReports) {
-      return NextResponse.json({ success: true, reports: cachedReports });
+    const cacheKey = JSON.stringify([effectiveBranch, source, start, end, pageSize, cursor, bureau, rawQuery, withTotal]);
+    const cachedPage = reportsListCache.get(cacheKey);
+    if (cachedPage) {
+      return NextResponse.json({ success: true, ...cachedPage });
     }
 
     let queryRef: any = adminDb.collection("credit_reports");
@@ -62,17 +66,37 @@ export async function GET(req: NextRequest) {
       queryRef = queryRef.where("source", "==", source);
     }
 
-    if (start && end) {
-      const startDate = new Date(start);
-      const endDate = new Date(end);
-      queryRef = queryRef.where("created_at", ">=", startDate).where("created_at", "<=", endDate);
-    } else {
-      const qLimit = parseInt(limitQuery);
-      if (!effectiveBranch || effectiveBranch === "all" || effectiveBranch === "All") {
-        queryRef = queryRef.orderBy("created_at", "desc");
-      }
-      queryRef = queryRef.limit(qLimit);
+    if (bureau && bureau !== "all") {
+      queryRef = queryRef.where("bureau", "==", bureau);
     }
+
+    if (rawQuery) {
+      // search_tokens holds the PAN (upper), mobile, full lowercase name and each name word
+      const token = /^[a-z]{5}\d{4}[a-z]$/i.test(rawQuery)
+        ? rawQuery.toUpperCase()
+        : /^\d+$/.test(rawQuery)
+          ? rawQuery
+          : rawQuery.toLowerCase();
+      queryRef = queryRef.where("search_tokens", "array-contains", token);
+    }
+
+    if (start && end) {
+      queryRef = queryRef.where("created_at", ">=", new Date(start)).where("created_at", "<=", new Date(end));
+    }
+
+    let total: number | undefined;
+    if (withTotal) {
+      const countSnap = await queryRef.count().get();
+      total = countSnap.data().count;
+    }
+
+    queryRef = queryRef.orderBy("created_at", "desc");
+    if (cursor) {
+      const cursorSeconds = Number(cursor);
+      if (Number.isFinite(cursorSeconds)) queryRef = queryRef.startAfter(new Date(cursorSeconds * 1000));
+    }
+    // One extra doc tells us whether another page exists without a second query
+    queryRef = queryRef.limit(pageSize + 1);
 
     queryRef = queryRef.select(
       "name",
@@ -93,7 +117,10 @@ export async function GET(req: NextRequest) {
 
     const snapshot = await queryRef.get();
 
-    const reports = snapshot.docs.map((docSnap: any) => {
+    const pageDocs = snapshot.docs.slice(0, pageSize);
+    const hasMore = snapshot.docs.length > pageSize;
+
+    const reports = pageDocs.map((docSnap: any) => {
       const d = docSnap.data();
 
       let score = d.credit_score;
@@ -134,16 +161,12 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    if (effectiveBranch && !(start && end)) {
-      reports.sort((a: any, b: any) => {
-        const timeA = a.created_at?.seconds || 0;
-        const timeB = b.created_at?.seconds || 0;
-        return timeB - timeA;
-      });
-    }
+    const last = reports[reports.length - 1];
+    const nextCursor = hasMore && last?.created_at ? String(last.created_at.seconds) : null;
+    const payload = { reports, hasMore, nextCursor, ...(total !== undefined && { total }) };
 
-    reportsListCache.set(cacheKey, reports);
-    return NextResponse.json({ success: true, reports });
+    reportsListCache.set(cacheKey, payload);
+    return NextResponse.json({ success: true, ...payload });
   } catch (err: any) {
     console.error("GET /api/reports error:", err);
     return NextResponse.json({ success: false, error: err.message || "Failed to load reports" }, { status: 500 });

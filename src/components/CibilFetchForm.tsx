@@ -31,7 +31,6 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
   const [pan, setPan] = useState("");
   const [dob, setDob] = useState("");
   const [gender, setGender] = useState<"Male" | "Female">("Male");
-  const [bureau, setBureau] = useState("v1"); // v1 = CIBIL, crif = CRIF, experian = Experian
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -79,24 +78,32 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
         gender: gender.toLowerCase(),
       };
 
-      // 2. Call IDSPay API proxy
-      const apiRes = await fetch("/api/idspay", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          bureau,
-          bodyPayload,
-        }),
-      });
+      // 2. Call IDSPay API proxy: Experian first, CRIF as fallback
+      const pull = async (b: string) => {
+        const apiRes = await fetch("/api/idspay", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ bureau: b, bodyPayload }),
+        });
+        const resData = await apiRes.json().catch(() => ({}));
+        if (!apiRes.ok && !resData.data && !resData.raw_api_data) {
+          throw new Error("Bureau request failed");
+        }
+        return resData.data || resData;
+      };
 
-      const resData = await apiRes.json();
-
-      if (!apiRes.ok && !resData.data && !resData.raw_api_data) {
-        const reason = resData.error?.message || resData.error || resData.message;
-        throw new Error(typeof reason === "string" ? reason : JSON.stringify(reason) || "Bureau request failed");
+      let bureau = "experian";
+      let bureauPayload: any;
+      try {
+        bureauPayload = await pull("experian");
+      } catch {
+        bureau = "crif";
+        try {
+          bureauPayload = await pull("crif");
+        } catch {
+          throw new Error("CIBIL not found. Please verify the details or talk to the tech team.");
+        }
       }
-
-      const bureauPayload = resData.data || resData;
 
       // 3. Save to database with attribution: WHO fetched the report
       const fullName = `${firstName.trim()} ${lastName.trim()}`;
@@ -140,7 +147,7 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
       if (onSuccess) onSuccess();
     } catch (err: any) {
       console.error("Fetch report error:", err);
-      setError(err.message || "Failed to fetch bureau report. Please verify details.");
+      setError(err.message || "CIBIL not found. Please verify the details or talk to the tech team.");
     } finally {
       setLoading(false);
     }
@@ -207,7 +214,7 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
           <div>
             <h2 className="text-xl font-bold text-slate-900">Instant Credit Bureau Pull</h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Direct live query to CIBIL / Experian / CRIF. Results auto-attributed to{" "}
+              Live credit report pull. Results auto-attributed to{" "}
               <strong className="text-[#3F8EFC] font-semibold">{effectiveBranch}</strong> branch.
             </p>
           </div>
@@ -232,41 +239,10 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
 
       {/* Main Form */}
       <form onSubmit={handleFetch} className="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-8 space-y-6 shadow-xl shadow-slate-900/5">
-        {/* Section 1: Bureau Selection */}
-        <div>
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2.5">
-            1. Select Credit Bureau
-          </label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {[
-              { id: "v1", name: "TransUnion CIBIL", desc: "Hybrid Score & Accounts" },
-              { id: "crif", name: "CRIF High Mark", desc: "B2C Comprehensive Report" },
-              { id: "experian", name: "Experian Bureau", desc: "IN Profile Score & Enquiries" },
-            ].map((b) => (
-              <button
-                key={b.id}
-                type="button"
-                onClick={() => setBureau(b.id)}
-                className={`p-4 rounded-2xl text-left border transition-all cursor-pointer ${
-                  bureau === b.id
-                    ? "bg-blue-50/60 border-[#3F8EFC] text-slate-900 shadow-md shadow-blue-500/10 ring-2 ring-[#3F8EFC]/20"
-                    : "bg-slate-50/70 border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold block text-slate-900">{b.name}</span>
-                  {bureau === b.id && <CheckCircle className="w-4 h-4 text-[#3F8EFC]" />}
-                </div>
-                <span className="text-[11px] text-slate-500 block mt-1">{b.desc}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Section 2: Personal Identification */}
-        <div className="space-y-3.5 pt-4 border-t border-slate-100">
+        <div className="space-y-3.5">
           <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-            2. Applicant Identification
+            Applicant Identification
           </label>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -37,17 +37,46 @@ export default function BranchPortalPage() {
     }
   }, [user, loading, router]);
 
-  // Load branch reports
-  const fetchBranchReports = async () => {
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  // cursors[i] is the cursor used to load page i + 1 (page 1 has none)
+  const [cursors, setCursors] = useState<(string | null)[]>([null]);
+  const pageSize = 12;
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 400);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  // Load a single page of branch reports; paging issues a new request
+  const fetchReportsPage = async (targetPage: number, cursor: string | null) => {
     if (!user) return;
     setReportsLoading(true);
     try {
-      const res = await fetch(
-        `/api/reports?branch=${encodeURIComponent(user.branch)}&limit=200&_t=${Date.now()}`
-      );
+      const params = new URLSearchParams({
+        branch: user.branch,
+        pageSize: String(pageSize),
+        _t: String(Date.now()),
+      });
+      // Branch history only covers the last 24 hours (rounded to the minute for caching)
+      const minute = Math.floor(Date.now() / 60000) * 60000;
+      params.set("startDate", new Date(minute - 24 * 60 * 60 * 1000).toISOString());
+      params.set("endDate", new Date(minute + 60000).toISOString());
+      if (cursor) params.set("cursor", cursor);
+      if (debouncedSearch) params.set("q", debouncedSearch);
+      const res = await fetch(`/api/reports?${params.toString()}`);
       const data = await res.json();
       if (data.success) {
         setReports(data.reports || []);
+        setHasMore(!!data.hasMore);
+        setPage(targetPage);
+        setCursors((prev) => {
+          const next = prev.slice(0, targetPage);
+          next[targetPage - 1] = cursor;
+          if (data.nextCursor) next[targetPage] = data.nextCursor;
+          return next;
+        });
       }
     } catch (e) {
       console.error("Failed to load reports:", e);
@@ -56,11 +85,14 @@ export default function BranchPortalPage() {
     }
   };
 
+  const fetchBranchReports = () => fetchReportsPage(1, null);
+
   useEffect(() => {
     if (activeTab === "history") {
-      fetchBranchReports();
+      setCursors([null]);
+      fetchReportsPage(1, null);
     }
-  }, [activeTab, user]);
+  }, [activeTab, user, debouncedSearch]);
 
   const handleOpenReportModal = async (reportId: string) => {
     try {
@@ -74,20 +106,11 @@ export default function BranchPortalPage() {
     }
   };
 
-  const filteredReports = useMemo(() => {
-    if (!searchQuery.trim()) return reports;
-    const q = searchQuery.toLowerCase().trim();
-    return reports.filter(
-      (r) =>
-        r.name?.toLowerCase().includes(q) ||
-        r.pan?.toLowerCase().includes(q) ||
-        r.mobile?.includes(q)
-    );
-  }, [reports, searchQuery]);
+  const filteredReports = reports;
 
   const tabs: NavTabItem[] = [
     { id: "fetch", label: "Fetch CIBIL", icon: FileText },
-    { id: "history", label: "Reports History", icon: History, count: reports.length },
+    { id: "history", label: "Last 24h History", icon: History },
     { id: "emi", label: "EMI Calculator", icon: Calculator },
   ];
 
@@ -222,7 +245,7 @@ export default function BranchPortalPage() {
                               Loading branch reports...
                             </div>
                           ) : (
-                            "No reports found for this branch."
+                            "No CIBILs pulled by this branch in the last 24 hours."
                           )}
                         </td>
                       </tr>
@@ -230,6 +253,30 @@ export default function BranchPortalPage() {
                   </tbody>
                 </table>
               </div>
+
+              {(page > 1 || hasMore) && (
+                <div className="p-4 border-t border-slate-100 bg-slate-50/70 flex flex-wrap items-center justify-between gap-3">
+                  <span className="text-xs text-slate-600 font-medium">
+                    Page <strong className="text-slate-900">{page}</strong>
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => fetchReportsPage(page - 1, cursors[page - 2] ?? null)}
+                      disabled={page === 1 || reportsLoading}
+                      className="max-sm:min-h-11 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-700 disabled:opacity-40 cursor-pointer shadow-2xs hover:bg-slate-50"
+                    >
+                      Previous
+                    </button>
+                    <button
+                      onClick={() => fetchReportsPage(page + 1, cursors[page] ?? null)}
+                      disabled={!hasMore || reportsLoading}
+                      className="max-sm:min-h-11 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-bold text-slate-700 disabled:opacity-40 cursor-pointer shadow-2xs hover:bg-slate-50"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

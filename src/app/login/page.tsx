@@ -7,7 +7,6 @@ import Image from "next/image";
 import { useAuth } from "@/lib/auth-context";
 import {
   Lock,
-  KeyRound,
   Mail,
   AlertCircle,
   Loader2,
@@ -21,7 +20,6 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [accessCode, setAccessCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -36,9 +34,7 @@ export default function LoginPage() {
     setLoading(true);
     setErrorMessage(null);
 
-    // One sign-in for everyone: admins send email + password only, employees
-    // also send today's access code. The server decides which one applies.
-    const res = await login(email, password, accessCode.trim() || undefined);
+    const res = await login(email, password);
 
     if (res.success) {
       router.push(res.role === "admin" ? "/admin" : "/branch");
@@ -78,7 +74,7 @@ export default function LoginPage() {
           <div className="border-b border-slate-100 pb-3">
             <h2 className="text-base font-extrabold text-slate-900">Sign In</h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Admins use email & password. Employees also enter today&apos;s daily access code.
+              Enter your work email and password.
             </p>
           </div>
 
@@ -129,25 +125,6 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className={inputCls}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="login-code" className="block text-xs font-bold text-slate-700 mb-1.5">
-                Daily Access Code <span className="font-medium text-slate-400">(employees only)</span>
-              </label>
-              <div className="relative">
-                <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  id="login-code"
-                  type="text"
-                  autoComplete="off"
-                  autoCapitalize="characters"
-                  value={accessCode}
-                  onChange={(e) => setAccessCode(e.target.value)}
-                  placeholder="Not needed for admins"
                   className={inputCls}
                 />
               </div>

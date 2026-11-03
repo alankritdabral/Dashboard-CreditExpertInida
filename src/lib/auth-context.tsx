@@ -7,7 +7,7 @@ import { DashboardUser, UserRole } from "./types";
 interface AuthContextType {
   user: DashboardUser | null;
   loading: boolean;
-  login: (email: string, pass: string, code?: string) => Promise<{ success: boolean; error?: string; role?: UserRole; codeRequired?: boolean }>;
+  login: (email: string, pass: string) => Promise<{ success: boolean; error?: string; role?: UserRole; codeRequired?: boolean }>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
 }
@@ -93,12 +93,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
-  const login = async (email: string, pass: string, code?: string) => {
+  const login = async (email: string, pass: string) => {
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password: pass, code }),
+        body: JSON.stringify({ email, password: pass }),
       });
       const data = await res.json();
       if (data.success && data.user) {

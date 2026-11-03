@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserByEmail, createSessionToken } from "@/lib/user-service";
-import { getBranchAccessCode, nextCodeRotation } from "@/lib/access-code";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password, code } = await req.json();
+    const { email, password } = await req.json();
 
     if (!email || !password) {
       return NextResponse.json(
@@ -41,32 +40,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Admins sign in with email + password only. Employees also need today's
-    // branch access code, and their session ends when that code rotates.
-    let expiresAt = Date.now() + 24 * 60 * 60 * 1000;
-    if (user.role !== "admin") {
-      const submitted = typeof code === "string" ? code.trim() : "";
-      if (!submitted) {
-        return NextResponse.json(
-          { success: false, codeRequired: true, error: "Enter today's daily access code." },
-          { status: 401 }
-        );
-      }
-      const expected = await getBranchAccessCode(user.branch);
-      if (!expected) {
-        return NextResponse.json(
-          { success: false, error: "Access code not configured for your branch. Contact Administrator." },
-          { status: 400 }
-        );
-      }
-      if (expected !== submitted.toUpperCase() && expected !== submitted) {
-        return NextResponse.json(
-          { success: false, codeRequired: true, error: "Invalid daily access code." },
-          { status: 401 }
-        );
-      }
-      expiresAt = Math.min(expiresAt, nextCodeRotation());
-    }
+    const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
     const sessionToken = createSessionToken({
       sessionId: `sess_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
       userId: user.id,
