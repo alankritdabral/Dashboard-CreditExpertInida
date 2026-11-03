@@ -2,7 +2,7 @@
 
 import { createPortal } from "react-dom";
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Calculator, Download, X, MessageCircle, Loader2 } from "lucide-react";
+import { Calculator, Download, X, MessageCircle, Loader2, UserPlus } from "lucide-react";
 import { RefinanceSummaryCard, CARD_WIDTH } from "./RefinanceSummaryCard";
 
 /* ------------------------------------------------------------------ */
@@ -172,6 +172,7 @@ export function EmiCalculator() {
   const [showResults, setShowResults] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [custName, setCustName] = useState("");
+  const [custCity, setCustCity] = useState("");
   const [custPhone, setCustPhone] = useState("");
   const [custMessage, setCustMessage] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
@@ -301,6 +302,35 @@ Thanks & Regards`;
     setTimeout(() => URL.revokeObjectURL(url), 2000);
   };
 
+  // Browsers can't write to the phone's address book directly; a .vcf file opens the
+  // phone's native "Add contact" screen with the name and number filled in.
+  // Contact name: "Customer City Provider 14.52Lacs 14.5% 36M"
+  const contactName = () => {
+    if (!calc) return custName.trim();
+    const provider = bank === "None" ? "" : bank.replace(/\b(Limited|Ltd|Fincorp|Finance|Capital)\b/gi, "").replace(/\s+/g, " ").trim();
+    const lacs = `${Number((calc.loanAmount / 100000).toFixed(2))}Lacs`;
+    const roi = `${Number(calc.interestRate.toFixed(2))}%`;
+    return [custName.trim(), custCity.trim(), provider, lacs, roi, `${calc.totalMonths}M`].filter(Boolean).join(" ");
+  };
+
+  const saveContact = () => {
+    const name = contactName();
+    if (!custName.trim()) return flash("Enter the customer name first.");
+    const digits = custPhone.replace(/\D/g, "").replace(/^(91|0)(?=\d{10}$)/, "");
+    if (!/^[6-9]\d{9}$/.test(digits)) return flash("Enter a valid 10-digit mobile number.");
+    const safe = name.replace(/[\\;,\r\n]/g, " ");
+    const vcf = ["BEGIN:VCARD", "VERSION:3.0", `FN:${safe}`, `N:;${safe};;;`, `TEL;TYPE=CELL:+91${digits}`, "END:VCARD"].join("\r\n");
+    const url = URL.createObjectURL(new Blob([vcf], { type: "text/vcard" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${safe.replace(/\s+/g, "_")}.vcf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    flash("Open the downloaded contact to add it to your phone.");
+  };
+
   const openChat = async () => {
     const name = custName.trim();
     const digits = custPhone.replace(/\D/g, "").replace(/^(91|0)(?=\d{10}$)/, "");
@@ -427,9 +457,15 @@ Thanks & Regards`;
           <PreviewViewport r={results} />
           <div className="lg:self-center">
           <div className="grid grid-cols-1 gap-3">
-            <div>
-              <label className={labelCls} htmlFor="cust-name">Customer Name</label>
-              <input id="cust-name" className={inputCls} value={custName} maxLength={60} onChange={(e) => setCustName(e.target.value)} placeholder="e.g. Rahul Sharma" autoComplete="off" />
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls} htmlFor="cust-name">Customer Name</label>
+                <input id="cust-name" className={inputCls} value={custName} maxLength={60} onChange={(e) => setCustName(e.target.value)} placeholder="e.g. Rahul" autoComplete="off" />
+              </div>
+              <div>
+                <label className={labelCls} htmlFor="cust-city">City</label>
+                <input id="cust-city" className={inputCls} value={custCity} maxLength={40} onChange={(e) => setCustCity(e.target.value)} placeholder="e.g. Delhi" autoComplete="off" />
+              </div>
             </div>
             <div>
               <label className={labelCls} htmlFor="cust-phone">WhatsApp Number</label>
@@ -438,6 +474,7 @@ Thanks & Regards`;
                 <input id="cust-phone" type="tel" inputMode="numeric" className={`${inputCls} !rounded-l-none`} value={custPhone} onChange={(e) => setCustPhone(e.target.value)} placeholder="10-digit mobile" autoComplete="off" />
               </div>
             </div>
+            <p className="text-[11px] text-slate-500 -mt-1">Saved as: <strong className="text-slate-700 break-words">{contactName() || "—"}</strong></p>
           </div>
           <div className="mt-3">
             <label className={labelCls} htmlFor="cust-msg">Message</label>
@@ -447,6 +484,9 @@ Thanks & Regards`;
             <button type="button" disabled={busy !== null || !pngReady} onClick={openChat} className={`${primaryBtn} flex-1 !bg-[#25D366] hover:!bg-[#1fb757]`}>
               {!pngReady ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageCircle className="w-4 h-4" />}
               {!pngReady ? "Preparing image…" : "Copy Image & Open WhatsApp Chat"}
+            </button>
+            <button type="button" onClick={saveContact} className={subBtn}>
+              <UserPlus className="w-4 h-4" /> Save to Contacts
             </button>
             <button type="button" disabled={busy !== null} onClick={downloadImage} className={subBtn}>
               {busy === "download" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} Download PNG
