@@ -13,22 +13,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: true, user: null }, { status: 200 });
     }
 
-    // Daily access-code sessions have no user account behind them.
-    if (session.userId.startsWith("code_")) {
-      return NextResponse.json({
-        success: true,
-        user: {
-          id: session.userId,
-          name: session.name,
-          email: session.email,
-          role: session.role,
-          branch: session.branch,
-          employeeId: `CODE-${session.branch.toUpperCase()}`,
-          status: "Active",
-        },
-      });
-    }
-
     const user = await getUserByEmail(session.email);
     if (!user || user.status !== "Active") {
       return NextResponse.json({ success: true, user: null }, { status: 200 });

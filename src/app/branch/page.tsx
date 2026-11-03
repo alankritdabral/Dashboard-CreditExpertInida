@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { CibilFetchForm } from "@/components/CibilFetchForm";
+import { EmiCalculator } from "@/components/EmiCalculator";
 import { CreditReportDashboard } from "@/components/CreditReportDashboard";
 import { DashboardHeader, NavTabItem } from "@/components/DashboardHeader";
 import {
@@ -15,6 +16,7 @@ import {
   CreditCard,
   User,
   Loader2,
+  Calculator,
 } from "lucide-react";
 import { CreditReportRecord } from "@/lib/types";
 
@@ -86,6 +88,7 @@ export default function BranchPortalPage() {
   const tabs: NavTabItem[] = [
     { id: "fetch", label: "Fetch CIBIL", icon: FileText },
     { id: "history", label: "Reports History", icon: History, count: reports.length },
+    { id: "emi", label: "EMI Calculator", icon: Calculator },
   ];
 
   if (loading || !user) {
@@ -114,6 +117,8 @@ export default function BranchPortalPage() {
             <CibilFetchForm onSuccess={fetchBranchReports} defaultBranch={user.branch} />
           </div>
         )}
+
+        {activeTab === "emi" && <EmiCalculator />}
 
         {/* TAB 2: BRANCH REPORTS HISTORY */}
         {activeTab === "history" && (

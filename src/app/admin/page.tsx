@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { CibilFetchForm } from "@/components/CibilFetchForm";
+import { EmiCalculator } from "@/components/EmiCalculator";
 import { CreditReportDashboard } from "@/components/CreditReportDashboard";
 import { DashboardHeader, NavTabItem } from "@/components/DashboardHeader";
 import { AdminSidebar } from "@/components/AdminSidebar";
@@ -15,6 +16,7 @@ import {
   Activity,
   FileWarning,
   MessageSquare,
+  Calculator,
   Search,
   Trash2,
   Eye,
@@ -355,6 +357,7 @@ export default function AdminDashboardPage() {
     { id: "users", label: "Branch Users", icon: Users, count: branchUsers.length },
     { id: "activity", label: "Activity", icon: Activity },
     { id: "logs", label: "Logs", icon: FileWarning, count: logs.length },
+    { id: "emi", label: "EMI Calculator", icon: Calculator },
     { id: "whatsapp", label: "WhatsApp Hub", icon: MessageSquare },
   ];
 
@@ -661,6 +664,9 @@ export default function AdminDashboardPage() {
         )}
 
         {/* ============================================================== */}
+        {/* TAB: EMI CALCULATOR */}
+        {activeTab === "emi" && <EmiCalculator />}
+
         {/* TAB 3: BRANCH USERS MANAGEMENT */}
         {/* ============================================================== */}
         {activeTab === "users" && (

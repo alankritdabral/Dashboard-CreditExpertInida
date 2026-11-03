@@ -54,9 +54,10 @@ const SEED_USERS: UserAccount[] = [
 const inMemoryUsers = new Map<string, UserAccount>();
 SEED_USERS.forEach((u) => inMemoryUsers.set(u.email.toLowerCase(), u));
 
-// Session checks hit getUserByEmail on every page load; cache hits for a minute.
+// Session checks hit getUserByEmail on every page load; cache hits for five minutes
+// (invalidated on any account change made on this instance).
 // Only found users are cached, so failed lookups always re-check Firestore.
-const userByEmailCache = new TtlCache<UserAccount>(60_000, 200);
+const userByEmailCache = new TtlCache<UserAccount>(5 * 60_000, 200);
 const allUsersCache = new TtlCache<UserAccount[]>(30_000, 1);
 
 function invalidateUserCaches() {
