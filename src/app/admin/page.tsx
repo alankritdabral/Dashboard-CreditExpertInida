@@ -217,6 +217,11 @@ export default function AdminDashboardPage() {
   };
 
   useEffect(() => {
+    // Load on mount too so the Staff Accounts card and sidebar badge are right on every tab
+    fetchBranchUsers();
+  }, []);
+
+  useEffect(() => {
     if (activeTab === "users") {
       fetchBranchUsers();
     }
@@ -317,6 +322,21 @@ export default function AdminDashboardPage() {
   const [histEmail, setHistEmail] = useState("");
   const [histRows, setHistRows] = useState<ActivityRow[]>([]);
   const [histLoading, setHistLoading] = useState(false);
+  const [histFrom, setHistFrom] = useState("");
+  const [histTo, setHistTo] = useState("");
+  const [histPreset, setHistPreset] = useState<"all" | "today" | "yesterday" | "week" | "custom">("all");
+  const localDay = (offsetDays: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() - offsetDays);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+  const applyHistPreset = (preset: "all" | "today" | "yesterday" | "week" | "custom") => {
+    setHistPreset(preset);
+    if (preset === "all") { setHistFrom(""); setHistTo(""); }
+    else if (preset === "today") { setHistFrom(localDay(0)); setHistTo(localDay(0)); }
+    else if (preset === "yesterday") { setHistFrom(localDay(1)); setHistTo(localDay(1)); }
+    else if (preset === "week") { setHistFrom(localDay(6)); setHistTo(localDay(0)); }
+  };
 
   useEffect(() => {
     if (activeTab !== "activity") return;
@@ -332,17 +352,21 @@ export default function AdminDashboardPage() {
       return;
     }
     const qs = histEmail ? `email=${encodeURIComponent(histEmail)}` : `branch=${encodeURIComponent(histBranch)}`;
+    // Date inputs are local calendar days: from 00:00 of the first day to 23:59:59 of the last
+    const range =
+      (histFrom ? `&startDate=${encodeURIComponent(new Date(`${histFrom}T00:00:00`).toISOString())}` : "") +
+      (histTo ? `&endDate=${encodeURIComponent(new Date(`${histTo}T23:59:59.999`).toISOString())}` : "");
     let cancelled = false;
     setHistLoading(true);
-    fetch(`/api/reports/activity?${qs}`)
+    fetch(`/api/reports/activity?${qs}${range}`)
       .then((r) => r.json())
       .then((data) => { if (!cancelled) setHistRows(data.success ? data.reports || [] : []); })
       .catch((e) => console.error("Failed to load history:", e))
       .finally(() => { if (!cancelled) setHistLoading(false); });
     return () => { cancelled = true; };
-  }, [activeTab, histBranch, histEmail]);
+  }, [activeTab, histBranch, histEmail, histFrom, histTo]);
 
-  const branchEmployees = employees.filter((e) => !histBranch || e.branch === histBranch);
+  const branchEmployees = employees.filter((e) => !histBranch || e.branch.toLowerCase() === histBranch.toLowerCase());
   const histEmployee = employees.find((e) => e.email === histEmail);
 
   // ==========================================
@@ -928,14 +952,58 @@ export default function AdminDashboardPage() {
                 </select>
               </div>
 
+              <div className="flex flex-wrap items-center gap-2">
+                {([
+                  ["all", "All time"],
+                  ["today", "Today"],
+                  ["yesterday", "Yesterday"],
+                  ["week", "Last 7 days"],
+                  ["custom", "Custom"],
+                ] as const).map(([id, label]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => applyHistPreset(id)}
+                    className={`max-sm:min-h-11 px-3 py-1.5 rounded-full text-xs font-semibold border cursor-pointer transition-colors ${
+                      histPreset === id
+                        ? "bg-[#3F8EFC] text-white border-[#3F8EFC]"
+                        : "bg-slate-50 text-slate-600 border-slate-200 hover:border-[#3F8EFC]"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+                {histPreset === "custom" && (
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <input
+                      type="date"
+                      aria-label="From date"
+                      value={histFrom}
+                      max={histTo || undefined}
+                      onChange={(e) => setHistFrom(e.target.value)}
+                      className="max-sm:min-h-11 flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 max-sm:text-base text-xs text-slate-700 font-medium focus:outline-none focus:border-[#3F8EFC]"
+                    />
+                    <span className="text-xs text-slate-400">to</span>
+                    <input
+                      type="date"
+                      aria-label="To date"
+                      value={histTo}
+                      min={histFrom || undefined}
+                      onChange={(e) => setHistTo(e.target.value)}
+                      className="max-sm:min-h-11 flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 max-sm:text-base text-xs text-slate-700 font-medium focus:outline-none focus:border-[#3F8EFC]"
+                    />
+                  </div>
+                )}
+              </div>
+
               {!histBranch && !histEmail ? (
                 <p className="text-xs text-slate-500">Pick a branch to see its CIBIL pulls, or an employee to see their history.</p>
               ) : (
                 <>
                   <p className="text-xs text-slate-500">
                     {histEmployee
-                      ? `${histEmployee.name} (${histEmployee.branch}) - ${histEmployee.count} pulls, latest ${histRows.length} shown`
-                      : `${histBranch} - latest ${histRows.length} pulls`}
+                      ? `${histEmployee.name} (${histEmployee.branch}) - ${histEmployee.count} pulls, ${histRows.length} shown`
+                      : `${histBranch} - latest ${histRows.length} ${histRows.length === 1 ? "pull" : "pulls"}`}
                   </p>
                   <div className="overflow-x-auto border border-slate-200 rounded-2xl">
                     <table className="w-full text-xs text-left">
@@ -947,13 +1015,14 @@ export default function AdminDashboardPage() {
                           <th className="px-3 py-2.5">Score</th>
                           <th className="px-3 py-2.5">Pulled by</th>
                           <th className="px-3 py-2.5">Date</th>
+                          <th className="px-3 py-2.5">Details</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {histLoading ? (
-                          <tr><td colSpan={6} className="px-3 py-6 text-center text-slate-400">Loading...</td></tr>
+                          <tr><td colSpan={7} className="px-3 py-6 text-center text-slate-400">Loading...</td></tr>
                         ) : histRows.length === 0 ? (
-                          <tr><td colSpan={6} className="px-3 py-6 text-center text-slate-400">No CIBIL pulls found.</td></tr>
+                          <tr><td colSpan={7} className="px-3 py-6 text-center text-slate-400">No CIBIL pulls found.</td></tr>
                         ) : (
                           histRows.map((r) => (
                             <tr key={r.id} className="text-slate-700">
@@ -962,17 +1031,32 @@ export default function AdminDashboardPage() {
                               <td className="px-3 py-2.5 uppercase">{r.bureau}</td>
                               <td className="px-3 py-2.5 font-bold">{r.credit_score ?? "-"}</td>
                               <td className="px-3 py-2.5">
-                                <button
-                                  type="button"
-                                  onClick={() => { setHistBranch(r.branch); setHistEmail(r.fetched_by_email); }}
-                                  className="font-semibold text-[#3F8EFC] hover:underline cursor-pointer text-left"
-                                >
-                                  {r.fetched_by_name}
-                                </button>
+                                {r.fetched_by_email && r.fetched_by_email !== "N/A" ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => { setHistBranch(r.branch); setHistEmail(r.fetched_by_email); }}
+                                    className="font-semibold text-[#3F8EFC] hover:underline cursor-pointer text-left"
+                                  >
+                                    {r.fetched_by_name}
+                                  </button>
+                                ) : (
+                                  <span className="font-semibold text-slate-500">
+                                    {r.branch.toLowerCase() === "customer" || r.branch === "Website" ? "Website customer" : "Not recorded"}
+                                  </span>
+                                )}
                                 <span className="block text-slate-400">{r.branch}</span>
                               </td>
                               <td className="px-3 py-2.5 whitespace-nowrap">
                                 {r.created_at ? new Date(r.created_at.seconds * 1000).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "-"}
+                              </td>
+                              <td className="px-3 py-2.5">
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenReportModal(r.id)}
+                                  className="px-2.5 py-1 rounded-lg bg-[#3F8EFC]/10 text-[#3F8EFC] font-semibold hover:bg-[#3F8EFC]/20 cursor-pointer"
+                                >
+                                  View
+                                </button>
                               </td>
                             </tr>
                           ))
@@ -1269,7 +1353,11 @@ export default function AdminDashboardPage() {
                   PAN: <strong className="font-mono text-slate-800">{viewingReport.pan}</strong> · Bureau:{" "}
                   <strong className="uppercase text-[#3F8EFC]">{viewingReport.bureau}</strong> · Branch:{" "}
                   <strong className="text-slate-800">{viewingReport.branch}</strong> · Fetched By:{" "}
-                  <strong className="text-emerald-700">{viewingReport.fetched_by_name || "N/A"} ({viewingReport.fetched_by_type})</strong>
+                  <strong className="text-emerald-700">{viewingReport.fetched_by_name && viewingReport.fetched_by_name !== "N/A"
+                      ? `${viewingReport.fetched_by_name}${viewingReport.fetched_by_type ? ` (${viewingReport.fetched_by_type})` : ""}`
+                      : viewingReport.fetched_by_type === "customer" || viewingReport.branch === "customer"
+                        ? "Website customer"
+                        : "Not recorded"}</strong>
                 </p>
               </div>
               <button

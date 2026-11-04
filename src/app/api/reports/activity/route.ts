@@ -43,26 +43,56 @@ export async function GET(req: NextRequest) {
     const email = searchParams.get("email");
     const reports = adminDb.collection("credit_reports");
 
+    const spellings = (v: string, extra: string[] = []) => {
+      const t = v.trim();
+      return Array.from(new Set([t, t.toLowerCase(), t.charAt(0).toUpperCase() + t.slice(1).toLowerCase(), ...extra]));
+    };
+    // Equality/"in" queries only (sorted in memory) so no composite index is needed.
+    const startMs = Date.parse(searchParams.get("startDate") || "");
+    const endMs = Date.parse(searchParams.get("endDate") || "");
+    const byField = async (field: string, values: string[]) => {
+      const snap = await reports.where(field, "in", values).select(...FIELDS).get();
+      return snap.docs
+        .map(toRow)
+        .filter((r: any) => {
+          const ms = (r.created_at?.seconds || 0) * 1000;
+          return (Number.isNaN(startMs) || ms >= startMs) && (Number.isNaN(endMs) || ms <= endMs);
+        })
+        .sort((a: any, b: any) => (b.created_at?.seconds || 0) - (a.created_at?.seconds || 0))
+        .slice(0, HISTORY_LIMIT);
+    };
+
     if (email) {
-      // Equality-only query (sorted in memory) so no composite index is needed.
-      const snap = await reports.where("fetched_by_email", "==", email).select(...FIELDS).limit(HISTORY_LIMIT).get();
-      const rows = snap.docs.map(toRow).sort((a: any, b: any) => (b.created_at?.seconds || 0) - (a.created_at?.seconds || 0));
-      return NextResponse.json({ success: true, reports: rows });
+      return NextResponse.json({ success: true, reports: await byField("fetched_by_email", [email.trim(), email.trim().toLowerCase()].filter((v, i, a) => a.indexOf(v) === i)) });
     }
 
     if (branch) {
-      const snap = await reports.where("branch", "==", branch).orderBy("created_at", "desc").select(...FIELDS).limit(HISTORY_LIMIT).get();
-      return NextResponse.json({ success: true, reports: snap.docs.map(toRow) });
+      return NextResponse.json({ success: true, reports: await byField("branch", spellings(branch, branch.trim() === "Website" ? ["customer"] : [])) });
     }
 
-    const usersSnap = await adminDb.collection("dashboard_users").select("name", "email", "branch", "role").get();
-    const users = usersSnap.docs
-      .map((d: any) => d.data())
-      .filter((u: any) => u.email && u.role !== "admin");
-    const counts = await Promise.all(users.map((u: any) => reports.where("fetched_by_email", "==", u.email).count().get()));
+    // Staff live in either "users" or "dashboard_users"; merge and dedupe by email.
+    const userSnaps = await Promise.all(
+      ["users", "dashboard_users"].map((c) => adminDb.collection(c).select("name", "email", "branch", "role").get().catch(() => ({ docs: [] as any[] })))
+    );
+    const byEmail = new Map<string, any>();
+    userSnaps.forEach((snap: any) =>
+      snap.docs.forEach((d: any) => {
+        const u = d.data();
+        if (u.email && u.role !== "admin" && !byEmail.has(String(u.email).toLowerCase().trim())) {
+          byEmail.set(String(u.email).toLowerCase().trim(), u);
+        }
+      })
+    );
+    const users = Array.from(byEmail.entries()).map(([key, u]) => ({ ...u, key }));
+    const counts = await Promise.all(
+      users.map((u: any) => {
+        const variants = Array.from(new Set([u.key, String(u.email).trim()]));
+        return reports.where("fetched_by_email", "in", variants).count().get();
+      })
+    );
     const employees = users.map((u: any, i: number) => ({
       name: u.name || u.email,
-      email: u.email,
+      email: u.key,
       branch: u.branch || "Online",
       count: counts[i].data().count,
     }));

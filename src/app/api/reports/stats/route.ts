@@ -14,22 +14,36 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: true, total: 0, branches: {} });
     }
 
-    const usersSnap = await adminDb.collection("dashboard_users").select("branch").get();
+    // Staff live in either "users" or "dashboard_users"; collect branches from both.
     const branchNames = new Set<string>(["Admin", "Website", "Online"]);
-    usersSnap.docs.forEach((d: any) => {
-      const b = d.data().branch;
-      if (b) branchNames.add(b);
+    const userSnaps = await Promise.all(
+      ["users", "dashboard_users"].map((c) => adminDb.collection(c).select("branch").get().catch(() => ({ docs: [] as any[] })))
+    );
+    userSnaps.forEach((snap: any) =>
+      snap.docs.forEach((d: any) => {
+        const b = String(d.data().branch || "").trim();
+        if (b) branchNames.add(b);
+      })
+    );
+
+    // Older reports were saved with lowercase branch names ("delhi"), newer ones as "Delhi";
+    // count every spelling and report them under the display name.
+    const display = Array.from(branchNames);
+    const spellings = display.map((b) => {
+      const set = new Set([b, b.toLowerCase(), b.charAt(0).toUpperCase() + b.slice(1).toLowerCase()]);
+      if (b === "Website") set.add("customer");
+      return Array.from(set);
     });
 
     const reports = adminDb.collection("credit_reports");
-    const [totalSnap, ...branchSnaps] = await Promise.all([
+    const [totalSnap, ...spellingSnaps] = await Promise.all([
       reports.count().get(),
-      ...Array.from(branchNames).map((b) => reports.where("branch", "==", b).count().get()),
+      ...spellings.map((list) => Promise.all(list.map((s) => reports.where("branch", "==", s).count().get()))),
     ]);
 
     const branches: Record<string, number> = {};
-    Array.from(branchNames).forEach((b, i) => {
-      const c = branchSnaps[i].data().count;
+    display.forEach((b, i) => {
+      const c = (spellingSnaps[i] as any[]).reduce((sum, snap) => sum + snap.data().count, 0);
       if (c > 0) branches[b] = c;
     });
 

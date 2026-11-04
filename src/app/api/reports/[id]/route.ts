@@ -5,6 +5,12 @@ import { reportsListCache } from "@/lib/api-caches";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const sessionCookie = req.cookies.get("credit_dashboard_session");
+    const session = sessionCookie?.value ? verifySessionToken(sessionCookie.value) : null;
+    if (!session) {
+      return NextResponse.json({ success: false, error: "Authentication required" }, { status: 401 });
+    }
+
     const { id } = await params;
     if (!id) {
       return NextResponse.json({ success: false, error: "ID required" }, { status: 400 });
@@ -20,6 +26,16 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     }
 
     const data = docSnap.data();
+
+    // Branch users (employees) may only open reports they fetched themselves.
+    // Same 404 as a missing report so IDs can't be probed.
+    if (session.role !== "admin") {
+      const owner = String(data.fetched_by_email || data.fetched_by?.email || "").trim().toLowerCase();
+      if (!owner || owner !== String(session.email || "").trim().toLowerCase()) {
+        return NextResponse.json({ success: false, error: "Report not found" }, { status: 404 });
+      }
+    }
+
     return NextResponse.json({
       success: true,
       report: {

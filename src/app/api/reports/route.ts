@@ -71,13 +71,39 @@ export async function GET(req: NextRequest) {
     let total: number | undefined;
     let snapshot: { docs: any[] };
 
-    if (branchScoped && start && end) {
+    const LIST_FIELDS = [
+      "name", "mobile", "pan", "bureau", "credit_score", "created_at", "branch", "source",
+      "fetched_by", "fetched_by_type", "fetched_by_name", "fetched_by_email", "search_tokens", "fallbackData",
+    ];
+
+    // Employee view: read ONLY this user's own reports. Needs the composite index
+    // fetched_by_email ASC + created_at DESC; if it isn't deployed yet (FAILED_PRECONDITION)
+    // fall through to the window scan below, which filters to the same user in memory.
+    let ownSnap: any = null;
+    if (ownerEmail && start && end) {
+      try {
+        ownSnap = await adminDb
+          .collection("credit_reports")
+          .where("fetched_by_email", "==", ownerEmail)
+          .where("created_at", ">=", new Date(start))
+          .where("created_at", "<=", new Date(end))
+          .orderBy("created_at", "desc")
+          .limit(2000)
+          .select(...LIST_FIELDS)
+          .get();
+      } catch (e: any) {
+        if (e?.code !== 9 && !/index/i.test(String(e?.message))) throw e;
+        console.warn("reports: missing fetched_by_email+created_at index, using window scan:", e?.message);
+      }
+    }
+
+    if ((branchScoped || ownSnap) && start && end) {
       // Date-windowed branch view (e.g. "last 24h"): only a date range hits the query, which
       // Firestore serves from its automatic single-field index. Branch/source/bureau/search are
       // filtered in memory, so no composite index is needed and branch names match
       // case-insensitively (older records were saved as "delhi", newer ones as "Delhi").
       const wanted = String(effectiveBranch).trim().toLowerCase();
-      const windowSnap = await adminDb
+      const windowSnap = ownSnap || await adminDb
         .collection("credit_reports")
         .where("created_at", ">=", new Date(start))
         .where("created_at", "<=", new Date(end))
@@ -101,8 +127,8 @@ export async function GET(req: NextRequest) {
         )
         .get();
 
-      let docs: any[] = windowSnap.docs.filter((d: any) => String(d.data().branch || "").trim().toLowerCase() === wanted);
-      if (ownerEmail) {
+      let docs: any[] = ownSnap ? windowSnap.docs : windowSnap.docs.filter((d: any) => String(d.data().branch || "").trim().toLowerCase() === wanted);
+      if (ownerEmail && !ownSnap) {
         docs = docs.filter((d: any) => {
           const x = d.data();
           return String(x.fetched_by_email || x.fetched_by?.email || "").trim().toLowerCase() === ownerEmail;
@@ -121,7 +147,8 @@ export async function GET(req: NextRequest) {
     } else {
       let queryRef: any = adminDb.collection("credit_reports");
 
-      if (branchScoped) queryRef = queryRef.where("branch", "==", effectiveBranch);
+      if (ownerEmail) queryRef = queryRef.where("fetched_by_email", "==", ownerEmail);
+      else if (branchScoped) queryRef = queryRef.where("branch", "==", effectiveBranch);
       if (source && source !== "all") queryRef = queryRef.where("source", "==", source);
       if (bureau && bureau !== "all") queryRef = queryRef.where("bureau", "==", bureau);
       // search_tokens holds the PAN (upper), mobile, full lowercase name and each name word
