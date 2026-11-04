@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserByEmail, createSessionToken } from "@/lib/user-service";
+import { verifyPassword } from "@/lib/password";
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (user.password !== password && user.password !== cleanPassword) {
+    if (!verifyPassword(String(password), user.password) && !verifyPassword(String(cleanPassword), user.password)) {
       console.warn(`[Auth Login] Password mismatch for email: "${cleanEmail}". Default password is Password@123`);
       return NextResponse.json(
         { success: false, error: "Invalid work email or password." },

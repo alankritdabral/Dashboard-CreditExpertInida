@@ -1,4 +1,5 @@
 import { adminDb } from "./firebaseAdmin";
+import { hashPassword } from "@/lib/password";
 import { UserAccount, UserSession, UserRole } from "./types";
 import crypto from "crypto";
 import { TtlCache } from "./ttl-cache";
@@ -197,7 +198,7 @@ export async function createBranchAccount(accountData: {
     id: `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
     name: accountData.name,
     email: normalizedEmail,
-    password: accountData.password || "Password@123",
+    password: hashPassword(accountData.password || "Password@123"),
     role: "branch",
     branch: accountData.branch,
     employeeId: accountData.employeeId || `BR-${accountData.branch.substring(0, 3).toUpperCase()}-${Math.floor(10 + Math.random() * 90)}`,
@@ -245,7 +246,8 @@ export async function updateUserAccount(
   return true;
 }
 
-export async function updateUserPassword(email: string, newPassword: string): Promise<boolean> {
+export async function updateUserPassword(email: string, plainPassword: string): Promise<boolean> {
+  const newPassword = hashPassword(plainPassword);
   const normalized = email.toLowerCase().trim();
   invalidateUserCaches();
   const user = inMemoryUsers.get(normalized);
