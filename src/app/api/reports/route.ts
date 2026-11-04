@@ -50,7 +50,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: true, reports: [], hasMore: false, nextCursor: null });
     }
 
-    const cacheKey = JSON.stringify([effectiveBranch, source, start, end, pageSize, cursor, bureau, rawQuery, withTotal]);
+    // Employees (branch logins) only see reports they fetched themselves
+    const ownerEmail = session.role === "branch" ? String(session.email || "").trim().toLowerCase() : null;
+
+    const cacheKey = JSON.stringify([ownerEmail, effectiveBranch, source, start, end, pageSize, cursor, bureau, rawQuery, withTotal]);
     const cachedPage = reportsListCache.get(cacheKey);
     if (cachedPage) {
       return NextResponse.json({ success: true, ...cachedPage });
@@ -99,6 +102,12 @@ export async function GET(req: NextRequest) {
         .get();
 
       let docs: any[] = windowSnap.docs.filter((d: any) => String(d.data().branch || "").trim().toLowerCase() === wanted);
+      if (ownerEmail) {
+        docs = docs.filter((d: any) => {
+          const x = d.data();
+          return String(x.fetched_by_email || x.fetched_by?.email || "").trim().toLowerCase() === ownerEmail;
+        });
+      }
       if (source && source !== "all") docs = docs.filter((d: any) => d.data().source === source);
       if (bureau && bureau !== "all") docs = docs.filter((d: any) => d.data().bureau === bureau);
       if (searchToken) docs = docs.filter((d: any) => (d.data().search_tokens || []).includes(searchToken));

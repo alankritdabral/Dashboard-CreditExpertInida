@@ -245,7 +245,7 @@ export default function BranchPortalPage() {
                               Loading branch reports...
                             </div>
                           ) : (
-                            "No CIBILs pulled by this branch in the last 24 hours."
+                            "You have not pulled any CIBILs in the last 24 hours."
                           )}
                         </td>
                       </tr>
