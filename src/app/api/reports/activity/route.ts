@@ -62,6 +62,27 @@ export async function GET(req: NextRequest) {
         .slice(0, HISTORY_LIMIT);
     };
 
+    // ?summary=1[&branch=][&startDate=&endDate=]: pulls per employee (counts only, no rows).
+    // Date range alone hits the automatic single-field index; branch is matched in memory.
+    if (searchParams.get("summary") === "1") {
+      let q: any = reports;
+      if (!Number.isNaN(startMs)) q = q.where("created_at", ">=", new Date(startMs));
+      if (!Number.isNaN(endMs)) q = q.where("created_at", "<=", new Date(endMs));
+      const snap = await q.select("branch", "fetched_by_email", "fetched_by_name", "fetched_by").get();
+      const wanted = branch ? branch.trim().toLowerCase() : null;
+      const counts: Record<string, { name: string; count: number }> = {};
+      let unattributed = 0;
+      snap.docs.forEach((doc: any) => {
+        const d = doc.data();
+        if (wanted && String(d.branch || "").trim().toLowerCase() !== wanted && !(wanted === "website" && d.branch === "customer")) return;
+        const em = String(d.fetched_by_email || d.fetched_by?.email || "").trim().toLowerCase();
+        if (!em || em === "n/a") { unattributed++; return; }
+        const name = d.fetched_by_name || d.fetched_by?.name || em;
+        (counts[em] ||= { name, count: 0 }).count++;
+      });
+      return NextResponse.json({ success: true, counts, unattributed });
+    }
+
     if (email) {
       return NextResponse.json({ success: true, reports: await byField("fetched_by_email", [email.trim(), email.trim().toLowerCase()].filter((v, i, a) => a.indexOf(v) === i)) });
     }

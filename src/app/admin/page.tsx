@@ -324,6 +324,9 @@ export default function AdminDashboardPage() {
   const [histLoading, setHistLoading] = useState(false);
   const [histFrom, setHistFrom] = useState("");
   const [histTo, setHistTo] = useState("");
+  const [histView, setHistView] = useState<"list" | "summary">("list");
+  const [summary, setSummary] = useState<{ counts: Record<string, { name: string; count: number }>; unattributed: number } | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
   const [histPreset, setHistPreset] = useState<"all" | "today" | "yesterday" | "week" | "custom">("all");
   const localDay = (offsetDays: number) => {
     const d = new Date();
@@ -347,7 +350,7 @@ export default function AdminDashboardPage() {
   }, [activeTab]);
 
   useEffect(() => {
-    if (activeTab !== "activity" || (!histBranch && !histEmail)) {
+    if (activeTab !== "activity" || histView !== "list" || (!histBranch && !histEmail)) {
       setHistRows([]);
       return;
     }
@@ -364,8 +367,35 @@ export default function AdminDashboardPage() {
       .catch((e) => console.error("Failed to load history:", e))
       .finally(() => { if (!cancelled) setHistLoading(false); });
     return () => { cancelled = true; };
-  }, [activeTab, histBranch, histEmail, histFrom, histTo]);
+  }, [activeTab, histView, histBranch, histEmail, histFrom, histTo]);
 
+  // Per-employee counts for the chosen date range (only needed when a range is set;
+  // otherwise the roster's all-time counts are used)
+  useEffect(() => {
+    if (activeTab !== "activity" || histView !== "summary" || (!histFrom && !histTo)) {
+      setSummary(null);
+      return;
+    }
+    const qs = new URLSearchParams({ summary: "1" });
+    if (histBranch) qs.set("branch", histBranch);
+    if (histFrom) qs.set("startDate", new Date(`${histFrom}T00:00:00`).toISOString());
+    if (histTo) qs.set("endDate", new Date(`${histTo}T23:59:59.999`).toISOString());
+    let cancelled = false;
+    setSummaryLoading(true);
+    fetch(`/api/reports/activity?${qs}`)
+      .then((r) => r.json())
+      .then((data) => { if (!cancelled) setSummary(data.success ? { counts: data.counts || {}, unattributed: data.unattributed || 0 } : null); })
+      .catch((e) => console.error("Failed to load summary:", e))
+      .finally(() => { if (!cancelled) setSummaryLoading(false); });
+    return () => { cancelled = true; };
+  }, [activeTab, histView, histBranch, histFrom, histTo]);
+
+  const summaryRows = (summary
+    ? employees
+        .filter((e) => !histBranch || e.branch.toLowerCase() === histBranch.toLowerCase())
+        .map((e) => ({ ...e, count: summary.counts[e.email.toLowerCase()]?.count ?? 0 }))
+    : employees.filter((e) => !histBranch || e.branch.toLowerCase() === histBranch.toLowerCase())
+  ).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
   const branchEmployees = employees.filter((e) => !histBranch || e.branch.toLowerCase() === histBranch.toLowerCase());
   const histEmployee = employees.find((e) => e.email === histEmail);
 
@@ -952,6 +982,26 @@ export default function AdminDashboardPage() {
                 </select>
               </div>
 
+              <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-0.5 text-xs font-semibold" role="tablist" aria-label="History view">
+                {([
+                  ["list", "Pull details"],
+                  ["summary", "Numbers by employee"],
+                ] as const).map(([id, label]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    role="tab"
+                    aria-selected={histView === id}
+                    onClick={() => setHistView(id)}
+                    className={`max-sm:min-h-11 px-3 py-1.5 rounded-[10px] cursor-pointer transition-colors ${
+                      histView === id ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-800"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
               <div className="flex flex-wrap items-center gap-2">
                 {([
                   ["all", "All time"],
@@ -996,7 +1046,50 @@ export default function AdminDashboardPage() {
                 )}
               </div>
 
-              {!histBranch && !histEmail ? (
+              {histView === "summary" ? (
+                <>
+                  <p className="text-xs text-slate-500">
+                    {histBranch || "All branches"} - {histFrom || histTo ? "selected dates" : "all time"} - {summaryRows.reduce((n, r) => n + r.count, 0)} pulls by {summaryRows.filter((r) => r.count > 0).length} employees
+                    {summary && summary.unattributed > 0 ? ` (+${summary.unattributed} with no employee recorded)` : ""}
+                  </p>
+                  <div className="overflow-x-auto border border-slate-200 rounded-2xl">
+                    <table className="w-full text-xs text-left">
+                      <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px]">
+                        <tr>
+                          <th className="px-3 py-2.5">#</th>
+                          <th className="px-3 py-2.5">Employee</th>
+                          <th className="px-3 py-2.5">Branch</th>
+                          <th className="px-3 py-2.5 text-right">CIBIL pulls</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {summaryLoading ? (
+                          <tr><td colSpan={4} className="px-3 py-6 text-center text-slate-400">Loading...</td></tr>
+                        ) : summaryRows.length === 0 ? (
+                          <tr><td colSpan={4} className="px-3 py-6 text-center text-slate-400">No employees found.</td></tr>
+                        ) : (
+                          summaryRows.map((e, i) => (
+                            <tr key={e.email} className="text-slate-700">
+                              <td className="px-3 py-2.5 text-slate-400">{i + 1}</td>
+                              <td className="px-3 py-2.5">
+                                <button
+                                  type="button"
+                                  onClick={() => { setHistBranch(e.branch); setHistEmail(e.email); setHistView("list"); }}
+                                  className="font-semibold text-[#3F8EFC] hover:underline cursor-pointer text-left"
+                                >
+                                  {e.name.trim()}
+                                </button>
+                              </td>
+                              <td className="px-3 py-2.5">{e.branch}</td>
+                              <td className="px-3 py-2.5 text-right font-bold tabular-nums">{e.count}</td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              ) : !histBranch && !histEmail ? (
                 <p className="text-xs text-slate-500">Pick a branch to see its CIBIL pulls, or an employee to see their history.</p>
               ) : (
                 <>
@@ -1029,7 +1122,13 @@ export default function AdminDashboardPage() {
                               <td className="px-3 py-2.5 font-semibold text-slate-900">{r.name}<span className="block font-mono font-normal text-slate-400">{r.mobile}</span></td>
                               <td className="px-3 py-2.5 font-mono">{r.pan}</td>
                               <td className="px-3 py-2.5 uppercase">{r.bureau}</td>
-                              <td className="px-3 py-2.5 font-bold">{r.credit_score ?? "-"}</td>
+                              <td className="px-3 py-2.5">
+                                {r.credit_score ? (
+                                  <span className="font-bold">{r.credit_score}</span>
+                                ) : (
+                                  <span className="text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-1.5 py-0.5 text-[11px] font-medium whitespace-normal">CIBIL fetched, no details found</span>
+                                )}
+                              </td>
                               <td className="px-3 py-2.5">
                                 {r.fetched_by_email && r.fetched_by_email !== "N/A" ? (
                                   <button
