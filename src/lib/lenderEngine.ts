@@ -902,14 +902,21 @@ export function analyzeLenderEligibility({
   const eligibleLenders: any[] = [];
   const ineligibleLenders: any[] = [];
 
+  // When the applicant wants "BT to PL", any Overdraft being consolidated is
+  // converted into a Personal Loan, so it must be counted as a PL BT, not an OD BT.
+  const effectiveCatBLoans =
+    profile.btPreference === "BT to PL"
+      ? catBLoans.map((l: any) => (l.type === "Overdraft" ? { ...l, type: "Personal Loan" } : l))
+      : catBLoans;
+
   // Pre-count loan types in catBLoans
-  const plCount = catBLoans.filter((l: any) => l.type === "Personal Loan").length;
-  const ccCount = catBLoans.filter((l: any) => l.type === "Credit Card").length;
-  const appLoans = catBLoans.filter((l: any) => l.type === "App Loan");
+  const plCount = effectiveCatBLoans.filter((l: any) => l.type === "Personal Loan").length;
+  const ccCount = effectiveCatBLoans.filter((l: any) => l.type === "Credit Card").length;
+  const appLoans = effectiveCatBLoans.filter((l: any) => l.type === "App Loan");
   const appCount = appLoans.length;
-  const odLoans = catBLoans.filter((l: any) => l.type === "Overdraft");
+  const odLoans = effectiveCatBLoans.filter((l: any) => l.type === "Overdraft");
   const odCount = odLoans.length;
-  const totalBTCount = catBLoans.length;
+  const totalBTCount = effectiveCatBLoans.length;
 
   for (const lender of LENDERS) {
     let isEligible = true;
@@ -1501,8 +1508,8 @@ export function analyzeLenderEligibility({
     // ── POONAWALLA specific ─────────────────────────────────────────────
     if (lender.id === "poonawalla" && isEligible) {
       // Validate specific BT counts
-      const plCount = catBLoans.filter((l: any) => l.type === "Personal Loan").length;
-      const odCount = catBLoans.filter((l: any) => l.type === "Overdraft").length;
+      const plCount = effectiveCatBLoans.filter((l: any) => l.type === "Personal Loan").length;
+      const odCount = effectiveCatBLoans.filter((l: any) => l.type === "Overdraft").length;
 
       if (odCount > 0) {
         if (odCount > 1) {
