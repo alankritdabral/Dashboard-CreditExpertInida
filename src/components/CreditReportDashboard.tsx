@@ -273,11 +273,12 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
 
     const currentOutstanding = overrides.currentOutstanding !== undefined ? overrides.currentOutstanding : (acc.currentBalance || 0);
     const type = overrides.type !== undefined ? overrides.type : (
-      (acc.accountType || "").includes("Personal") ? "Personal Loan" :
-        (acc.accountType || "").includes("Credit") ? "Credit Card" :
-          (acc.accountType || "").includes("Education") ? "Education Loan" :
-            (acc.accountType || "").includes("Gold") ? "Gold Loan" :
-              (acc.accountType || "").includes("Overdraft") ? "Overdraft" : "Unknown"
+      (acc.accountType || "").includes("Auto") || (acc.accountType || "").includes("Vehicle") || (acc.accountType || "").includes("Car") ? "Car Loan" :
+        (acc.accountType || "").includes("Personal") ? "Personal Loan" :
+          (acc.accountType || "").includes("Credit") ? "Credit Card" :
+            (acc.accountType || "").includes("Education") ? "Education Loan" :
+              (acc.accountType || "").includes("Gold") ? "Gold Loan" :
+                (acc.accountType || "").includes("Overdraft") ? "Overdraft" : "Unknown"
     );
 
     const originalAmount = overrides.originalAmount !== undefined ? Number(overrides.originalAmount) : Number(acc.highCreditAmount || 0);

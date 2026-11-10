@@ -862,6 +862,29 @@ function calculateEffectiveNTH(
   return nth;
 }
 
+// Parses a loan's dateOpened field, which may be "DD-MM-YYYY" (bureau-formatted),
+// a raw bureau date string, or "N/A"/empty. Returns null when unparseable.
+function parseLoanDate(dateOpened: string | undefined): Date | null {
+  if (!dateOpened || dateOpened === "N/A") return null;
+
+  const ddmmyyyy = dateOpened.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+  if (ddmmyyyy) {
+    const [, dd, mm, yyyy] = ddmmyyyy;
+    const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  const yyyymmdd = dateOpened.match(/^(\d{4})(\d{2})(\d{2})$/);
+  if (yyyymmdd) {
+    const [, yyyy, mm, dd] = yyyymmdd;
+    const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  const d = new Date(dateOpened);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 // ─── Eligibility Engine ─────────────────────────────────────────────────────
 
 export function analyzeLenderEligibility({
@@ -1240,6 +1263,25 @@ export function analyzeLenderEligibility({
       }
     }
 
+    // ── AXIS FINANCE specific ───────────────────────────────────────────
+    if (lender.id === "axisfinance" && isEligible) {
+      // Source: bank_comparison data — Axis Finance rejects if applicant has
+      // taken a Personal Loan or Overdraft in the last 3 months.
+      const recentPLOrOD = allLoans.some((l: any) => {
+        if (l.type !== "Personal Loan" && l.type !== "Overdraft") return false;
+        const opened = parseLoanDate(l.dateOpened);
+        if (!opened) return false;
+        const monthsSince =
+          (Date.now() - opened.getTime()) / (1000 * 60 * 60 * 24 * 30.44);
+        return monthsSince < 3;
+      });
+
+      if (recentPLOrOD) {
+        isEligible = false;
+        rejectionReasons.push("Personal Loan/Overdraft taken in the last 3 months");
+      }
+    }
+
     // ── ADITYA BIRLA specific ───────────────────────────────────────────
     if (lender.id === "abfl" && isEligible) {
       // Salary tier check
@@ -1510,9 +1552,16 @@ export function analyzeLenderEligibility({
         rejectionReasons.push("High-risk Cat E applicants with Prime or Others income are not allowed");
       } else {
         effectiveMaxFoir = gridFoir;
-        customOutput.maxFOIR = `${gridFoir}%`;
         customOutput.poonawallaFOIR = gridFoir;
       }
+
+      // Secured (Car/Auto) loan bumps max FOIR to 75%
+      const hasSecuredAutoLoan = allLoans.some((l: any) => l.type === "Car Loan" && Number(l.currentOutstanding || 0) > 0);
+      if (hasSecuredAutoLoan) {
+        effectiveMaxFoir = Math.max(effectiveMaxFoir, 75);
+        customOutput.poonawallaFOIR = effectiveMaxFoir;
+      }
+      customOutput.maxFOIR = `${effectiveMaxFoir}%`;
       if (profile.cityTier !== "Metro") {
         warnings.push("FOIR grid is defined only for Metro, Tier 1 and Tier 2 cities");
       }
@@ -1576,7 +1625,14 @@ export function analyzeLenderEligibility({
       const bandIdx = nth > 75000 ? 2 : nth >= 50000 ? 1 : 0;
 
       // FOIR grid by salary (Max FOIR applied to total obligations)
-      const tataFoir = nth > 75000 ? 75 : nth > 50000 ? 65 : nth > 25000 ? 60 : 50;
+      let tataFoir = nth > 75000 ? 75 : nth > 50000 ? 65 : nth > 25000 ? 60 : 50;
+
+      // Secured (Car/Auto) loan bumps max FOIR to 75%
+      const hasSecuredAutoLoan = allLoans.some((l: any) => l.type === "Car Loan" && Number(l.currentOutstanding || 0) > 0);
+      if (hasSecuredAutoLoan) {
+        tataFoir = Math.max(tataFoir, 75);
+      }
+
       effectiveMaxFoir = tataFoir;
       customOutput.maxFOIR = `${tataFoir}%`;
 
