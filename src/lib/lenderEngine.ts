@@ -255,7 +255,7 @@ const LENDERS: LenderConfig[] = [
     maxTenure: 72,
     maxFoir: 75,
     employerBankId: "ltFinance",
-    minSalary: 175000,       // ₹1.75L+ for highlighted offer
+    minSalary: 0,            // Removed: no minimum salary gate (was ₹1.75L)
     minCibil: 775,           // 775 for highlighted offer
     cibilMinus1Accepted: true,
     cibilMinus1MaxFunding: 1000000, // Up to ₹10L
@@ -292,8 +292,8 @@ const LENDERS: LenderConfig[] = [
     },
     restrictedProfiles: [],
     wfhAccepted: true,
-    ownHouseRequired: true,  // "Owned residential property mandatory"
-    metroOnly: true,         // "Metro Cities"
+    ownHouseRequired: false, // Removed: owned property no longer mandatory
+    metroOnly: false,        // Removed: no longer restricted to Metro cities
     geoLimitKm: null,
     digitalProcess: true,
     minAge: 21,
@@ -315,7 +315,7 @@ const LENDERS: LenderConfig[] = [
     maxTenure: 84,
     maxFoir: 70,
     employerBankId: "kotak",
-    minSalary: 75000,         // Minimum based on Green Scorecard
+    minSalary: 0,             // Removed: no generic minimum salary gate (was ₹75K)
     minCibil: null,           // Segment/policy based
     cibilMinus1Accepted: false,
     cibilMinus1MaxFunding: 0,
@@ -1125,15 +1125,17 @@ export function analyzeLenderEligibility({
       }
     }
 
-    // OD BT check
-    if (odCount > 0) {
+    // OD BT check — uses the original Overdraft loans, even when "BT to PL" relabels them
+    // as PL for count limits: a lender that doesn't take over ODs can't take this one over.
+    const rawOdLoans = catBLoans.filter((l: any) => l.type === "Overdraft");
+    if (rawOdLoans.length > 0) {
       if (!lender.bt.overdraft) {
         isEligible = false;
         rejectionReasons.push("Does not support Overdraft BT");
       }
       // IndusInd: OD BT only for specific banks
       if (lender.bt.odBTRestrictions && lender.bt.odBTRestrictions.length > 0) {
-        const invalidODs = odLoans.filter((l: any) => {
+        const invalidODs = rawOdLoans.filter((l: any) => {
           const bankName = (l.bankName || "").toLowerCase();
           return !lender.bt.odBTRestrictions!.some(
             (r) => bankName.includes(r.toLowerCase())
