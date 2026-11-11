@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebaseAdmin";
 import { verifySessionToken } from "@/lib/user-service";
-import { reportsListCache } from "@/lib/api-caches";
+import { reportsListCache, activityCache } from "@/lib/api-caches";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -66,6 +66,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     if (adminDb && typeof adminDb.collection === "function") {
       await adminDb.collection("credit_reports").doc(id).delete();
       reportsListCache.clear();
+      activityCache.clear();
     }
 
     return NextResponse.json({ success: true, message: "Report deleted successfully" });

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebaseAdmin";
 import { verifySessionToken } from "@/lib/user-service";
 import { parseBureauData } from "@/lib/bureauParsers";
-import { reportsListCache } from "@/lib/api-caches";
+import { reportsListCache, activityCache } from "@/lib/api-caches";
 
 function generateSearchTokens(name: string = "", mobile: string = "", pan: string = ""): string[] {
   const tokens = new Set<string>();
@@ -353,6 +353,7 @@ export async function POST(req: NextRequest) {
     if (adminDb && typeof adminDb.collection === "function") {
       await adminDb.collection("credit_reports").doc(docId).set(docPayload, { merge: true });
       reportsListCache.clear();
+      activityCache.clear();
     }
 
     return NextResponse.json({

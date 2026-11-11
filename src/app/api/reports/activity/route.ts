@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebaseAdmin";
 import { verifySessionToken } from "@/lib/user-service";
+import { activityCache } from "@/lib/api-caches";
 
 const HISTORY_LIMIT = 200;
 
@@ -43,14 +44,37 @@ export async function GET(req: NextRequest) {
     const email = searchParams.get("email");
     const reports = adminDb.collection("credit_reports");
 
+    // Switching between list/summary or branch/employee in the Activity tab re-requests the
+    // same data; serve repeats from memory. Cleared whenever a report is written or deleted.
+    const cacheKey = searchParams.toString();
+    const cached = activityCache.get(cacheKey);
+    if (cached) return NextResponse.json({ success: true, ...cached });
+    const respond = (payload: Record<string, any>) => {
+      activityCache.set(cacheKey, payload);
+      return NextResponse.json({ success: true, ...payload });
+    };
+
     const spellings = (v: string, extra: string[] = []) => {
       const t = v.trim();
       return Array.from(new Set([t, t.toLowerCase(), t.charAt(0).toUpperCase() + t.slice(1).toLowerCase(), ...extra]));
     };
-    // Equality/"in" queries only (sorted in memory) so no composite index is needed.
     const startMs = Date.parse(searchParams.get("startDate") || "");
     const endMs = Date.parse(searchParams.get("endDate") || "");
+    // History rows: let Firestore apply the date range, ordering and limit so only the
+    // HISTORY_LIMIT newest docs are read. Needs the composite index <field> ASC + created_at DESC
+    // (firestore.indexes.json). If it isn't deployed yet (FAILED_PRECONDITION) fall back to
+    // reading every doc for the branch/employee and filtering in memory.
     const byField = async (field: string, values: string[]) => {
+      try {
+        let q: any = reports.where(field, "in", values);
+        if (!Number.isNaN(startMs)) q = q.where("created_at", ">=", new Date(startMs));
+        if (!Number.isNaN(endMs)) q = q.where("created_at", "<=", new Date(endMs));
+        const snap = await q.orderBy("created_at", "desc").limit(HISTORY_LIMIT).select(...FIELDS).get();
+        return snap.docs.map(toRow);
+      } catch (e: any) {
+        if (e?.code !== 9 && !/index/i.test(String(e?.message))) throw e;
+        console.warn(`activity: missing ${field}+created_at index, scanning all docs:`, e?.message);
+      }
       const snap = await reports.where(field, "in", values).select(...FIELDS).get();
       return snap.docs
         .map(toRow)
@@ -80,15 +104,15 @@ export async function GET(req: NextRequest) {
         const name = d.fetched_by_name || d.fetched_by?.name || em;
         (counts[em] ||= { name, count: 0 }).count++;
       });
-      return NextResponse.json({ success: true, counts, unattributed });
+      return respond({ counts, unattributed });
     }
 
     if (email) {
-      return NextResponse.json({ success: true, reports: await byField("fetched_by_email", [email.trim(), email.trim().toLowerCase()].filter((v, i, a) => a.indexOf(v) === i)) });
+      return respond({ reports: await byField("fetched_by_email", [email.trim(), email.trim().toLowerCase()].filter((v, i, a) => a.indexOf(v) === i)) });
     }
 
     if (branch) {
-      return NextResponse.json({ success: true, reports: await byField("branch", spellings(branch, branch.trim() === "Website" ? ["customer"] : [])) });
+      return respond({ reports: await byField("branch", spellings(branch, branch.trim() === "Website" ? ["customer"] : [])) });
     }
 
     // Staff live in either "users" or "dashboard_users"; merge and dedupe by email.
@@ -117,7 +141,7 @@ export async function GET(req: NextRequest) {
       branch: u.branch || "Online",
       count: counts[i].data().count,
     }));
-    return NextResponse.json({ success: true, employees });
+    return respond({ employees });
   } catch (err: any) {
     console.error("GET /api/reports/activity error:", err);
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
