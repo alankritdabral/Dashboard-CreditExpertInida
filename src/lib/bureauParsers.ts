@@ -96,6 +96,7 @@ const ACCOUNT_TYPES: Record<string, string> = {
   "59": "Business Loan Against Bank Deposits",
   "61": "Business Loan - Unsecured",
   "64": "Insurance",
+  "69": "App Loan",
   "80": "Microfinance Detailed Report",
   "81": "Summary Report",
   "88": "Locate Plus for Insurance",

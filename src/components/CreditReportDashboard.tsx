@@ -2,7 +2,8 @@
 import React, { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, Plus, Loader2, Trash2, Download, AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
-import { analyzeLenderEligibility } from "@/lib/lenderEngine";
+import { analyzeLenderEligibility, getDefaultFoir } from "@/lib/lenderEngine";
+import { classifyLoanType } from "@/lib/loanType";
 import { parseBureauData } from "@/lib/bureauParsers";
 import { searchEmployers, EmployerResult } from "@/lib/employerLookup";
 import { useEffect } from "react";
@@ -272,14 +273,7 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
     const overrides = loanOverrides[acc.accountNumber] || {};
 
     const currentOutstanding = overrides.currentOutstanding !== undefined ? overrides.currentOutstanding : (acc.currentBalance || 0);
-    const type = overrides.type !== undefined ? overrides.type : (
-      (acc.accountType || "").includes("Auto") || (acc.accountType || "").includes("Vehicle") || (acc.accountType || "").includes("Car") ? "Car Loan" :
-        (acc.accountType || "").includes("Personal") ? "Personal Loan" :
-          (acc.accountType || "").includes("Credit") ? "Credit Card" :
-            (acc.accountType || "").includes("Education") ? "Education Loan" :
-              (acc.accountType || "").includes("Gold") ? "Gold Loan" :
-                (acc.accountType || "").includes("Overdraft") ? "Overdraft" : "Unknown"
-    );
+    const type = overrides.type !== undefined ? overrides.type : classifyLoanType(acc.accountType);
 
     const originalAmount = overrides.originalAmount !== undefined ? Number(overrides.originalAmount) : Number(acc.highCreditAmount || 0);
     const tenure = overrides.tenure !== undefined ? overrides.tenure : (acc.repaymentTenure || "N/A");
@@ -320,7 +314,11 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
 
   const catBLoans = mappedAccounts.filter((l: any) => l.wantsBT === 'yes' && Number(l.currentOutstanding) > 0);
 
-  const { eligibleLenders, ineligibleLenders } = analyzeLenderEligibility({ profile: engineProfile, catBLoans, allLoans: mappedAccounts });
+  // Any overdue on an active account: don't show eligibility, route to sales instead.
+  const hasOverdue = mappedAccounts.some((l: any) => Number(l.pastDueAmount) > 0);
+  const { eligibleLenders, ineligibleLenders } = hasOverdue
+    ? { eligibleLenders: [] as any[], ineligibleLenders: [] as any[] }
+    : analyzeLenderEligibility({ profile: engineProfile, catBLoans, allLoans: mappedAccounts });
 
   const totalCurrentEMI = mappedAccounts.reduce((sum: number, loan: any) => {
     if (Number(loan.currentOutstanding) <= 0 || !loan.userPaysEmi) {
@@ -337,7 +335,11 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
   }, 0);
 
   const netSalary = (Number(userOverrides.netSalary) || Number(formData.monthlyIncome) || 0) + ((Number(userOverrides.yearlyBonus) || 0) / 12);
-  const maxEmiCapacity = netSalary * 0.7;
+  const hasSecuredLoanForFoir = mappedAccounts.some((l: any) => (l.type === "Home Loan" || l.type === "Car Loan") && Number(l.currentOutstanding || 0) > 0);
+  const foirBank = getDefaultFoir(effectiveNetSalary, hasSecuredLoanForFoir, false);
+  const foirNbfc = getDefaultFoir(effectiveNetSalary, hasSecuredLoanForFoir, true);
+  const appliedFoir = foirNbfc; // highest default FOIR applicable to this profile
+  const maxEmiCapacity = netSalary * (appliedFoir / 100);
 
   const bestLenderForCapacity = eligibleLenders.length > 0 ? eligibleLenders[0] : null;
   let newConsolidationEmiForCapacity = 0;
@@ -806,6 +808,15 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
                   )}
                   <h4 className="text-lg font-bold text-[#382F2A] mb-4">Complete Profile for Accurate Eligibility</h4>
 
+                  {hasOverdue && (
+                    <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl p-3 mb-4">
+                      <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
+                      <p className="text-xs font-semibold text-red-800">
+                        Overdue payment found on this credit report. Eligibility will not be shown — please contact our sales team for a solution.
+                      </p>
+                    </div>
+                  )}
+
                   <div className="bg-slate-50 border border-icy-blue rounded-2xl p-5 mb-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
@@ -817,6 +828,9 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
                             </span>
                             <span className="bg-blue-50 text-blue-energy px-2 py-0.5 rounded-full">
                               Max EMI: ₹{maxEmiCapacity.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                            </span>
+                            <span className="bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full">
+                              FOIR: {foirBank === foirNbfc ? `${foirNbfc}%` : `${foirBank}% (NBFC ${foirNbfc}%)`}
                             </span>
                           </div>
                         </label>
@@ -1718,7 +1732,9 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
                   ) : (
                     <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-center">
                       <p className="text-sm font-medium text-amber-800">
-                        Based on this initial data, standard consolidation options require deeper review.
+                        {hasOverdue
+                          ? "An overdue payment was found on this credit report. Please contact our sales team for a tailored solution."
+                          : "Based on this initial data, standard consolidation options require deeper review."}
                       </p>
                     </div>
                   )}

@@ -887,6 +887,17 @@ function parseLoanDate(dateOpened: string | undefined): Date | null {
 
 // ─── Eligibility Engine ─────────────────────────────────────────────────────
 
+/**
+ * Default FOIR by net salary (applies to banks & NBFCs unless a lender's own rules override):
+ *   < 50,000 → 50% | 50,000–69,999 → 65% | ≥ 70,000 → 70%
+ *   ≥ 70,000 with a running secured loan (Home/Car/Auto): NBFC → 75%
+ */
+export function getDefaultFoir(netSalary: number, hasSecuredLoan: boolean, isNbfc: boolean): number {
+  if (netSalary < 50000) return 50;
+  if (netSalary < 70000) return 65;
+  return isNbfc && hasSecuredLoan ? 75 : 70;
+}
+
 export function analyzeLenderEligibility({
   profile,
   catBLoans,
@@ -936,7 +947,14 @@ export function analyzeLenderEligibility({
 
     // ─── Global FOIR Logic ──────────────────────────────────────────────
     const hasRunningHL = allLoans.some((l: any) => l.type === "Home Loan" && Number(l.currentOutstanding || 0) > 0);
-    let effectiveMaxFoir = hasRunningHL ? Math.max(70, lender.maxFoir) : 70;
+    const hasSecuredLoan =
+      hasRunningHL ||
+      allLoans.some((l: any) => l.type === "Car Loan" && Number(l.currentOutstanding || 0) > 0);
+    const salaryForFoir = Number(profile.netSalary) || 0;
+    const defaultFoir = getDefaultFoir(salaryForFoir, hasSecuredLoan, lender.type === "NBFC");
+    let effectiveMaxFoir = hasRunningHL && lender.type !== "NBFC" && salaryForFoir >= 70000
+      ? Math.max(defaultFoir, lender.maxFoir)
+      : defaultFoir;
     customOutput.maxFOIR = `${effectiveMaxFoir}%`;
 
     // ─── Location warning ──────────────────────────────────────────────
