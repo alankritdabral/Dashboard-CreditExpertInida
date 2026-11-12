@@ -244,7 +244,7 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
     employerBankCategories: userOverrides.employerBankCategories || [], // per-lender category from bank listings
     hasBounce: userOverrides.hasBounce || "no",
     hasLatePayment: userOverrides.hasLatePayment || "no",
-    hasActiveOverdue: userOverrides.hasActiveOverdue || ((accountSummary?.overdueAccounts || 0) > 0 ? "yes" : "no"),
+    hasActiveOverdue: userOverrides.hasActiveOverdue || (!userOverrides.ignoreOverdue && (accountSummary?.overdueAccounts || 0) > 0 ? "yes" : "no"),
     wantsTopUp: userOverrides.wantsTopUp || "no",
     btPreference: userOverrides.btPreference || "Any",
     axisCustomerSegment: userOverrides.axisCustomerSegment || "NTB",
@@ -317,9 +317,12 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
 
   const catBLoans = mappedAccounts.filter((l: any) => l.wantsBT === 'yes' && Number(l.currentOutstanding) > 0);
 
-  // Any overdue on an active account: don't show eligibility, route to sales instead.
+  // Any overdue on an active account: don't show eligibility, route to sales instead,
+  // unless the user has explicitly chosen to ignore the overdue.
   const hasOverdue = mappedAccounts.some((l: any) => Number(l.pastDueAmount) > 0);
-  const { eligibleLenders, ineligibleLenders } = hasOverdue
+  const ignoreOverdue = !!userOverrides.ignoreOverdue;
+  const overdueBlocksEligibility = hasOverdue && !ignoreOverdue;
+  const { eligibleLenders, ineligibleLenders } = overdueBlocksEligibility
     ? { eligibleLenders: [] as any[], ineligibleLenders: [] as any[] }
     : analyzeLenderEligibility({ profile: engineProfile, catBLoans, allLoans: mappedAccounts });
 
@@ -811,12 +814,42 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
                   )}
                   <h4 className="text-lg font-bold text-[#382F2A] mb-4">Complete Profile for Accurate Eligibility</h4>
 
-                  {hasOverdue && (
-                    <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl p-3 mb-4">
-                      <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
-                      <p className="text-xs font-semibold text-red-800">
-                        Overdue payment found on this credit report. Eligibility will not be shown — please contact our sales team for a solution.
-                      </p>
+                  {hasOverdue && !ignoreOverdue && (
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-red-50 border border-red-200 rounded-xl p-3 mb-4">
+                      <div className="flex items-start gap-2 flex-1 min-w-0">
+                        <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
+                        <p className="text-xs font-semibold text-red-800">
+                          Overdue payment found on this credit report. Eligibility will not be shown — please contact our sales team for a solution.
+                        </p>
+                      </div>
+                      {!isPreparingDownload && (
+                        <button
+                          type="button"
+                          onClick={() => setUserOverrides({ ...userOverrides, ignoreOverdue: true })}
+                          className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg border border-red-300 bg-white text-red-700 hover:bg-red-100 transition-colors"
+                        >
+                          Ignore overdue &amp; show eligibility
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  {hasOverdue && ignoreOverdue && (
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
+                      <div className="flex items-start gap-2 flex-1 min-w-0">
+                        <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                        <p className="text-xs font-semibold text-amber-800">
+                          Overdue payment on this report is being ignored. Eligibility below assumes the overdue is cleared.
+                        </p>
+                      </div>
+                      {!isPreparingDownload && (
+                        <button
+                          type="button"
+                          onClick={() => setUserOverrides({ ...userOverrides, ignoreOverdue: false })}
+                          className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg border border-amber-300 bg-white text-amber-800 hover:bg-amber-100 transition-colors"
+                        >
+                          Undo
+                        </button>
+                      )}
                     </div>
                   )}
 
@@ -992,7 +1025,7 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
                       <div>
                         <label className="text-xs font-semibold text-brand-black/80 mb-1 block">Any Active Overdue?</label>
                         <select
-                          value={userOverrides.hasActiveOverdue || ((accountSummary?.overdueAccounts || 0) > 0 ? "yes" : "no")}
+                          value={userOverrides.hasActiveOverdue || (!userOverrides.ignoreOverdue && (accountSummary?.overdueAccounts || 0) > 0 ? "yes" : "no")}
                           onChange={e => setUserOverrides({ ...userOverrides, hasActiveOverdue: e.target.value })}
                           className="w-full bg-white border border-icy-blue rounded-xl px-3 py-2 text-sm focus:border-blue-energy outline-none"
                         >
@@ -1766,7 +1799,7 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
                   ) : (
                     <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-center">
                       <p className="text-sm font-medium text-amber-800">
-                        {hasOverdue
+                        {overdueBlocksEligibility
                           ? "An overdue payment was found on this credit report. Please contact our sales team for a tailored solution."
                           : "Based on this initial data, standard consolidation options require deeper review."}
                       </p>
