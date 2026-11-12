@@ -241,6 +241,7 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
     netSalary: effectiveNetSalary,
     employer: userOverrides.employer || formData.employer || "Unknown",
     employerTier: userOverrides.companyCategory || null, // null = auto-detect per bank
+    employerBankCategories: userOverrides.employerBankCategories || [], // per-lender category from bank listings
     hasBounce: userOverrides.hasBounce || "no",
     hasLatePayment: userOverrides.hasLatePayment || "no",
     hasActiveOverdue: userOverrides.hasActiveOverdue || ((accountSummary?.overdueAccounts || 0) > 0 ? "yes" : "no"),
@@ -873,7 +874,7 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
                             onChange={e => {
                               setEmployerSearch(e.target.value);
                               setShowEmployerDropdown(true);
-                              setUserOverrides({ ...userOverrides, employer: e.target.value });
+                              setUserOverrides({ ...userOverrides, employer: e.target.value, employerBankCategories: [] });
                             }}
                             onFocus={() => setShowEmployerDropdown(true)}
                             className="w-full bg-white border border-icy-blue rounded-xl px-3 py-2 text-sm focus:border-blue-energy outline-none"
@@ -904,15 +905,16 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
                                         setUserOverrides({
                                           ...userOverrides,
                                           employer: e.name,
-                                          companyCategory: e.tier
+                                          companyCategory: e.tier,
+                                          employerBankCategories: e.bankCategories || []
                                         });
                                         setShowEmployerDropdown(false);
                                       }}
-                                      className="px-4 py-2 text-sm text-brand-black/90 cursor-pointer hover:bg-slate-50 border-b border-slate-50 last:border-0 flex justify-between items-center"
+                                      className="px-4 py-2 text-sm text-brand-black/90 cursor-pointer hover:bg-slate-50 border-b border-slate-50 last:border-0 flex justify-between items-center gap-2"
                                     >
-                                      <span>{e.name}</span>
+                                      <span className="break-words">{e.name}</span>
                                       {e.tier !== 'Unknown' && (
-                                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                                        <span className="shrink-0 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
                                           Tier: {e.tier}
                                         </span>
                                       )}
@@ -924,7 +926,8 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
                                       setUserOverrides({
                                         ...userOverrides,
                                         employer: debouncedEmployerSearch || "Unlisted Company",
-                                        companyCategory: "Unknown"
+                                        companyCategory: "Unknown",
+                                        employerBankCategories: []
                                       });
                                       setShowEmployerDropdown(false);
                                     }}
@@ -943,7 +946,8 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
                                         setUserOverrides({
                                           ...userOverrides,
                                           employer: debouncedEmployerSearch,
-                                          companyCategory: "Unknown"
+                                          companyCategory: "Unknown",
+                                          employerBankCategories: []
                                         });
                                         setShowEmployerDropdown(false);
                                       }}
@@ -957,6 +961,22 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
                             </motion.div>
                           )}
                         </AnimatePresence>
+
+                        {(userOverrides.employerBankCategories || []).length > 0 && (
+                          <div className="mt-2 bg-slate-50 border border-slate-200 rounded-xl p-3">
+                            <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-2">
+                              Company Category by Bank / NBFC
+                            </p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                              {userOverrides.employerBankCategories.map((b: { key: string; label: string; category: string }) => (
+                                <div key={b.key} className="flex justify-between items-center gap-2 text-xs border-b border-slate-100 last:border-0 py-1">
+                                  <span className="text-slate-600 truncate">{b.label}</span>
+                                  <span className="font-bold text-slate-900 text-right shrink-0">{b.category}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                       <div>
                         <label className="text-xs font-semibold text-brand-black/80 mb-1 block">Any EMI Bounce (6M)?</label>

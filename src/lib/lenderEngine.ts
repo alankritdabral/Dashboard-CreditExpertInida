@@ -1025,7 +1025,10 @@ export function analyzeLenderEligibility({
     // ─── Get employer tier for this specific lender ─────────────────────
     const employerTier = profile.employerTier || "Unknown";
     customOutput.employerTier = employerTier;
-    customOutput.employerCategory = employerTier;
+    // Bank-specific category straight from that lender's employer listing (if the
+    // employer is listed there); falls back to the unified tier used by the rules.
+    const bankCategory = (profile.employerBankCategories || []).find((b: any) => b.key === lender.id)?.category;
+    customOutput.employerCategory = bankCategory || employerTier;
 
     // ─── Calculate effective NTH ────────────────────────────────────────
     const nth = calculateEffectiveNTH(lender, profile);

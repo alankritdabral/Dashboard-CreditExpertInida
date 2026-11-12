@@ -4,9 +4,17 @@
  * Provides employer search and classification by calling the backend API.
  */
 
+export interface EmployerBankCategory {
+  key: string;      // lender id used by lenderEngine (e.g. "kotak"), or a bank not in the engine (e.g. "idfc")
+  label: string;    // display name, e.g. "Kotak Mahindra Bank"
+  category: string; // category exactly as listed in that bank's employer sheet
+}
+
 export interface EmployerResult {
   name: string;
   tier: string;
+  /** Category of this employer in every bank / NBFC listing that includes it. */
+  bankCategories: EmployerBankCategory[];
 }
 
 /**

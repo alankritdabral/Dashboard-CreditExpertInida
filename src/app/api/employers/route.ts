@@ -2,15 +2,35 @@ import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
 
+export interface EmployerBankCategory {
+  key: string;      // lender id used by lenderEngine (e.g. "kotak"), or a bank not in the engine (e.g. "idfc")
+  label: string;    // display name, e.g. "Kotak Mahindra Bank"
+  category: string; // category exactly as listed in that bank's employer sheet
+}
+
 export interface EmployerResult {
   name: string;
   tier: string;
+  bankCategories: EmployerBankCategory[];
 }
 
 interface IndexedEmployer {
   name: string;
   normalized: string;
   tier: string;
+  codes: string; // "bankIdx:catIdx;bankIdx:catIdx" from employerBankCategories.json
+}
+
+interface BankCategoryFile {
+  banks: { key: string; label: string; sheet: string }[];
+  cats: string[][];
+  employers: [string, string][];
+}
+
+interface EmployerIndex {
+  banks: BankCategoryFile["banks"];
+  cats: string[][];
+  employers: IndexedEmployer[];
 }
 
 const GOVERNMENT_KEYWORDS = [
@@ -22,7 +42,7 @@ const GOVERNMENT_KEYWORDS = [
   /\buniversity\b/i,
 ];
 
-let employerIndexCache: IndexedEmployer[] | null = null;
+let employerIndexCache: EmployerIndex | null = null;
 
 function normalizeEmployerName(name: string): string {
   if (!name) return "";
@@ -38,39 +58,59 @@ function getHeuristicTier(name: string): string {
   return "Unknown";
 }
 
-async function loadEmployerIndex(): Promise<IndexedEmployer[]> {
+/**
+ * Loads the unified tier index (employerIndex.json) plus the per-bank category
+ * listing (employerBankCategories.json, built by
+ * scripts/build-employer-bank-categories.py from the "ALL BANK LISTING" workbook).
+ */
+async function loadEmployerIndex(): Promise<EmployerIndex> {
   try {
     const indexPath = path.join(process.cwd(), "data", "employerData", "employerIndex.json");
-    const listPath = path.join(process.cwd(), "data", "employerData", "searchList.json");
+    const bankPath = path.join(process.cwd(), "data", "employerData", "employerBankCategories.json");
 
-    const [indexRaw, listRaw] = await Promise.all([
+    const [indexRaw, bankRaw] = await Promise.all([
       fs.readFile(indexPath, "utf-8"),
-      fs.readFile(listPath, "utf-8"),
+      fs.readFile(bankPath, "utf-8"),
     ]);
 
     const indexData: Record<string, string> = JSON.parse(indexRaw);
-    const listData: string[] = JSON.parse(listRaw);
+    const bankData: BankCategoryFile = JSON.parse(bankRaw);
 
-    const index: IndexedEmployer[] = [];
+    const employers: IndexedEmployer[] = [];
 
-    for (const name of listData) {
+    for (const [name, codes] of bankData.employers) {
       const normalized = normalizeEmployerName(name);
-      let tier = indexData[normalized] || getHeuristicTier(name);
-      index.push({
+      const tier = indexData[normalized] || getHeuristicTier(name);
+      employers.push({
         name,
         normalized: normalized.toLowerCase(),
         tier,
+        codes,
       });
     }
 
-    return index;
+    return { banks: bankData.banks, cats: bankData.cats, employers };
   } catch (error) {
     console.warn("Failed to load employer index:", error);
-    return [];
+    return { banks: [], cats: [], employers: [] };
   }
 }
 
-async function getEmployerIndex(): Promise<IndexedEmployer[]> {
+function decodeBankCategories(index: EmployerIndex, codes: string): EmployerBankCategory[] {
+  if (!codes) return [];
+  const out: EmployerBankCategory[] = [];
+  for (const pair of codes.split(";")) {
+    const [bankIdx, catIdx] = pair.split(":").map(Number);
+    const bank = index.banks[bankIdx];
+    const category = index.cats[bankIdx]?.[catIdx];
+    if (bank && category) {
+      out.push({ key: bank.key, label: bank.label, category });
+    }
+  }
+  return out;
+}
+
+async function getEmployerIndex(): Promise<EmployerIndex> {
   if (!employerIndexCache) {
     employerIndexCache = await loadEmployerIndex();
   }
@@ -108,7 +148,7 @@ export async function GET(request: Request) {
 
     const rankedResults: { employer: IndexedEmployer; rank: number }[] = [];
 
-    for (const emp of index) {
+    for (const emp of index.employers) {
       const rank = getMatchRank(emp.name, emp.normalized, query, normalizedQuery);
       if (rank < 4) {
         rankedResults.push({ employer: emp, rank });
@@ -123,6 +163,7 @@ export async function GET(request: Request) {
     const topResults: EmployerResult[] = rankedResults.slice(0, 50).map((r) => ({
       name: r.employer.name,
       tier: r.employer.tier,
+      bankCategories: decodeBankCategories(index, r.employer.codes),
     }));
 
     return NextResponse.json({ results: topResults });
