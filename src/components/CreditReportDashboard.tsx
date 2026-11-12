@@ -261,6 +261,8 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
     quarterlyBonus: Number(userOverrides.quarterlyBonus) || 0,
     lta: Number(userOverrides.lta) || 0,
     jobProfile: userOverrides.jobProfile || "",
+    employmentType: userOverrides.employmentType || "Regular",
+    inquiriesLast30Days: inquirySummary?.inquiryPast30Days,
     age: Number(userOverrides.age) || 0,
     coApplicant: userOverrides.coApplicant === "yes",
     hasEPFO: userOverrides.hasEPFO === "yes",
@@ -1026,6 +1028,18 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
                           <option value="Metro">Metro</option>
                         </select>
                       </div>
+                      <div>
+                        <label className="text-xs font-semibold text-brand-black/80 mb-1 block">Employment Type</label>
+                        <select
+                          value={userOverrides.employmentType || "Regular"}
+                          onChange={e => setUserOverrides({ ...userOverrides, employmentType: e.target.value })}
+                          className="w-full bg-white border border-icy-blue rounded-xl px-3 py-2 text-sm focus:border-blue-energy outline-none"
+                        >
+                          <option value="Regular">Regular / Permanent</option>
+                          <option value="Govt Contractual">Govt Contractual</option>
+                          <option value="4th Grade">4th Grade (Driver / Peon / MTS)</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
 
@@ -1210,7 +1224,7 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
                                   className="w-full bg-[#FAF8F5] border border-[#EBE6DD] rounded-lg px-2 py-1.5 text-xs outline-none focus:border-blue-energy"
                                 >
                                   <optgroup label="Generally Non-Transferable (Category A)">
-                                    {['Car Loan', 'Home Loan', 'LAP', 'Gold Loan', 'Consumer Loan', 'Education Loan'].map(t => <option key={t} value={t}>{t}</option>)}
+                                    {['Car Loan', 'Home Loan', 'LAP', 'Gold Loan', 'KCC', 'Consumer Loan', 'Education Loan'].map(t => <option key={t} value={t}>{t}</option>)}
                                   </optgroup>
                                   <optgroup label="Potentially Transferable (Category B)">
                                     {['Personal Loan', 'Overdraft', 'App Loan', 'Credit Card'].map(t => <option key={t} value={t}>{t}</option>)}

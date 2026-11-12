@@ -11,6 +11,7 @@ export function classifyLoanType(accountType: string | undefined | null): string
   if (!name) return "Unknown";
 
   if (/\bapp loan\b/.test(name)) return "App Loan";
+  if (/kisan credit|\bkcc\b/.test(name)) return "KCC"; // before "card": KCC is not a credit card
   if (/credit card|fleet card|\bcard\b/.test(name)) return "Credit Card";
   if (/overdraft/.test(name)) return "Overdraft";
   if (/gold/.test(name)) return "Gold Loan";
