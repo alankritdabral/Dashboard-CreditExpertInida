@@ -722,7 +722,7 @@ const LENDERS: LenderConfig[] = [
       maxCCBTs: 0,
       appLoan: false,
       maxAppBTs: 0,
-      overdraft: true,
+      overdraft: false,     // ICICI takes PL BT only, no OD takeover
       maxTotalBTs: null,
       topUp: true,
     },
