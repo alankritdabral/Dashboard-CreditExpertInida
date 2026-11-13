@@ -146,7 +146,7 @@ const LENDERS: LenderConfig[] = [
     maxTenure: 84,
     maxFoir: 70,
     employerBankId: "axisBank",
-    minSalary: 35000,  // CSG minimum; varies by segment
+    minSalary: 0,      // Removed: no minimum take-home salary gate for Axis Bank
     minCibil: 700,     // Minimum across all segments
     cibilMinus1Accepted: false,
     cibilMinus1MaxFunding: 0,
@@ -1314,33 +1314,20 @@ export function analyzeLenderEligibility({
       }
 
       const seg = profile.axisCustomerSegment || "NTB";
-      let nmiReq = 75000;
-      let cibilReq = 780;
+      // No minimum take-home salary for any segment, and no NTB-specific conditions:
+      // NTB falls back to the lender-level minimum CIBIL.
+      let cibilReq = 0;
 
       if (seg === "CSG") {
-        nmiReq = 35000;
         cibilReq = nth > 85000 ? 700 : 740;
       } else if (seg === "Non-CSG CASA") {
-        nmiReq = 50000;
         cibilReq = 740;
         if (profile.casaVintage !== "yes") {
           isEligible = false;
           rejectionReasons.push("Axis Bank requires 90+ days CASA vintage for Non-CSG CASA segment");
         }
-      } else if (seg === "NTB") {
-        nmiReq = 75000;
-        cibilReq = nth > 100000 ? 740 : 780;
-      } else if (seg === "Blue Collar") {
-        nmiReq = 200000;
-        cibilReq = 0;
       }
 
-      if (nth < nmiReq) {
-        isEligible = false;
-        rejectionReasons.push(
-          `Requires minimum ₹${nmiReq.toLocaleString("en-IN")} NTH for ${seg} segment`
-        );
-      }
       if (cibilReq > 0 && cibilScore > 0 && cibilScore < cibilReq) {
         isEligible = false;
         rejectionReasons.push(
