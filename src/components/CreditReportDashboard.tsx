@@ -38,6 +38,7 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         if (parsed.userOverrides) setUserOverrides(parsed.userOverrides);
         if (parsed.loanOverrides) setLoanOverrides(parsed.loanOverrides);
+        if (Array.isArray(parsed.manualLoans)) setManualLoans(parsed.manualLoans);
       }
     } catch (e) {
       console.error("Failed to load session overrides", e);
@@ -67,7 +68,7 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
   useEffect(() => {
     // Save to session storage instantly
     try {
-      sessionStorage.setItem(sessionKey, JSON.stringify({ userOverrides, loanOverrides }));
+      sessionStorage.setItem(sessionKey, JSON.stringify({ userOverrides, loanOverrides, manualLoans }));
     } catch (e) {
       console.error("Failed to save session overrides", e);
     }
@@ -90,7 +91,7 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
 
     return () => clearTimeout(handler);
     */
-  }, [userOverrides, loanOverrides, sessionKey, docId]);
+  }, [userOverrides, loanOverrides, manualLoans, sessionKey, docId]);
 
   const [showEmployerDropdown, setShowEmployerDropdown] = useState(false);
   const [employerSearch, setEmployerSearch] = useState("");
@@ -275,10 +276,16 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
   const mappedAccounts = activeAccounts.map((acc: any) => {
     const overrides = loanOverrides[acc.accountNumber] || {};
 
-    const currentOutstanding = overrides.currentOutstanding !== undefined ? overrides.currentOutstanding : (acc.currentBalance || 0);
+    const isManual = String(acc.accountNumber).startsWith('manual_');
     const type = overrides.type !== undefined ? overrides.type : classifyLoanType(acc.accountType);
 
     const originalAmount = overrides.originalAmount !== undefined ? Number(overrides.originalAmount) : Number(acc.highCreditAmount || 0);
+    // A manually added loan has no bureau balance: until one is typed in, treat the
+    // full original amount as outstanding so the loan counts as active everywhere.
+    const hasOutstandingOverride = overrides.currentOutstanding !== undefined && overrides.currentOutstanding !== '';
+    const currentOutstanding = hasOutstandingOverride
+      ? overrides.currentOutstanding
+      : (isManual ? originalAmount : (overrides.currentOutstanding !== undefined ? overrides.currentOutstanding : (acc.currentBalance || 0)));
     const tenure = overrides.tenure !== undefined ? overrides.tenure : (acc.repaymentTenure || "N/A");
 
     let rate = overrides.rate !== undefined ? Number(overrides.rate) : Number(acc.interest_rate || 0);
@@ -299,6 +306,7 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
 
     return {
       id: acc.accountNumber,
+      isManual,
       originalType: acc.accountType || "Unknown",
       type,
       wantsBT: overrides.wantsBT !== undefined ? overrides.wantsBT : "no",
@@ -317,30 +325,38 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
 
   const catBLoans = mappedAccounts.filter((l: any) => l.wantsBT === 'yes' && Number(l.currentOutstanding) > 0);
 
-  // Any overdue on an active account: don't show eligibility, route to sales instead,
-  // unless the user has explicitly chosen to ignore the overdue.
-  const hasOverdue = mappedAccounts.some((l: any) => Number(l.pastDueAmount) > 0);
-  const ignoreOverdue = !!userOverrides.ignoreOverdue;
-  const overdueBlocksEligibility = hasOverdue && !ignoreOverdue;
-  const { eligibleLenders, ineligibleLenders } = overdueBlocksEligibility
-    ? { eligibleLenders: [] as any[], ineligibleLenders: [] as any[] }
-    : analyzeLenderEligibility({ profile: engineProfile, catBLoans, allLoans: mappedAccounts });
-
   const totalCurrentEMI = mappedAccounts.reduce((sum: number, loan: any) => {
-    if (Number(loan.currentOutstanding) <= 0 || !loan.userPaysEmi) {
+    if ((Number(loan.currentOutstanding) <= 0 && !loan.isManual) || !loan.userPaysEmi) {
       return sum;
     }
     return sum + Number(loan.emi || 0);
   }, 0);
 
   const totalActiveEMI = mappedAccounts.reduce((sum: number, loan: any) => {
-    if (Number(loan.currentOutstanding) <= 0 || !loan.userPaysEmi || loan.wantsBT === 'yes') {
+    if ((Number(loan.currentOutstanding) <= 0 && !loan.isManual) || !loan.userPaysEmi || loan.wantsBT === 'yes') {
       return sum;
     }
     return sum + Number(loan.emi || 0);
   }, 0);
 
   const netSalary = (Number(userOverrides.netSalary) || Number(formData.monthlyIncome) || 0) + ((Number(userOverrides.yearlyBonus) || 0) / 12);
+  // Any overdue on an active account: don't show eligibility, route to sales instead,
+  // unless the user has explicitly chosen to ignore the overdue.
+  const hasOverdue = mappedAccounts.some((l: any) => Number(l.pastDueAmount) > 0);
+  const ignoreOverdue = !!userOverrides.ignoreOverdue;
+  const overdueBlocksEligibility = hasOverdue && !ignoreOverdue;
+
+  // Existing EMIs above 80% of net salary: same treatment as an overdue.
+  const HIGH_EMI_SALARY_PERCENT = 80;
+  const usedEmiPercent = netSalary > 0 ? (totalCurrentEMI / netSalary) * 100 : 0;
+  const hasHighEmi = usedEmiPercent > HIGH_EMI_SALARY_PERCENT;
+  const ignoreHighEmi = !!userOverrides.ignoreHighEmi;
+  const highEmiBlocksEligibility = hasHighEmi && !ignoreHighEmi;
+
+  const { eligibleLenders, ineligibleLenders } = (overdueBlocksEligibility || highEmiBlocksEligibility)
+    ? { eligibleLenders: [] as any[], ineligibleLenders: [] as any[] }
+    : analyzeLenderEligibility({ profile: engineProfile, catBLoans, allLoans: mappedAccounts });
+
   const hasSecuredLoanForFoir = mappedAccounts.some((l: any) => (l.type === "Home Loan" || l.type === "Car Loan") && Number(l.currentOutstanding || 0) > 0);
   const foirBank = getDefaultFoir(effectiveNetSalary, hasSecuredLoanForFoir, false);
   const foirNbfc = getDefaultFoir(effectiveNetSalary, hasSecuredLoanForFoir, true);
@@ -845,6 +861,45 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
                         <button
                           type="button"
                           onClick={() => setUserOverrides({ ...userOverrides, ignoreOverdue: false })}
+                          className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg border border-amber-300 bg-white text-amber-800 hover:bg-amber-100 transition-colors"
+                        >
+                          Undo
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {hasHighEmi && !ignoreHighEmi && (
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-red-50 border border-red-200 rounded-xl p-3 mb-4">
+                      <div className="flex items-start gap-2 flex-1 min-w-0">
+                        <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
+                        <p className="text-xs font-semibold text-red-800">
+                          Used EMI (₹{Math.round(totalCurrentEMI).toLocaleString('en-IN')}) is {Math.round(usedEmiPercent)}% of net salary, above the {HIGH_EMI_SALARY_PERCENT}% limit. Eligibility will not be shown — please contact our sales team for a solution.
+                        </p>
+                      </div>
+                      {!isPreparingDownload && (
+                        <button
+                          type="button"
+                          onClick={() => setUserOverrides({ ...userOverrides, ignoreHighEmi: true })}
+                          className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg border border-red-300 bg-white text-red-700 hover:bg-red-100 transition-colors"
+                        >
+                          Ignore &amp; show eligibility
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  {hasHighEmi && ignoreHighEmi && (
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
+                      <div className="flex items-start gap-2 flex-1 min-w-0">
+                        <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                        <p className="text-xs font-semibold text-amber-800">
+                          Used EMI is {Math.round(usedEmiPercent)}% of net salary (above {HIGH_EMI_SALARY_PERCENT}%) and is being ignored. Eligibility is shown below.
+                        </p>
+                      </div>
+                      {!isPreparingDownload && (
+                        <button
+                          type="button"
+                          onClick={() => setUserOverrides({ ...userOverrides, ignoreHighEmi: false })}
                           className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg border border-amber-300 bg-white text-amber-800 hover:bg-amber-100 transition-colors"
                         >
                           Undo
@@ -1801,7 +1856,9 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
                       <p className="text-sm font-medium text-amber-800">
                         {overdueBlocksEligibility
                           ? "An overdue payment was found on this credit report. Please contact our sales team for a tailored solution."
-                          : "Based on this initial data, standard consolidation options require deeper review."}
+                          : highEmiBlocksEligibility
+                            ? `Used EMI is above ${HIGH_EMI_SALARY_PERCENT}% of net salary. Please contact our sales team for a tailored solution.`
+                            : "Based on this initial data, standard consolidation options require deeper review."}
                       </p>
                     </div>
                   )}

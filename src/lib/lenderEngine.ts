@@ -670,7 +670,7 @@ const LENDERS: LenderConfig[] = [
       multiplePLs: true,
       maxPLBTs: null,
       creditCard: true,
-      maxCCBTs: 2,
+      maxCCBTs: null, // no cap on the number of loans/cards consolidated
       appLoan: false,
       maxAppBTs: 0,
       overdraft: true,
