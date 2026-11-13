@@ -381,8 +381,7 @@ const LENDERS: LenderConfig[] = [
       maxCCBTs: 6,              // CC OS up to 8× salary allowed for BT (checked in Chola block)
       appLoan: false,
       maxAppBTs: 0,
-      overdraft: true,          // OD / DOD tracks can be taken over into a Chola PL
-                                // ("BT not allowed in Flexi OD" is about the destination product, see btPreference check)
+      overdraft: true,          // OD / DOD tracks can be taken over
       maxTotalBTs: 6,           // 6 tracks total
       topUp: true,
     },
@@ -448,8 +447,8 @@ const LENDERS: LenderConfig[] = [
       maxPLBTs: 5,              // Max 5 PL BTs
       creditCard: false,        // Policy dependent
       maxCCBTs: 0,
-      appLoan: true,            // App loans & fintech loans accepted
-      maxAppBTs: null,
+      appLoan: false,           // No app/fintech loan BT
+      maxAppBTs: 0,
       overdraft: true,
       odBTRestrictions: ["Tata Capital", "Bajaj Finance", "Kotak", "ABFL", "Cholamandalam", "Axis Finance"],
       maxTotalBTs: 5,
@@ -497,7 +496,7 @@ const LENDERS: LenderConfig[] = [
       maxCCBTs: 6,
       appLoan: true,
       maxAppBTs: 3,
-      overdraft: false,
+      overdraft: true,         // OD-to-OD only (see BT_INTO_OD_FROM_OD_ONLY)
       maxTotalBTs: 8,          // Up to 8 total in debt consolidation poster
       topUp: true,
     },
@@ -586,7 +585,7 @@ const LENDERS: LenderConfig[] = [
       maxCCBTs: null,
       appLoan: true,           // "Subject to eligibility"
       maxAppBTs: null,
-      overdraft: false,
+      overdraft: true,
       maxTotalBTs: null,
       topUp: true,
       minBTFinancedAmount: 500000, // BT loan amount must be > ₹5L
@@ -630,7 +629,7 @@ const LENDERS: LenderConfig[] = [
       maxCCBTs: null,
       appLoan: true,
       maxAppBTs: null,
-      overdraft: false,
+      overdraft: true,
       maxTotalBTs: null,
       topUp: true,
     },
@@ -671,8 +670,8 @@ const LENDERS: LenderConfig[] = [
       maxPLBTs: null,
       creditCard: true,
       maxCCBTs: null, // no cap on the number of loans/cards consolidated
-      appLoan: false,
-      maxAppBTs: 0,
+      appLoan: true,
+      maxAppBTs: null,
       overdraft: true,
       maxTotalBTs: null,
       topUp: true,
@@ -766,6 +765,7 @@ const LENDERS: LenderConfig[] = [
       appLoan: false,
       maxAppBTs: 0,
       overdraft: true,
+      odBTRestrictions: ["Bajaj"], // existing OD taken over only from Bajaj Finance
       maxTotalBTs: null,
       topUp: true,
     },
@@ -785,6 +785,11 @@ const LENDERS: LenderConfig[] = [
 ];
 
 
+
+// Lenders that take a balance transfer into an Overdraft facility ("BT to OD").
+const BT_INTO_OD_LENDERS = ["kotak", "indusind", "abfl", "chola", "poonawalla", "tatacapital", "piramal"];
+// Of those, lenders whose OD only takes over existing Overdrafts (OD to OD).
+const BT_INTO_OD_FROM_OD_ONLY = ["piramal"];
 
 // ─── Obligation Calculator ──────────────────────────────────────────────────
 
@@ -1242,7 +1247,7 @@ export function analyzeLenderEligibility({
         isEligible = false;
         rejectionReasons.push("Does not support Overdraft BT");
       }
-      // IndusInd: OD BT only for specific banks
+      // IndusInd / HDFC: OD BT only from specific lenders
       if (lender.bt.odBTRestrictions && lender.bt.odBTRestrictions.length > 0) {
         const invalidODs = rawOdLoans.filter((l: any) => {
           const bankName = (l.bankName || "").toLowerCase();
@@ -1275,20 +1280,24 @@ export function analyzeLenderEligibility({
 
     // BT / Loan Preference check
     if (profile.btPreference === "BT to OD") {
-      // Only Kotak and IndusInd take a BT into an OD facility. Chola's Flexi OD is a
-      // fresh-loan product: "BT not allowed in Flexi OD product" (Delhi NCR one-pager).
-      if (lender.id === "chola") {
-        isEligible = false;
-        rejectionReasons.push("BT not allowed into Chola Flexi OD; BT is offered as a Personal Loan only");
-      } else if (!["kotak", "indusind"].includes(lender.id)) {
+      if (!BT_INTO_OD_LENDERS.includes(lender.id)) {
         isEligible = false;
         rejectionReasons.push("Overdraft facility not supported by this policy");
+      } else if (
+        BT_INTO_OD_FROM_OD_ONLY.includes(lender.id) &&
+        catBLoans.some((l: any) => l.type !== "Overdraft")
+      ) {
+        isEligible = false;
+        rejectionReasons.push("BT into OD is available only for existing Overdrafts (OD to OD)");
       }
     } else if (profile.btPreference === "BT to PL") {
       // Kotak's configuration here is strictly OD
       if (lender.id === "kotak") {
         isEligible = false;
         rejectionReasons.push("This specific policy is structured for Overdrafts only");
+      } else if (BT_INTO_OD_FROM_OD_ONLY.includes(lender.id) && rawOdLoans.length > 0) {
+        isEligible = false;
+        rejectionReasons.push("An existing Overdraft can only be taken over into an OD (OD to OD)");
       }
     }
 
