@@ -3,7 +3,7 @@
 import { createPortal } from "react-dom";
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Calculator, Download, X, MessageCircle, Loader2, UserPlus } from "lucide-react";
-import { RefinanceSummaryCard, CARD_WIDTH } from "./RefinanceSummaryCard";
+import { RefinanceSummaryCard, CARD_WIDTH, CARD_BG } from "./RefinanceSummaryCard";
 
 /* ------------------------------------------------------------------ */
 /* Formatting + finance helpers (ported from the standalone calculator) */
@@ -233,7 +233,7 @@ export function EmiCalculator() {
     const el = document.getElementById("emi-summary-card");
     if (!el) throw new Error("Summary card not found");
     const html2canvas = (await import("html2canvas")).default;
-    const canvas = await html2canvas(el, { scale: 1, backgroundColor: "#0A1B38", useCORS: true, logging: false });
+    const canvas = await html2canvas(el, { scale: 1, backgroundColor: CARD_BG, useCORS: true, logging: false });
     return new Promise((resolve, reject) =>
       canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Image render failed"))), "image/png", 1.0)
     );
@@ -692,7 +692,7 @@ function PreviewViewport({ r }: { r: CalcResult }) {
 
   return (
     <div ref={areaRef} className="w-full lg:h-full lg:min-h-0 flex items-center justify-center">
-      <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-[#0A1B38]" style={{ width: box.w || "100%", height: box.h }}>
+      <div className="relative overflow-hidden rounded-xl border border-slate-200" style={{ background: CARD_BG, width: box.w || "100%", height: box.h }}>
         <div ref={cardRef} style={{ position: "absolute", top: 0, left: 0, width: CARD_WIDTH, transform: `scale(${box.scale})`, transformOrigin: "top left", pointerEvents: "none", userSelect: "none" }}>
           <RefinanceSummaryCard r={r} />
         </div>
