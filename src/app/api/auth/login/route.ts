@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSessionToken } from "@/lib/user-service";
-
-// TEMP: branch assigned to the temporary login. Change as needed.
-const TEMP_BRANCH = "Delhi";
+import { getUserByEmail, createSessionToken } from "@/lib/user-service";
+import { verifyPassword } from "@/lib/password";
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,19 +14,32 @@ export async function POST(req: NextRequest) {
     }
 
     const cleanEmail = email.trim();
+    const cleanPassword = typeof password === "string" ? password.trim() : password;
 
-    // TEMP: no DB read, no password check. Any email/password logs in as a branch employee.
-    // The email is kept in the session and saved with every report this employee fetches.
-    const user = {
-      id: `tmp_${cleanEmail.toLowerCase()}`,
-      name: cleanEmail.split("@")[0],
-      email: cleanEmail.toLowerCase(),
-      role: "branch" as const,
-      branch: TEMP_BRANCH,
-      employeeId: "TEMP-001",
-      status: "Active",
-      createdAt: new Date().toISOString(),
-    };
+    const user = await getUserByEmail(cleanEmail);
+
+    if (!user) {
+      console.warn(`[Auth Login] User not found for email: "${cleanEmail}"`);
+      return NextResponse.json(
+        { success: false, error: "Invalid work email or password." },
+        { status: 401 }
+      );
+    }
+
+    if (!verifyPassword(String(password), user.password) && !verifyPassword(String(cleanPassword), user.password)) {
+      console.warn(`[Auth Login] Password mismatch for email: "${cleanEmail}". Default password is Password@123`);
+      return NextResponse.json(
+        { success: false, error: "Invalid work email or password." },
+        { status: 401 }
+      );
+    }
+
+    if (user.status !== "Active") {
+      return NextResponse.json(
+        { success: false, error: "This account has been suspended. Contact Administrator." },
+        { status: 403 }
+      );
+    }
 
     const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
     const sessionToken = createSessionToken({
