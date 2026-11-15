@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifySessionToken } from "@/lib/user-service";
+import { verifySessionToken, getUserByEmail } from "@/lib/user-service";
 
 export async function GET(req: NextRequest) {
   try {
@@ -13,17 +13,21 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: true, user: null }, { status: 200 });
     }
 
-    // TEMP: no DB read; the user comes straight from the signed session cookie.
+    const user = await getUserByEmail(session.email);
+    if (!user || user.status !== "Active") {
+      return NextResponse.json({ success: true, user: null }, { status: 200 });
+    }
+
     return NextResponse.json({
       success: true,
       user: {
-        id: session.userId,
-        name: session.name,
-        email: session.email,
-        role: session.role,
-        branch: session.branch,
-        employeeId: "TEMP-001",
-        status: "Active",
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        branch: user.branch,
+        employeeId: user.employeeId,
+        status: user.status,
       },
     });
   } catch (err: any) {
