@@ -15,7 +15,7 @@
 //   --ipv4          Use IPv4 only. For networks where IPv6 is advertised but does not work (connections hang).
 //
 // Safe to re-run: every record carries its Firestore document id, and the backend skips documents
-// it already has. Never writes to or deletes from Firestore.
+// it already has (it only fills consent / attribution / customer edits when those are still empty). Never writes to or deletes from Firestore.
 
 import dns from "node:dns";
 import { readdir, readFile } from "node:fs/promises";
@@ -104,6 +104,23 @@ async function* fromDirectory(folder: string): AsyncGenerator<LegacyDoc[]> {
   }
 }
 
+/** Firestore values as plain JSON: timestamps become ISO strings, everything else is copied. */
+function toPlain(value: unknown): any {
+  if (value instanceof Timestamp) return value.toDate().toISOString();
+  if (value instanceof Date) return value.toISOString();
+  if (Array.isArray(value)) return value.map(toPlain);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(Object.entries(value).map(([key, v]) => [key, toPlain(v)]));
+  }
+  return value;
+}
+
+/** A Firestore map as plain JSON; undefined for anything that is not a non-empty map. */
+function plainObject(value: unknown): Record<string, any> | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value) || Object.keys(value).length === 0) return undefined;
+  return toPlain(value);
+}
+
 /** Same attribution defaults the old Firestore list API applied to records saved before attribution existed. */
 function toSaveInput(doc: LegacyDoc) {
   const d = doc.data;
@@ -128,6 +145,10 @@ function toSaveInput(doc: LegacyDoc) {
     pdfLink: d.pdf_link || null,
     creditScore: d.credit_score ?? null,
     fallbackData: d.fallbackData,
+    // Present on reports pulled on the public website
+    consent: plainObject(d.consent),
+    attribution: plainObject(d.attribution),
+    overrides: plainObject(d.overrides),
     branch,
     source,
     fetchedByType,
