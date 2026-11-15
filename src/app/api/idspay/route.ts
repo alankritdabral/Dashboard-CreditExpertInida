@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebaseAdmin";
+import { bureauFailureReason, bureauKind } from "@/lib/cibil/bureau";
 
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
@@ -145,6 +146,21 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // IDSPay can answer HTTP 200 with a failure body (wrong mobile, no report attached, ...).
+    // Judge the response by the same rules NodeBankend-Server uses, so such a body is reported
+    // as a failure and the caller can fall back to another bureau instead of saving an empty report.
+    const kind = bureauKind(requestedBureau);
+    const failureReason = res.ok && kind ? bureauFailureReason(kind, true, responseData) : null;
+    const succeeded = res.ok && !failureReason;
+    if (failureReason) {
+      console.warn(`[IDSPay ${requestedBureau}] HTTP 200 without a usable report: ${failureReason}`);
+      responseData = {
+        error: `[${requestedBureau}] ${failureReason}`,
+        message_code: responseData?.message_code ?? null,
+        status_code: responseData?.status_code ?? null,
+      };
+    }
+
     // Async record log to Firestore system_logs
     if (adminDb && typeof adminDb.collection === "function") {
       adminDb
@@ -152,7 +168,7 @@ export async function POST(req: NextRequest) {
         .add({
           timestamp: new Date(),
           event: "IDSPAY_BUREAU_REQUEST",
-          level: res.ok ? "info" : "error",
+          level: succeeded ? "info" : "error",
           duration_ms: duration,
           provider: {
             requested: requestedBureau,
@@ -163,12 +179,12 @@ export async function POST(req: NextRequest) {
             mobile_last4: bodyPayload.mobile ? bodyPayload.mobile.slice(-4) : "N/A",
           },
           request_id: `req_${Date.now()}`,
-          message: res.ok ? "Bureau report fetched successfully" : "Bureau API returned non-200 status",
+          message: succeeded ? "Bureau report fetched successfully" : failureReason ? "Bureau API returned 200 without a usable report" : "Bureau API returned non-200 status",
         })
         .catch(() => {});
     }
 
-    return NextResponse.json(responseData, { status: res.status });
+    return NextResponse.json(responseData, { status: failureReason ? 502 : res.status });
   } catch (err: any) {
     console.error("IDSPay API error:", err);
     return NextResponse.json(

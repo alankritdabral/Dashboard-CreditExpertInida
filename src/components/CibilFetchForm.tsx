@@ -34,6 +34,7 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saveWarning, setSaveWarning] = useState<string | null>(null);
   const [reportResult, setReportResult] = useState<{
     bureau: string;
     raw_api_data: any;
@@ -45,6 +46,7 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
   const handleFetch = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSaveWarning(null);
 
     // Validation
     if (!firstName.trim() || !lastName.trim()) {
@@ -107,7 +109,7 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
 
       // 3. Save to database with attribution: WHO fetched the report
       const fullName = `${firstName.trim()} ${lastName.trim()}`;
-      await fetch("/api/reports", {
+      const saveRes = await fetch("/api/reports", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -115,6 +117,7 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
           mobile: cleanMobile,
           pan: cleanPan,
           gender,
+          dob: dob || undefined,
           bureau,
           credit_score: bureauPayload?.credit_score || bureauPayload?.personalInfo?.score || null,
           raw_api_data: bureauPayload,
@@ -129,6 +132,13 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
           },
         }),
       });
+
+      // The report is still shown if saving failed, but staff must know it is not in the history.
+      const saveData = await saveRes.json().catch(() => ({}));
+      if (!saveRes.ok || !saveData.success) {
+        console.error("Report save failed:", saveData.error || saveRes.status);
+        setSaveWarning("This report could not be saved, so it will not appear in report history. Please tell the tech team.");
+      }
 
       // 4. Set state to display CreditReportDashboard
       setReportResult({
@@ -155,6 +165,7 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
 
   const resetForm = () => {
     setReportResult(null);
+    setSaveWarning(null);
     setFirstName("");
     setLastName("");
     setMobile("");
@@ -190,6 +201,13 @@ export function CibilFetchForm({ onSuccess, defaultBranch }: CibilFetchFormProps
             <RotateCcw className="w-3.5 h-3.5" /> Fetch Another Applicant
           </button>
         </div>
+
+        {saveWarning && (
+          <div role="alert" className="flex items-start gap-2.5 bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-2xl text-xs font-semibold">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <p>{saveWarning}</p>
+          </div>
+        )}
 
         {/* Interactive Bureau Dashboard */}
         <div className="bg-white rounded-3xl p-3 sm:p-8 shadow-xl overflow-hidden border border-slate-200 text-slate-900">
