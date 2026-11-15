@@ -1,27 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/lib/firebaseAdmin";
 import { verifySessionToken } from "@/lib/user-service";
 import { parseBureauData } from "@/lib/bureauParsers";
 import { reportsListCache, activityCache } from "@/lib/api-caches";
-
-function generateSearchTokens(name: string = "", mobile: string = "", pan: string = ""): string[] {
-  const tokens = new Set<string>();
-  const cleanName = name.toLowerCase().trim();
-  const cleanPan = pan.toUpperCase().trim();
-  const cleanMobile = mobile.trim();
-
-  if (cleanPan) tokens.add(cleanPan);
-  if (cleanMobile) tokens.add(cleanMobile);
-
-  if (cleanName) {
-    tokens.add(cleanName);
-    cleanName.split(/\s+/).forEach((part) => {
-      if (part.length > 1) tokens.add(part);
-    });
-  }
-
-  return Array.from(tokens);
-}
+import { backendErrorStatus } from "@/lib/cibil/backendApi";
+import { listReports } from "@/lib/cibil/reportStore";
+import { saveBureauReport } from "@/lib/cibil/saveReport";
 
 export async function GET(req: NextRequest) {
   try {
@@ -43,15 +26,10 @@ export async function GET(req: NextRequest) {
     const requestedBranch = searchParams.get("branch");
     const source = searchParams.get("source");
 
-    // Scope enforcement: branch users can ONLY see their branch's reports
-    let effectiveBranch = session.role === "branch" ? session.branch : requestedBranch;
-
-    if (!adminDb || typeof adminDb.collection !== "function") {
-      return NextResponse.json({ success: true, reports: [], hasMore: false, nextCursor: null });
-    }
-
-    // Employees (branch logins) only see reports they fetched themselves
-    const ownerEmail = session.role === "branch" ? String(session.email || "").trim().toLowerCase() : null;
+    // Employees (branch logins) only see reports they pulled themselves; admins may filter by branch.
+    // A branch login can never widen its scope with ?branch=.
+    const ownerEmail = session.role === "branch" ? String(session.email || "").trim().toLowerCase() || null : null;
+    const effectiveBranch = session.role === "branch" ? session.branch : requestedBranch;
 
     const cacheKey = JSON.stringify([ownerEmail, effectiveBranch, source, start, end, pageSize, cursor, bureau, rawQuery, withTotal]);
     const cachedPage = reportsListCache.get(cacheKey);
@@ -59,188 +37,25 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: true, ...cachedPage });
     }
 
-    const branchScoped = !!effectiveBranch && effectiveBranch !== "all" && effectiveBranch !== "All";
-    const searchToken = rawQuery
-      ? /^[a-z]{5}\d{4}[a-z]$/i.test(rawQuery)
-        ? rawQuery.toUpperCase()
-        : /^\d+$/.test(rawQuery)
-          ? rawQuery
-          : rawQuery.toLowerCase()
-      : null;
-
-    let total: number | undefined;
-    let snapshot: { docs: any[] };
-
-    const LIST_FIELDS = [
-      "name", "mobile", "pan", "bureau", "credit_score", "created_at", "branch", "source",
-      "fetched_by", "fetched_by_type", "fetched_by_name", "fetched_by_email", "search_tokens", "fallbackData",
-    ];
-
-    // Employee view: read ONLY this user's own reports. Needs the composite index
-    // fetched_by_email ASC + created_at DESC; if it isn't deployed yet (FAILED_PRECONDITION)
-    // fall through to the window scan below, which filters to the same user in memory.
-    let ownSnap: any = null;
-    if (ownerEmail && start && end) {
-      try {
-        ownSnap = await adminDb
-          .collection("credit_reports")
-          .where("fetched_by_email", "==", ownerEmail)
-          .where("created_at", ">=", new Date(start))
-          .where("created_at", "<=", new Date(end))
-          .orderBy("created_at", "desc")
-          .limit(2000)
-          .select(...LIST_FIELDS)
-          .get();
-      } catch (e: any) {
-        if (e?.code !== 9 && !/index/i.test(String(e?.message))) throw e;
-        console.warn("reports: missing fetched_by_email+created_at index, using window scan:", e?.message);
-      }
-    }
-
-    if ((branchScoped || ownSnap) && start && end) {
-      // Date-windowed branch view (e.g. "last 24h"): only a date range hits the query, which
-      // Firestore serves from its automatic single-field index. Branch/source/bureau/search are
-      // filtered in memory, so no composite index is needed and branch names match
-      // case-insensitively (older records were saved as "delhi", newer ones as "Delhi").
-      const wanted = String(effectiveBranch).trim().toLowerCase();
-      const windowSnap = ownSnap || await adminDb
-        .collection("credit_reports")
-        .where("created_at", ">=", new Date(start))
-        .where("created_at", "<=", new Date(end))
-        .orderBy("created_at", "desc")
-        .limit(2000)
-        .select(
-      "name",
-      "mobile",
-      "pan",
-      "bureau",
-      "credit_score",
-      "created_at",
-      "branch",
-      "source",
-      "fetched_by",
-      "fetched_by_type",
-      "fetched_by_name",
-      "fetched_by_email",
-      "search_tokens",
-      "fallbackData"
-        )
-        .get();
-
-      let docs: any[] = ownSnap ? windowSnap.docs : windowSnap.docs.filter((d: any) => String(d.data().branch || "").trim().toLowerCase() === wanted);
-      if (ownerEmail && !ownSnap) {
-        docs = docs.filter((d: any) => {
-          const x = d.data();
-          return String(x.fetched_by_email || x.fetched_by?.email || "").trim().toLowerCase() === ownerEmail;
-        });
-      }
-      if (source && source !== "all") docs = docs.filter((d: any) => d.data().source === source);
-      if (bureau && bureau !== "all") docs = docs.filter((d: any) => d.data().bureau === bureau);
-      if (searchToken) docs = docs.filter((d: any) => (d.data().search_tokens || []).includes(searchToken));
-      if (withTotal) total = docs.length;
-
-      if (cursor) {
-        const cursorSeconds = Number(cursor);
-        if (Number.isFinite(cursorSeconds)) docs = docs.filter((d: any) => (d.data().created_at?._seconds ?? 0) < cursorSeconds);
-      }
-      snapshot = { docs: docs.slice(0, pageSize + 1) };
-    } else {
-      let queryRef: any = adminDb.collection("credit_reports");
-
-      if (ownerEmail) queryRef = queryRef.where("fetched_by_email", "==", ownerEmail);
-      else if (branchScoped) queryRef = queryRef.where("branch", "==", effectiveBranch);
-      if (source && source !== "all") queryRef = queryRef.where("source", "==", source);
-      if (bureau && bureau !== "all") queryRef = queryRef.where("bureau", "==", bureau);
-      // search_tokens holds the PAN (upper), mobile, full lowercase name and each name word
-      if (searchToken) queryRef = queryRef.where("search_tokens", "array-contains", searchToken);
-      if (start && end) {
-        queryRef = queryRef.where("created_at", ">=", new Date(start)).where("created_at", "<=", new Date(end));
-      }
-
-      if (withTotal) {
-        const countSnap = await queryRef.count().get();
-        total = countSnap.data().count;
-      }
-
-      queryRef = queryRef.orderBy("created_at", "desc");
-      if (cursor) {
-        const cursorSeconds = Number(cursor);
-        if (Number.isFinite(cursorSeconds)) queryRef = queryRef.startAfter(new Date(cursorSeconds * 1000));
-      }
-      // One extra doc tells us whether another page exists without a second query
-      queryRef = queryRef.limit(pageSize + 1);
-      queryRef = queryRef.select(
-      "name",
-      "mobile",
-      "pan",
-      "bureau",
-      "credit_score",
-      "created_at",
-      "branch",
-      "source",
-      "fetched_by",
-      "fetched_by_type",
-      "fetched_by_name",
-      "fetched_by_email",
-      "search_tokens",
-      "fallbackData"
-      );
-      snapshot = await queryRef.get();
-    }
-
-    const pageDocs = snapshot.docs.slice(0, pageSize);
-    const hasMore = snapshot.docs.length > pageSize;
-
-    const reports = pageDocs.map((docSnap: any) => {
-      const d = docSnap.data();
-
-      let score = d.credit_score;
-      if (!score && d.raw_api_data) {
-        try {
-          const parsed = parseBureauData(d.bureau, d.raw_api_data);
-          score = parsed?.personalInfo?.score || null;
-        } catch (e) {}
-      }
-
-      // Backward compatibility normalization for attribution
-      const fetchedByType = d.fetched_by_type || (d.branch === "admin" ? "admin" : (d.branch === "customer" ? "customer" : "branch"));
-      const fetchedByName = d.fetched_by_name || (d.fetched_by?.name) || (fetchedByType === "admin" ? "Admin" : (fetchedByType === "customer" ? d.name || "Website Customer" : `${d.branch || "Branch"} Staff`));
-
-      return {
-        id: docSnap.id,
-        name: d.name || "N/A",
-        mobile: d.mobile || "N/A",
-        pan: d.pan || "N/A",
-        bureau: d.bureau || "v1",
-        credit_score: score,
-        branch: d.branch || "Online",
-        source: d.source || (d.branch === "admin" ? "dashboard_admin" : (d.branch === "customer" ? "website" : "dashboard_branch")),
-        fetched_by_type: fetchedByType,
-        fetched_by_name: fetchedByName,
-        fetched_by_email: d.fetched_by_email || d.fetched_by?.email || "N/A",
-        fetched_by: d.fetched_by || {
-          type: fetchedByType,
-          name: fetchedByName,
-          email: d.fetched_by_email || "N/A",
-          branch: d.branch || "Online",
-          source: d.source || "dashboard_branch",
-          timestamp: d.created_at ? new Date(d.created_at._seconds * 1000).toISOString() : new Date().toISOString()
-        },
-        search_tokens: d.search_tokens || [],
-        fallbackData: d.fallbackData || null,
-        created_at: d.created_at ? { seconds: d.created_at._seconds } : null,
-      };
+    const payload = await listReports({
+      ownerEmail,
+      branch: effectiveBranch,
+      source,
+      bureau,
+      q: rawQuery,
+      startDate: start,
+      endDate: end,
+      pageSize,
+      cursor,
+      withTotal,
     });
-
-    const last = reports[reports.length - 1];
-    const nextCursor = hasMore && last?.created_at ? String(last.created_at.seconds) : null;
-    const payload = { reports, hasMore, nextCursor, ...(total !== undefined && { total }) };
 
     reportsListCache.set(cacheKey, payload);
     return NextResponse.json({ success: true, ...payload });
   } catch (err: any) {
     console.error("GET /api/reports error:", err);
-    return NextResponse.json({ success: false, error: err.message || "Failed to load reports" }, { status: 500 });
+    const status = backendErrorStatus(err);
+    return NextResponse.json({ success: false, error: err.message || "Failed to load reports" }, { status });
   }
 }
 
@@ -255,6 +70,7 @@ export async function POST(req: NextRequest) {
       mobile,
       pan,
       gender,
+      dob,
       bureau,
       credit_score,
       email,
@@ -271,7 +87,6 @@ export async function POST(req: NextRequest) {
 
     const safePan = pan.toUpperCase().trim();
     const usedBureau = bureau || "v1";
-    const docId = `${safePan}_${mobile}_${usedBureau}`;
 
     let score = credit_score;
     let extractedEmail = email || null;
@@ -329,41 +144,40 @@ export async function POST(req: NextRequest) {
       timestamp: new Date().toISOString(),
     };
 
-    const docPayload = {
+    // The backend parses it into RDS, archives it to S3 and records it for the dashboard lists.
+    const saved = await saveBureauReport({
+      bureau: usedBureau,
+      raw: raw_api_data || null,
       name: name || "N/A",
-      mobile: mobile,
+      mobile,
       pan: safePan,
       gender: gender || null,
-      bureau: usedBureau,
-      credit_score: score || null,
+      dob: dob || null,
       email: extractedEmail,
-      pdf_link: pdf_link || null,
-      raw_api_data: raw_api_data || null,
-      created_at: new Date(),
+      pdfLink: pdf_link || null,
+      creditScore: score || null,
+      fallbackData,
       branch: branchName,
-      source: source,
-      fetched_by: attribution,
-      fetched_by_type: fetchedByType,
-      fetched_by_name: userName,
-      fetched_by_email: userEmail,
-      search_tokens: generateSearchTokens(name, mobile, safePan),
-      ...(fallbackData && { fallbackData }),
-    };
-
-    if (adminDb && typeof adminDb.collection === "function") {
-      await adminDb.collection("credit_reports").doc(docId).set(docPayload, { merge: true });
-      reportsListCache.clear();
-      activityCache.clear();
-    }
+      source,
+      fetchedByType,
+      fetchedByName: userName,
+      fetchedByEmail: userEmail,
+      fetchedBy: attribution,
+    });
+    reportsListCache.clear();
+    activityCache.clear();
 
     return NextResponse.json({
       success: true,
-      id: docId,
+      id: saved.id,
+      credit_report_id: saved.creditReportId,
+      no_hit: saved.noHit,
       message: "Report saved with full attribution",
       attribution,
     });
   } catch (err: any) {
     console.error("POST /api/reports error:", err);
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    const status = backendErrorStatus(err);
+    return NextResponse.json({ success: false, error: err.message }, { status });
   }
 }

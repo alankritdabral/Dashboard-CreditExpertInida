@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/lib/firebaseAdmin";
 import { verifySessionToken } from "@/lib/user-service";
 import { reportsListCache, activityCache } from "@/lib/api-caches";
+import { backendErrorStatus } from "@/lib/cibil/backendApi";
+import { deleteReport, getReport } from "@/lib/cibil/reportStore";
+
+const errorStatus = backendErrorStatus;
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -16,36 +19,24 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ success: false, error: "ID required" }, { status: 400 });
     }
 
-    if (!adminDb || typeof adminDb.collection !== "function") {
-      return NextResponse.json({ success: false, error: "Database not connected" }, { status: 500 });
-    }
-
-    const docSnap = await adminDb.collection("credit_reports").doc(id).get();
-    if (!docSnap.exists) {
+    const report = await getReport(id);
+    if (!report) {
       return NextResponse.json({ success: false, error: "Report not found" }, { status: 404 });
     }
-
-    const data = docSnap.data();
 
     // Branch users (employees) may only open reports they fetched themselves.
     // Same 404 as a missing report so IDs can't be probed.
     if (session.role !== "admin") {
-      const owner = String(data.fetched_by_email || data.fetched_by?.email || "").trim().toLowerCase();
-      if (!owner || owner !== String(session.email || "").trim().toLowerCase()) {
+      const owner = String(report.fetched_by_email || "").trim().toLowerCase();
+      if (!owner || owner === "n/a" || owner !== String(session.email || "").trim().toLowerCase()) {
         return NextResponse.json({ success: false, error: "Report not found" }, { status: 404 });
       }
     }
 
-    return NextResponse.json({
-      success: true,
-      report: {
-        id: docSnap.id,
-        ...data,
-        created_at: data.created_at ? { seconds: data.created_at._seconds } : null,
-      },
-    });
+    return NextResponse.json({ success: true, report });
   } catch (err: any) {
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    console.error("GET /api/reports/[id] error:", err);
+    return NextResponse.json({ success: false, error: err.message }, { status: errorStatus(err) });
   }
 }
 
@@ -63,14 +54,14 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
       return NextResponse.json({ success: false, error: "ID required" }, { status: 400 });
     }
 
-    if (adminDb && typeof adminDb.collection === "function") {
-      await adminDb.collection("credit_reports").doc(id).delete();
-      reportsListCache.clear();
-      activityCache.clear();
-    }
+    // The backend removes the dashboard record and the credit report it created.
+    await deleteReport(id);
+    reportsListCache.clear();
+    activityCache.clear();
 
     return NextResponse.json({ success: true, message: "Report deleted successfully" });
   } catch (err: any) {
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    console.error("DELETE /api/reports/[id] error:", err);
+    return NextResponse.json({ success: false, error: err.message }, { status: errorStatus(err) });
   }
 }

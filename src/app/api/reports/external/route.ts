@@ -1,26 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/lib/firebaseAdmin";
 import { reportsListCache, activityCache } from "@/lib/api-caches";
 import { parseBureauData } from "@/lib/bureauParsers";
-
-function generateSearchTokens(name: string = "", mobile: string = "", pan: string = ""): string[] {
-  const tokens = new Set<string>();
-  const cleanName = name.toLowerCase().trim();
-  const cleanPan = pan.toUpperCase().trim();
-  const cleanMobile = mobile.trim();
-
-  if (cleanPan) tokens.add(cleanPan);
-  if (cleanMobile) tokens.add(cleanMobile);
-
-  if (cleanName) {
-    tokens.add(cleanName);
-    cleanName.split(/\s+/).forEach((part) => {
-      if (part.length > 1) tokens.add(part);
-    });
-  }
-
-  return Array.from(tokens);
-}
+import { backendErrorStatus } from "@/lib/cibil/backendApi";
+import { saveBureauReport } from "@/lib/cibil/saveReport";
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,6 +12,7 @@ export async function POST(req: NextRequest) {
       mobile,
       pan,
       gender,
+      dob,
       bureau,
       credit_score,
       email,
@@ -46,7 +29,6 @@ export async function POST(req: NextRequest) {
 
     const safePan = pan.toUpperCase().trim();
     const usedBureau = bureau || "v1";
-    const docId = `${safePan}_${mobile}_${usedBureau}`;
 
     let score = credit_score;
     let extractedEmail = email || null;
@@ -73,41 +55,40 @@ export async function POST(req: NextRequest) {
       timestamp: new Date().toISOString(),
     };
 
-    const docPayload = {
+    // The backend parses it into RDS, archives it to S3 and records it for the dashboard lists.
+    const saved = await saveBureauReport({
+      bureau: usedBureau,
+      raw: raw_api_data || null,
       name: name || "Website Customer",
-      mobile: mobile,
+      mobile,
       pan: safePan,
       gender: gender || null,
-      bureau: usedBureau,
-      credit_score: score || null,
+      dob: dob || null,
       email: extractedEmail,
-      pdf_link: pdf_link || null,
-      raw_api_data: raw_api_data || null,
-      created_at: new Date(),
+      pdfLink: pdf_link || null,
+      creditScore: score || null,
+      fallbackData,
       branch: branchName,
       source: reportSource,
-      fetched_by: attribution,
-      fetched_by_type: fetchedByType,
-      fetched_by_name: attribution.name,
-      fetched_by_email: attribution.email,
-      search_tokens: generateSearchTokens(name, mobile, safePan),
-      ...(fallbackData && { fallbackData }),
-    };
-
-    if (adminDb && typeof adminDb.collection === "function") {
-      await adminDb.collection("credit_reports").doc(docId).set(docPayload, { merge: true });
-      reportsListCache.clear();
-      activityCache.clear();
-    }
+      fetchedByType,
+      fetchedByName: attribution.name,
+      fetchedByEmail: attribution.email,
+      fetchedBy: attribution,
+    });
+    reportsListCache.clear();
+    activityCache.clear();
 
     return NextResponse.json({
       success: true,
-      id: docId,
+      id: saved.id,
+      credit_report_id: saved.creditReportId,
+      no_hit: saved.noHit,
       message: `Report saved successfully from ${reportSource}`,
       attribution,
     });
   } catch (err: any) {
     console.error("External reports API error:", err);
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    const status = backendErrorStatus(err);
+    return NextResponse.json({ success: false, error: err.message }, { status });
   }
 }
