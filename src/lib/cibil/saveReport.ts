@@ -29,6 +29,10 @@ export interface SaveReportInput {
   fetchedByName: string;
   fetchedByEmail: string;
   fetchedBy: Record<string, any>;
+  /** Website pulls: consent flags, marketing attribution and the customer's edits in the report viewer. */
+  consent?: Record<string, any> | null;
+  attribution?: Record<string, any> | null;
+  overrides?: Record<string, any> | null;
   /** Import of old records only: Firestore document id (makes the import repeatable) and the original pull time. */
   legacyId?: string;
   createdAt?: Date;
