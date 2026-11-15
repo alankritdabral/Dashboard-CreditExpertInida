@@ -12,10 +12,12 @@
 //   --dry-run       Read and count only; send nothing.
 //   --limit N       Stop after N documents (try a small number first).
 //   --dir PATH      Read exported JSON files (scripts/export-credit-reports.mjs) instead of live Firestore.
+//   --ipv4          Use IPv4 only. For networks where IPv6 is advertised but does not work (connections hang).
 //
 // Safe to re-run: every record carries its Firestore document id, and the backend skips documents
 // it already has. Never writes to or deletes from Firestore.
 
+import dns from "node:dns";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { initializeApp, cert } from "firebase-admin/app";
@@ -34,6 +36,16 @@ const option = (name: string) => (args.includes(name) ? args[args.indexOf(name) 
 const dryRun = flag("--dry-run");
 const limit = option("--limit") ? Number(option("--limit")) : Infinity;
 const dir = option("--dir");
+
+if (flag("--ipv4")) {
+  // Every hostname lookup made by this process (Firestore, Google auth, the backend) returns IPv4 only.
+  const lookup = dns.lookup;
+  (dns as any).lookup = (hostname: string, options: any, callback: any) => {
+    if (typeof options === "function") return (lookup as any)(hostname, { family: 4 }, options);
+    const opts = typeof options === "number" ? {} : options || {};
+    return (lookup as any)(hostname, { ...opts, family: 4 }, callback);
+  };
+}
 
 interface LegacyDoc {
   id: string;
@@ -59,7 +71,10 @@ async function* fromFirestore(): AsyncGenerator<LegacyDoc[]> {
   const encoded = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64;
   if (!encoded) throw new Error("FIREBASE_SERVICE_ACCOUNT_BASE64 is not set (run through `npm run backfill:rds`).");
   initializeApp({ credential: cert(JSON.parse(Buffer.from(encoded, "base64").toString("utf-8"))) });
-  const collection = getFirestore().collection(COLLECTION);
+  const firestore = getFirestore();
+  // REST instead of gRPC: plain HTTPS works on networks and proxies where gRPC does not.
+  firestore.settings({ preferRest: true });
+  const collection = firestore.collection(COLLECTION);
 
   let last: QueryDocumentSnapshot | null = null;
   for (;;) {
