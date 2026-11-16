@@ -39,14 +39,14 @@ type QueryValue = string | number | boolean | null | undefined;
 export async function backendRequest<T>(
   method: "GET" | "POST" | "DELETE",
   path: string,
-  options: { query?: Record<string, QueryValue>; body?: unknown } = {},
+  options: { query?: Record<string, QueryValue>; body?: unknown; basePath?: string } = {},
 ): Promise<T> {
   const baseUrl = (process.env.BACKEND_API_URL || "").replace(/\/+$/, "");
   const apiKey = process.env.BACKEND_API_KEY || "";
   const missing = [!baseUrl && "BACKEND_API_URL", !apiKey && "BACKEND_API_KEY"].filter(Boolean) as string[];
   if (missing.length > 0) throw new BackendNotConfiguredError(missing);
 
-  const url = new URL(`${baseUrl}/internal/dashboard-reports${path}`);
+  const url = new URL(`${baseUrl}${options.basePath ?? "/internal/dashboard-reports"}${path}`);
   Object.entries(options.query || {}).forEach(([key, value]) => {
     if (value !== null && value !== undefined && value !== "") url.searchParams.set(key, String(value));
   });
