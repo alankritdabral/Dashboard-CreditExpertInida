@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/lib/firebaseAdmin";
-import { verifySessionToken } from "@/lib/user-service";
+import { getAllBranchUsers, verifySessionToken } from "@/lib/user-service";
 import { backendErrorStatus } from "@/lib/cibil/backendApi";
 import { reportStats } from "@/lib/cibil/reportStore";
 
@@ -18,16 +17,9 @@ export async function GET(req: NextRequest) {
     // Staff still live in Firestore ("users" / "dashboard_users"); their branch names give the
     // display spelling for each branch.
     const displayNames = new Map<string, string>([["admin", "Admin"], ["website", "Website"], ["online", "Online"]]);
-    if (adminDb && typeof adminDb.collection === "function") {
-      const userSnaps = await Promise.all(
-        ["users", "dashboard_users"].map((c) => adminDb.collection(c).select("branch").get().catch(() => ({ docs: [] as any[] })))
-      );
-      userSnaps.forEach((snap: any) =>
-        snap.docs.forEach((d: any) => {
-          const b = String(d.data().branch || "").trim();
-          if (b && !displayNames.has(b.toLowerCase())) displayNames.set(b.toLowerCase(), b);
-        })
-      );
+    for (const u of await getAllBranchUsers()) {
+      const b = String(u.branch || "").trim();
+      if (b && !displayNames.has(b.toLowerCase())) displayNames.set(b.toLowerCase(), b);
     }
 
     // Reports were saved with mixed-case branch names over time; reportStats merges them.

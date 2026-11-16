@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/lib/firebaseAdmin";
-import { verifySessionToken } from "@/lib/user-service";
+import { getAllBranchUsers, verifySessionToken } from "@/lib/user-service";
 import { activityCache } from "@/lib/api-caches";
 import { backendErrorStatus } from "@/lib/cibil/backendApi";
 import { pullCountsByEmployee, pullHistory } from "@/lib/cibil/reportStore";
@@ -45,20 +44,11 @@ export async function GET(req: NextRequest) {
       return respond({ reports: await pullHistory({ branch }, range, HISTORY_LIMIT) });
     }
 
-    // Roster: staff live in Firestore ("users" / "dashboard_users"); merge and dedupe by email.
+    // Roster: staff live in Firestore, read once through the cached getAllBranchUsers().
     const byEmail = new Map<string, any>();
-    if (adminDb && typeof adminDb.collection === "function") {
-      const userSnaps = await Promise.all(
-        ["users", "dashboard_users"].map((c) => adminDb.collection(c).select("name", "email", "branch", "role").get().catch(() => ({ docs: [] as any[] })))
-      );
-      userSnaps.forEach((snap: any) =>
-        snap.docs.forEach((d: any) => {
-          const u = d.data();
-          if (u.email && u.role !== "admin" && !byEmail.has(String(u.email).toLowerCase().trim())) {
-            byEmail.set(String(u.email).toLowerCase().trim(), u);
-          }
-        })
-      );
+    for (const u of await getAllBranchUsers()) {
+      const key = String(u.email || "").toLowerCase().trim();
+      if (key && u.role !== "admin" && !byEmail.has(key)) byEmail.set(key, u);
     }
     const { counts } = await pullCountsByEmployee();
     const employees = Array.from(byEmail.entries()).map(([key, u]) => ({
