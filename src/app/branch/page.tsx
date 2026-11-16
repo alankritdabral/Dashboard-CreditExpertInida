@@ -7,6 +7,7 @@ import { CibilFetchForm } from "@/components/CibilFetchForm";
 import { EmiCalculator } from "@/components/EmiCalculator";
 import { CreditReportDashboard } from "@/components/CreditReportDashboard";
 import { DashboardHeader, NavTabItem } from "@/components/DashboardHeader";
+import { LeadsPanel } from "@/components/LeadsPanel";
 import {
   FileText,
   History,
@@ -17,6 +18,7 @@ import {
   User,
   Loader2,
   Calculator,
+  Inbox,
 } from "lucide-react";
 import { CreditReportRecord } from "@/lib/types";
 
@@ -24,7 +26,7 @@ export default function BranchPortalPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState("fetch");
+  const [activeTab, setActiveTab] = useState("leads");
   const [reports, setReports] = useState<CreditReportRecord[]>([]);
   const [reportsLoading, setReportsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -109,6 +111,7 @@ export default function BranchPortalPage() {
   const filteredReports = reports;
 
   const tabs: NavTabItem[] = [
+    { id: "leads", label: "My Leads", icon: Inbox },
     { id: "fetch", label: "Fetch CIBIL", icon: FileText },
     { id: "history", label: "Last 24h History", icon: History },
     { id: "emi", label: "EMI Calculator", icon: Calculator },
@@ -134,6 +137,8 @@ export default function BranchPortalPage() {
 
       {/* Main Content Area */}
       <main className="flex-1 p-3 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-6">
+        {activeTab === "leads" && <LeadsPanel isAdmin={false} />}
+
         {/* TAB 1: FETCH CIBIL */}
         {activeTab === "fetch" && (
           <div className="animate-fadeIn">
