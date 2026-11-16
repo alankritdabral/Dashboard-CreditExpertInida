@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Flame, Loader2, Phone, RefreshCw, Search, Users, X } from "lucide-react";
+import { FileText, Flame, Loader2, Phone, RefreshCw, Search, Users, X } from "lucide-react";
 import type { Lead, LeadStatus } from "@/lib/leads";
 import { isStale, leadScore } from "@/lib/leadScore";
+import { CreditReportDashboard } from "@/components/CreditReportDashboard";
 
 const STATUS_LABEL: Record<LeadStatus, string> = {
   NEW: "New",
@@ -40,6 +41,8 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
   const [tierF, setTierF] = useState<"all" | "hot">("all");
   const [range, setRange] = useState<"all" | "today" | "7d" | "30d">("all");
   const [now, setNow] = useState(() => Date.now());
+  const [viewingReport, setViewingReport] = useState<any | null>(null);
+  const [openingReport, setOpeningReport] = useState<string | null>(null);
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [picking, setPicking] = useState(false); // employee picker open
@@ -49,6 +52,20 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
   const [fresh, setFresh] = useState<Set<string>>(new Set()); // arrived since the page opened
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
   const knownIds = useRef<Set<string> | null>(null);
+
+  const openReport = async (leadId: string, reportId: string) => {
+    setOpeningReport(reportId);
+    try {
+      const res = await fetch(`/api/leads/${encodeURIComponent(leadId)}/report?reportId=${encodeURIComponent(reportId)}`, { cache: "no-store" });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || "Could not load the report");
+      setViewingReport(data.report);
+    } catch (e: any) {
+      setError(e.message || "Could not load the report");
+    } finally {
+      setOpeningReport(null);
+    }
+  };
 
   // silent=true is the background poll: no spinner, no error flash, and anything not
   // seen before is flagged as new.
@@ -383,6 +400,37 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                     {fmtDate(l.createdAt)} · {l.source}
                     {l.assignedToName ? ` · Assigned to ${l.assignedToName}` : " · Unassigned"}
                   </p>
+                  {(l.reports.length > 0 || l.enquiryCount > 1) && (
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      {l.enquiryCount > 1 && (
+                        <span className="text-[10px] font-bold uppercase tracking-wide bg-slate-100 text-slate-700 rounded-full px-2 py-0.5">
+                          {l.enquiryCount} enquiries · 1 customer
+                        </span>
+                      )}
+                      {l.reports.length > 0 && (
+                        <button
+                          onClick={() => openReport(l.id, l.reports[0].id)}
+                          disabled={openingReport === l.reports[0].id}
+                          className="min-h-[44px] sm:min-h-0 inline-flex items-center gap-1.5 text-xs font-bold text-[#0A2540] bg-[#3F8EFC]/10 hover:bg-[#3F8EFC]/20 rounded-full px-3 py-1.5 cursor-pointer disabled:opacity-60"
+                        >
+                          {openingReport === l.reports[0].id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
+                          Credit score {l.latestScore ?? "—"} · View report
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  {l.activity.length > 1 && (
+                    <details className="pt-1 text-[11px] text-slate-600">
+                      <summary className="cursor-pointer font-semibold text-slate-500">Activity ({l.activity.length})</summary>
+                      <ul className="mt-1 space-y-0.5 pl-1">
+                        {l.activity.map((a, i) => (
+                          <li key={i}>
+                            {fmtDate(a.at)} · {a.type === "credit_report" ? "📄" : "✉️"} {a.label} <span className="text-slate-400">({a.source})</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
                   {digits && (
                     <a
                       href={`tel:+91${digits}`}
@@ -429,6 +477,40 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
           );
         })}
       </ul>
+      {viewingReport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white text-slate-900 w-full max-w-6xl max-h-[92dvh] rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-200">
+            <div className="flex items-center justify-between gap-3 p-4 sm:p-5 border-b border-slate-100 bg-slate-50">
+              <div className="min-w-0">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 break-words">Bureau report: {viewingReport.name}</h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Bureau: <strong className="uppercase text-[#3F8EFC]">{viewingReport.bureau}</strong> · {fmtDate(new Date((viewingReport.created_at?.seconds || 0) * 1000).toISOString())}
+                </p>
+              </div>
+              <button
+                onClick={() => setViewingReport(null)}
+                aria-label="Close report"
+                className="w-11 h-11 shrink-0 flex items-center justify-center rounded-full bg-slate-200 hover:bg-slate-300 text-slate-700 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 p-3 sm:p-6 overflow-y-auto bg-slate-50">
+              <CreditReportDashboard
+                bureau={viewingReport.bureau}
+                cibilData={viewingReport.raw_api_data}
+                formData={{
+                  firstName: viewingReport.name?.split(" ")[0] || "",
+                  lastName: viewingReport.name?.split(" ").slice(1).join(" ") || "",
+                  mobile: viewingReport.mobile,
+                  pan: viewingReport.pan,
+                  bureau: viewingReport.bureau,
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
       {isAdmin && selected.size > 0 && (
         <div className="sticky bottom-3 z-20 bg-[#0A2540] text-white rounded-2xl shadow-xl p-3 sm:p-4 space-y-3">
           <div className="flex items-center justify-between gap-3">

@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "backfill:rds": "tsx --env-file=.env.local scripts/backfill-reports-to-rds.ts"
+    "backfill:rds": "tsx --env-file=.env.local scripts/backfill-reports-to-rds.ts",
+    "backfill:leads": "tsx --env-file=.env.local scripts/backfill-leads-to-rds.ts"
   },
   "dependencies": {
     "clsx": "^2.1.1",
