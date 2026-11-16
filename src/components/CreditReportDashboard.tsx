@@ -7,8 +7,6 @@ import { classifyLoanType } from "@/lib/loanType";
 import { parseBureauData } from "@/lib/bureauParsers";
 import { searchEmployers, EmployerResult } from "@/lib/employerLookup";
 import { useEffect } from "react";
-import { db } from "@/lib/firebaseClient";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { generatePDFReport } from "@/lib/pdfGenerator";
 export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
   const captureRef = useRef<HTMLDivElement>(null);
