@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Loader2, Phone, RefreshCw, Search, Users, X } from "lucide-react";
+import { Flame, Loader2, Phone, RefreshCw, Search, Users, X } from "lucide-react";
 import type { Lead, LeadStatus } from "@/lib/leads";
+import { isStale, leadScore } from "@/lib/leadScore";
 
 const STATUS_LABEL: Record<LeadStatus, string> = {
   NEW: "New",
@@ -34,6 +35,11 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "unassigned" | string>("all");
   const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<"hot" | "newest" | "oldest" | "salary">("hot");
+  const [statusF, setStatusF] = useState<"all" | LeadStatus>("all");
+  const [tierF, setTierF] = useState<"all" | "hot">("all");
+  const [range, setRange] = useState<"all" | "today" | "7d" | "30d">("all");
+  const [now, setNow] = useState(() => Date.now());
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [picking, setPicking] = useState(false); // employee picker open
@@ -64,6 +70,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
       knownIds.current = new Set(list.map((l) => l.id));
       setLeads(list);
       setUpdatedAt(new Date());
+      setNow(Date.now());
     } catch (e: any) {
       if (!silent) setError(e.message);
     } finally {
@@ -144,14 +151,38 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
     }
   };
 
+  const scored = useMemo(() => new Map(leads.map((l) => [l.id, leadScore(l, now)])), [leads, now]);
+
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return leads.filter((l) => {
+    const startOfToday = new Date(now).setHours(0, 0, 0, 0);
+    const since = range === "today" ? startOfToday : range === "7d" ? now - 7 * 86400000 : range === "30d" ? now - 30 * 86400000 : 0;
+    const list = leads.filter((l) => {
       if (filter === "unassigned" && l.assignedToEmail) return false;
       if (filter !== "all" && filter !== "unassigned" && l.assignedToEmail !== filter) return false;
+      if (statusF !== "all" && l.status !== statusF) return false;
+      if (tierF === "hot" && scored.get(l.id)?.tier !== "hot") return false;
+      if (since && (!l.createdAt || new Date(l.createdAt).getTime() < since)) return false;
       return !q || `${l.name} ${l.phone} ${l.requirement} ${l.assignedToName || ""}`.toLowerCase().includes(q);
     });
-  }, [leads, filter, query]);
+    const t = (l: Lead) => (l.createdAt ? new Date(l.createdAt).getTime() : 0);
+    return list.sort((a, b) => {
+      if (sort === "oldest") return t(a) - t(b);
+      if (sort === "salary") return (b.netSalary ?? 0) - (a.netSalary ?? 0) || t(b) - t(a);
+      if (sort === "hot") return (scored.get(b.id)?.score ?? 0) - (scored.get(a.id)?.score ?? 0) || t(b) - t(a);
+      return t(b) - t(a);
+    });
+  }, [leads, filter, query, sort, statusF, tierF, range, scored, now]);
+
+  const stats = useMemo(() => {
+    const today = new Date(now).setHours(0, 0, 0, 0);
+    return {
+      total: leads.length,
+      today: leads.filter((l) => l.createdAt && new Date(l.createdAt).getTime() >= today).length,
+      hot: leads.filter((l) => scored.get(l.id)?.tier === "hot").length,
+      stale: leads.filter((l) => isStale(l, now)).length,
+    };
+  }, [leads, scored, now]);
 
   const unassigned = leads.filter((l) => !l.assignedToEmail).length;
   const visibleUnassigned = visible.filter((l) => !l.assignedToEmail);
@@ -161,6 +192,24 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
 
   return (
     <div className="space-y-4 animate-fadeIn">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: "Total leads", value: stats.total, onClick: () => { setTierF("all"); setRange("all"); } },
+          { label: "Today", value: stats.today, onClick: () => { setRange("today"); setTierF("all"); } },
+          { label: "Hot", value: stats.hot, hot: true, onClick: () => { setTierF("hot"); setSort("hot"); } },
+          { label: "Untouched 24h+", value: stats.stale, onClick: () => { setStatusF("NEW"); setSort("oldest"); setRange("all"); } },
+        ].map((c) => (
+          <button
+            key={c.label}
+            onClick={c.onClick}
+            className="min-h-[44px] text-left bg-white border border-slate-200/90 rounded-2xl px-4 py-3 shadow-sm cursor-pointer hover:border-[#3F8EFC]/50"
+          >
+            <span className="block text-[11px] font-semibold text-slate-500">{c.label}</span>
+            <span className={`block text-2xl font-bold ${c.hot ? "text-orange-600" : "text-[#0A2540]"}`}>{c.value}</span>
+          </button>
+        ))}
+      </div>
+
       <div className="flex flex-col md:flex-row gap-3 bg-white border border-slate-200/90 p-4 rounded-3xl shadow-sm">
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -190,6 +239,49 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
           {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
           Refresh
         </button>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} className={field} aria-label="Sort leads">
+          <option value="hot">Sort: Hottest first</option>
+          <option value="newest">Sort: Newest first</option>
+          <option value="oldest">Sort: Oldest first</option>
+          <option value="salary">Sort: Salary high → low</option>
+        </select>
+        <select value={range} onChange={(e) => setRange(e.target.value as typeof range)} className={field} aria-label="Date range">
+          <option value="all">Any date</option>
+          <option value="today">Today</option>
+          <option value="7d">Last 7 days</option>
+          <option value="30d">Last 30 days</option>
+        </select>
+        <select value={statusF} onChange={(e) => setStatusF(e.target.value as typeof statusF)} className={field} aria-label="Status">
+          <option value="all">Any status</option>
+          {STATUSES.map((st) => (
+            <option key={st} value={st}>
+              {STATUS_LABEL[st]}
+            </option>
+          ))}
+        </select>
+        <button
+          onClick={() => setTierF((t) => (t === "hot" ? "all" : "hot"))}
+          aria-pressed={tierF === "hot"}
+          className={`min-h-[44px] px-4 inline-flex items-center gap-1.5 rounded-xl text-xs font-bold cursor-pointer border ${
+            tierF === "hot" ? "bg-orange-500 text-white border-orange-500" : "bg-white text-slate-700 border-slate-200"
+          }`}
+        >
+          <Flame className="w-3.5 h-3.5" /> Hot only
+        </button>
+        {(statusF !== "all" || tierF !== "all" || range !== "all" || query) && (
+          <button
+            onClick={() => { setStatusF("all"); setTierF("all"); setRange("all"); setQuery(""); }}
+            className="min-h-[44px] px-3 text-xs font-bold text-[#3F8EFC] cursor-pointer"
+          >
+            Reset filters
+          </button>
+        )}
+        <span className="ml-auto text-[11px] text-slate-500">
+          Showing {visible.length} of {leads.length}
+        </span>
       </div>
 
       {error && <p className="text-sm font-semibold text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">{error}</p>}
@@ -268,6 +360,17 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                 <div className="min-w-0 flex-1 space-y-1">
                   <p className="font-bold text-[#0A2540] truncate">
                     {l.name}
+                    {scored.get(l.id)?.tier === "hot" && (
+                      <span className="ml-2 align-middle inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide bg-orange-100 text-orange-700 rounded-full px-2 py-0.5">
+                        <Flame className="w-3 h-3" /> Hot
+                      </span>
+                    )}
+                    {scored.get(l.id)?.tier === "warm" && (
+                      <span className="ml-2 align-middle text-[10px] font-bold uppercase tracking-wide bg-amber-50 text-amber-700 rounded-full px-2 py-0.5">Warm</span>
+                    )}
+                    {isStale(l, now) && (
+                      <span className="ml-2 align-middle text-[10px] font-bold uppercase tracking-wide bg-red-50 text-red-600 rounded-full px-2 py-0.5">Untouched 24h+</span>
+                    )}
                     {fresh.has(l.id) && (
                       <span className="ml-2 align-middle text-[10px] font-bold uppercase tracking-wide bg-[#3F8EFC] text-white rounded-full px-2 py-0.5">New</span>
                     )}
