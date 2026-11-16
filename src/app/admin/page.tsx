@@ -8,6 +8,7 @@ import { EmiCalculator } from "@/components/EmiCalculator";
 import { CreditReportDashboard } from "@/components/CreditReportDashboard";
 import { DashboardHeader, NavTabItem } from "@/components/DashboardHeader";
 import { AdminSidebar } from "@/components/AdminSidebar";
+import { LeadsPanel } from "@/components/LeadsPanel";
 import * as XLSX from "xlsx";
 import {
   Database,
@@ -31,6 +32,7 @@ import {
   FileSpreadsheet,
   Send,
   Shield,
+  Inbox,
 } from "lucide-react";
 import { CreditReportRecord, DashboardUser } from "@/lib/types";
 
@@ -38,7 +40,7 @@ export default function AdminDashboardPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState("reports");
+  const [activeTab, setActiveTab] = useState("leads");
 
   // Authentication check
   useEffect(() => {
@@ -479,6 +481,7 @@ export default function AdminDashboardPage() {
   };
 
   const navTabs: NavTabItem[] = [
+    { id: "leads", label: "Leads", icon: Inbox },
     { id: "reports", label: "All Reports", icon: Database, count: totalReports ?? reports.length },
     { id: "fetch", label: "Fetch CIBIL", icon: CreditCard },
     { id: "users", label: "Branch Users", icon: Users, count: branchUsers.length },
@@ -510,6 +513,8 @@ export default function AdminDashboardPage() {
 
       {/* Main Content Area */}
       <main className="flex-1 min-w-0 p-4 sm:p-8 max-w-7xl mx-auto w-full space-y-6">
+        {activeTab === "leads" && <LeadsPanel isAdmin />}
+
         {/* ============================================================== */}
         {/* TAB 1: ALL REPORTS */}
         {/* ============================================================== */}
