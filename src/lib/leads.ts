@@ -43,6 +43,16 @@ export interface Lead {
   assignedToName: string | null;
   assignedByEmail: string | null;
   assignedAt: string | null; // ISO
+  assignedToPhone: string | null; // employee's number, as told to the customer
+  // WhatsApp "your advisor is ..." message: SENT, FAILED, SKIPPED, or null when never attempted.
+  welcomeStatus: "SENT" | "FAILED" | "SKIPPED" | null;
+  welcomeSentAt: string | null; // ISO
+  welcomeError: string | null;
+  welcomeCampaignId: number | null; // MessageBot campaign, used to look up delivery
+  // WhatsApp "new lead for you" sent to the assigned employee.
+  employeeNotifyStatus: "SENT" | "FAILED" | "SKIPPED" | null;
+  employeeNotifiedAt: string | null; // ISO
+  employeeNotifyError: string | null;
   enquiryCount: number;
   reports: LeadReport[]; // newest first
   latestScore: number | null;
@@ -110,6 +120,17 @@ export async function updateLeadStatus(
   return fetchOne(id);
 }
 
+// Send the "your advisor is ..." WhatsApp message to the customer again. Admin, or the employee who holds the lead.
+export async function resendWelcome(id: string, session: { role: string; email: string }): Promise<Lead> {
+  const lead = await fetchOne(id);
+  if (session.role !== "admin" && normalizeEmail(lead.assignedToEmail) !== normalizeEmail(session.email)) {
+    throw new LeadError("Lead not found", 404);
+  }
+  if (!lead.assignedToEmail) throw new LeadError("Assign the lead to an employee first", 400);
+  await call("POST", "/resend-welcome", { body: { key: id } });
+  return fetchOne(id);
+}
+
 // Re-read one customer so the screen shows the backend's state after a change.
 async function fetchOne(id: string): Promise<Lead> {
   const all = await call<{ customers: Lead[] }>("GET", "", { query: { key: id } });
@@ -137,4 +158,37 @@ export async function bulkAssignEvenly(
   if (!keys.length) throw new LeadError("Select at least one lead", 400);
   if (!employees.length) throw new LeadError("Select at least one employee", 400);
   return call<BulkAssignResult>("POST", "/assign", { body: { keys, employees, assignedBy, keepExisting: true } });
+}
+
+// ---- Employees who receive new leads automatically (table lead_employees) ----
+
+export interface LeadEmployee {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  hrmsId: string | null;
+  active: boolean;
+  lastAssignedAt: string | null;
+}
+
+export async function listLeadEmployees(): Promise<LeadEmployee[]> {
+  return (await call<{ employees: LeadEmployee[] }>("GET", "/employees")).employees;
+}
+
+export async function saveLeadEmployee(e: { name: string; email: string; phone: string; hrmsId?: string; active?: boolean }): Promise<LeadEmployee> {
+  return call<LeadEmployee>("POST", "/employees", { body: e });
+}
+
+// Delivery of the "your advisor is ..." message: looked up at MessageBot on demand.
+export async function leadWelcomeDelivery(id: string, session: { role: string; email: string }) {
+  const lead = await fetchOne(id);
+  if (session.role !== "admin" && normalizeEmail(lead.assignedToEmail) !== normalizeEmail(session.email)) {
+    throw new LeadError("Lead not found", 404);
+  }
+  if (!lead.welcomeCampaignId) throw new LeadError("No WhatsApp message has been sent for this lead", 404);
+  const { getWhatsappDlrDetails } = await import("@/lib/messagebotWhatsapp");
+  const r = await getWhatsappDlrDetails({ campaignId: lead.welcomeCampaignId });
+  if (!r.success) throw new LeadError(r.error || "Could not check delivery", 502);
+  return (r.dlr?.CampaignStatus || []).map((c) => `${c.DlrStatus}${c.NumberofSms > 1 ? ` (${c.NumberofSms})` : ""}`).join(", ") || "Submitted";
 }
