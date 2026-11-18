@@ -437,6 +437,27 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                       {l.welcomeStatus !== "SENT" && l.welcomeError && (
                         <span className="text-[11px] text-slate-500">{l.welcomeError}</span>
                       )}
+                      <span
+                        title={l.employeeNotifyError || undefined}
+                        className={`text-[10px] font-bold uppercase tracking-wide rounded-full px-2 py-0.5 ${
+                          l.employeeNotifyStatus === "SENT"
+                            ? "bg-emerald-50 text-emerald-700"
+                            : l.employeeNotifyStatus === "FAILED"
+                              ? "bg-red-50 text-red-600"
+                              : "bg-slate-100 text-slate-600"
+                        }`}
+                      >
+                        {l.employeeNotifyStatus === "SENT"
+                          ? "Employee notified"
+                          : l.employeeNotifyStatus === "FAILED"
+                            ? "Employee message failed"
+                            : l.employeeNotifyStatus === "SKIPPED"
+                              ? "Employee not messaged"
+                              : "Employee pending"}
+                      </span>
+                      {l.employeeNotifyStatus !== "SENT" && l.employeeNotifyError && (
+                        <span className="text-[11px] text-slate-500">{l.employeeNotifyError}</span>
+                      )}
                       {l.welcomeStatus === "SENT" && l.welcomeCampaignId && (
                         <button
                           onClick={() => checkDelivery(l.id)}
@@ -451,7 +472,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                         disabled={busyId === l.id}
                         className="min-h-[44px] sm:min-h-0 text-xs font-bold text-[#3F8EFC] hover:underline cursor-pointer disabled:opacity-60"
                       >
-                        {l.welcomeStatus === "SENT" ? "Send again" : "Send now"}
+                        {l.welcomeStatus === "SENT" && l.employeeNotifyStatus === "SENT" ? "Send both again" : "Send now"}
                       </button>
                     </div>
                   )}

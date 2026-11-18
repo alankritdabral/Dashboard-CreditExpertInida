@@ -49,6 +49,10 @@ export interface Lead {
   welcomeSentAt: string | null; // ISO
   welcomeError: string | null;
   welcomeCampaignId: number | null; // MessageBot campaign, used to look up delivery
+  // WhatsApp "new lead for you" sent to the assigned employee.
+  employeeNotifyStatus: "SENT" | "FAILED" | "SKIPPED" | null;
+  employeeNotifiedAt: string | null; // ISO
+  employeeNotifyError: string | null;
   enquiryCount: number;
   reports: LeadReport[]; // newest first
   latestScore: number | null;
