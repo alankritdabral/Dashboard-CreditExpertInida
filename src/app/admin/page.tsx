@@ -9,6 +9,7 @@ import { CreditReportDashboard } from "@/components/CreditReportDashboard";
 import { DashboardHeader, NavTabItem } from "@/components/DashboardHeader";
 import { AdminSidebar } from "@/components/AdminSidebar";
 import { LeadsPanel } from "@/components/LeadsPanel";
+import { LeadEmployeesPanel } from "@/components/LeadEmployeesPanel";
 import * as XLSX from "xlsx";
 import {
   Database,
@@ -482,6 +483,7 @@ export default function AdminDashboardPage() {
 
   const navTabs: NavTabItem[] = [
     { id: "leads", label: "Leads", icon: Inbox },
+    { id: "leadteam", label: "Lead Team", icon: Users },
     { id: "reports", label: "All Reports", icon: Database, count: totalReports ?? reports.length },
     { id: "fetch", label: "Fetch CIBIL", icon: CreditCard },
     { id: "users", label: "Branch Users", icon: Users, count: branchUsers.length },
@@ -514,6 +516,7 @@ export default function AdminDashboardPage() {
       {/* Main Content Area */}
       <main className="flex-1 min-w-0 p-4 sm:p-8 max-w-7xl mx-auto w-full space-y-6">
         {activeTab === "leads" && <LeadsPanel isAdmin />}
+        {activeTab === "leadteam" && <LeadEmployeesPanel />}
 
         {/* ============================================================== */}
         {/* TAB 1: ALL REPORTS */}

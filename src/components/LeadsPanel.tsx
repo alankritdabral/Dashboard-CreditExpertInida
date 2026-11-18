@@ -43,6 +43,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
   const [now, setNow] = useState(() => Date.now());
   const [viewingReport, setViewingReport] = useState<any | null>(null);
   const [openingReport, setOpeningReport] = useState<string | null>(null);
+  const [delivery, setDelivery] = useState<Record<string, string>>({}); // lead id -> MessageBot delivery text
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [picking, setPicking] = useState(false); // employee picker open
@@ -128,6 +129,19 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
       setLeads((prev) => prev.map((l) => (l.id === id ? data.lead : l)));
     } catch (e: any) {
       setError(e.message);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const checkDelivery = async (id: string) => {
+    setBusyId(id);
+    try {
+      const res = await fetch(`/api/leads/${encodeURIComponent(id)}/delivery`, { cache: "no-store" });
+      const data = await res.json();
+      setDelivery((d) => ({ ...d, [id]: data.success ? data.delivery : data.error || "Could not check" }));
+    } catch {
+      setDelivery((d) => ({ ...d, [id]: "Could not check" }));
     } finally {
       setBusyId(null);
     }
@@ -398,8 +412,49 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                   </p>
                   <p className="text-[11px] text-slate-500">
                     {fmtDate(l.createdAt)} · {l.source}
-                    {l.assignedToName ? ` · Assigned to ${l.assignedToName}` : " · Unassigned"}
+                    {l.assignedToName ? ` · Assigned to ${l.assignedToName}${l.assignedToPhone ? ` (${l.assignedToPhone})` : ""}` : " · Unassigned"}
                   </p>
+                  {l.assignedToEmail && (
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      <span
+                        title={l.welcomeError || undefined}
+                        className={`text-[10px] font-bold uppercase tracking-wide rounded-full px-2 py-0.5 ${
+                          l.welcomeStatus === "SENT"
+                            ? "bg-emerald-50 text-emerald-700"
+                            : l.welcomeStatus === "FAILED"
+                              ? "bg-red-50 text-red-600"
+                              : "bg-slate-100 text-slate-600"
+                        }`}
+                      >
+                        {l.welcomeStatus === "SENT"
+                          ? "WhatsApp sent to customer"
+                          : l.welcomeStatus === "FAILED"
+                            ? "WhatsApp failed"
+                            : l.welcomeStatus === "SKIPPED"
+                              ? "WhatsApp not sent"
+                              : "WhatsApp pending"}
+                      </span>
+                      {l.welcomeStatus !== "SENT" && l.welcomeError && (
+                        <span className="text-[11px] text-slate-500">{l.welcomeError}</span>
+                      )}
+                      {l.welcomeStatus === "SENT" && l.welcomeCampaignId && (
+                        <button
+                          onClick={() => checkDelivery(l.id)}
+                          disabled={busyId === l.id}
+                          className="min-h-[44px] sm:min-h-0 text-xs font-bold text-[#3F8EFC] hover:underline cursor-pointer disabled:opacity-60"
+                        >
+                          {delivery[l.id] ? `Delivery: ${delivery[l.id]}` : "Check delivery"}
+                        </button>
+                      )}
+                      <button
+                        onClick={() => patch(l.id, { resendWelcome: true })}
+                        disabled={busyId === l.id}
+                        className="min-h-[44px] sm:min-h-0 text-xs font-bold text-[#3F8EFC] hover:underline cursor-pointer disabled:opacity-60"
+                      >
+                        {l.welcomeStatus === "SENT" ? "Send again" : "Send now"}
+                      </button>
+                    </div>
+                  )}
                   {(l.reports.length > 0 || l.enquiryCount > 1) && (
                     <div className="flex flex-wrap items-center gap-2 pt-1">
                       {l.enquiryCount > 1 && (

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAllBranchUsers, verifySessionToken } from "@/lib/user-service";
-import { assignLead, LeadError, LEAD_STATUSES, LeadStatus, normalizeEmail, updateLeadStatus } from "@/lib/leads";
+import { assignLead, LeadError, LEAD_STATUSES, LeadStatus, normalizeEmail, resendWelcome, updateLeadStatus } from "@/lib/leads";
 
 // PATCH { assignTo: email | null }  — admin only; one employee per lead.
 // PATCH { status }                   — admin, or the employee the lead is assigned to.
+// PATCH { resendWelcome: true }      — send the "your advisor is ..." WhatsApp message again; admin or the assignee.
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const cookie = req.cookies.get("credit_dashboard_session");
   const session = cookie?.value ? verifySessionToken(cookie.value) : null;
@@ -30,6 +31,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         employee = { email, name: u.name };
       }
       const lead = await assignLead(id, employee, normalizeEmail(session.email));
+      return NextResponse.json({ success: true, lead });
+    }
+
+    if (body.resendWelcome === true) {
+      const lead = await resendWelcome(id, session);
       return NextResponse.json({ success: true, lead });
     }
 
