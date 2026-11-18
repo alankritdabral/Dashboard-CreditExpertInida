@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
       email,
       phone,
       hrmsId: body.hrmsId ? String(body.hrmsId).trim() : undefined,
+      branch: ["Delhi", "Dehradun", "Rudrapur"].includes(body.branch) ? body.branch : undefined,
       active: typeof body.active === "boolean" ? body.active : undefined,
     });
     return NextResponse.json({ success: true, employee });
