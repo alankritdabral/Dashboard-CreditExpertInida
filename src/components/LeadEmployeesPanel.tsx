@@ -5,7 +5,7 @@ import { Loader2, Plus } from "lucide-react";
 import type { LeadEmployee } from "@/lib/leads";
 
 const input = "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm min-h-[44px] sm:min-h-0";
-const empty = { name: "", email: "", phone: "", hrmsId: "" };
+const empty = { name: "", email: "", phone: "", hrmsId: "", branch: "Delhi" };
 
 // Admin: who receives new website leads automatically. Switch someone off while they are away.
 export function LeadEmployeesPanel() {
@@ -74,18 +74,19 @@ export function LeadEmployeesPanel() {
           <thead className="text-xs uppercase tracking-wide text-slate-500 border-b border-slate-200">
             <tr>
               <th className="px-4 py-3">Name</th>
-              <th className="px-4 py-3">Email (dashboard login)</th>
+              <th className="px-4 py-3">Email (sign-in)</th>
               <th className="px-4 py-3">Phone</th>
               <th className="px-4 py-3">HRMS ID</th>
+              <th className="px-4 py-3">Branch</th>
               <th className="px-4 py-3">Takes new leads</th>
             </tr>
           </thead>
           <tbody>
             {loading && (
-              <tr><td colSpan={5} className="px-4 py-6 text-center text-slate-500"><Loader2 className="w-5 h-5 animate-spin inline text-[#3F8EFC]" /></td></tr>
+              <tr><td colSpan={6} className="px-4 py-6 text-center text-slate-500"><Loader2 className="w-5 h-5 animate-spin inline text-[#3F8EFC]" /></td></tr>
             )}
             {!loading && rows.length === 0 && (
-              <tr><td colSpan={5} className="px-4 py-6 text-center text-slate-500">No employees yet. Add one below, or run the seed script.</td></tr>
+              <tr><td colSpan={6} className="px-4 py-6 text-center text-slate-500">No employees yet. Add one below, or run the seed script.</td></tr>
             )}
             {rows.map((r) => (
               <tr key={r.id} className="border-b border-slate-100 last:border-0">
@@ -93,13 +94,14 @@ export function LeadEmployeesPanel() {
                 <td className="px-4 py-3">{r.email}</td>
                 <td className="px-4 py-3">{r.phone}</td>
                 <td className="px-4 py-3">{r.hrmsId || "—"}</td>
+                <td className="px-4 py-3">{r.branch}</td>
                 <td className="px-4 py-3">
                   <button
                     role="switch"
                     aria-checked={r.active}
                     aria-label={`${r.name} takes new leads`}
                     disabled={busy === r.id}
-                    onClick={() => save({ name: r.name, email: r.email, phone: r.phone, hrmsId: r.hrmsId || undefined, active: !r.active }, r.id)}
+                    onClick={() => save({ name: r.name, email: r.email, phone: r.phone, hrmsId: r.hrmsId || undefined, branch: r.branch, active: !r.active }, r.id)}
                     className={`min-h-[44px] sm:min-h-0 px-3 py-1 rounded-full text-xs font-bold cursor-pointer disabled:opacity-60 ${r.active ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
                   >
                     {r.active ? "Active" : "Off"}
@@ -111,11 +113,16 @@ export function LeadEmployeesPanel() {
         </table>
       </div>
 
-      <form onSubmit={add} className="bg-white rounded-xl border border-slate-200 p-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5 items-end">
+      <form onSubmit={add} className="bg-white rounded-xl border border-slate-200 p-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-6 items-end">
         <label className="text-xs font-semibold text-slate-600">Name<input className={input} required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
         <label className="text-xs font-semibold text-slate-600">Email<input className={input} required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></label>
         <label className="text-xs font-semibold text-slate-600">Phone (10 digits)<input className={input} required inputMode="numeric" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label>
         <label className="text-xs font-semibold text-slate-600">HRMS ID<input className={input} value={form.hrmsId} onChange={(e) => setForm({ ...form, hrmsId: e.target.value })} /></label>
+        <label className="text-xs font-semibold text-slate-600">Branch
+          <select className={input} value={form.branch} onChange={(e) => setForm({ ...form, branch: e.target.value })}>
+            <option>Delhi</option><option>Dehradun</option><option>Rudrapur</option>
+          </select>
+        </label>
         <button disabled={busy === "new"} className="min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#0A2540] text-white text-sm font-bold px-4 cursor-pointer disabled:opacity-60">
           {busy === "new" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Add / update
         </button>

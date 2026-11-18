@@ -168,6 +168,7 @@ export interface LeadEmployee {
   email: string;
   phone: string;
   hrmsId: string | null;
+  branch: string;
   active: boolean;
   lastAssignedAt: string | null;
 }
@@ -176,7 +177,7 @@ export async function listLeadEmployees(): Promise<LeadEmployee[]> {
   return (await call<{ employees: LeadEmployee[] }>("GET", "/employees")).employees;
 }
 
-export async function saveLeadEmployee(e: { name: string; email: string; phone: string; hrmsId?: string; active?: boolean }): Promise<LeadEmployee> {
+export async function saveLeadEmployee(e: { name: string; email: string; phone: string; hrmsId?: string; branch?: string; active?: boolean }): Promise<LeadEmployee> {
   return call<LeadEmployee>("POST", "/employees", { body: e });
 }
 
@@ -191,4 +192,27 @@ export async function leadWelcomeDelivery(id: string, session: { role: string; e
   const r = await getWhatsappDlrDetails({ campaignId: lead.welcomeCampaignId });
   if (!r.success) throw new LeadError(r.error || "Could not check delivery", 502);
   return (r.dlr?.CampaignStatus || []).map((c) => `${c.DlrStatus}${c.NumberofSms > 1 ? ` (${c.NumberofSms})` : ""}`).join(", ") || "Submitted";
+}
+
+// ---- Lead-team sign-in: passwordless, a WhatsApp code to the number saved in RDS ----
+
+export interface LeadTeamIdentity {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  hrmsId: string | null;
+  branch: string;
+}
+
+export async function isLeadTeamMember(email: string): Promise<boolean> {
+  return (await call<{ leadEmployee: boolean }>("POST", "/employees/is-member", { body: { email } })).leadEmployee;
+}
+
+export async function requestLeadTeamCode(email: string): Promise<void> {
+  await call("POST", "/employees/otp/request", { body: { email } });
+}
+
+export async function verifyLeadTeamCode(email: string, otp: string): Promise<LeadTeamIdentity | null> {
+  return (await call<{ employee: LeadTeamIdentity | null }>("POST", "/employees/otp/verify", { body: { email, otp } })).employee;
 }

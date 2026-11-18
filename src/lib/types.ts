@@ -30,6 +30,7 @@ export interface UserSession {
   branch: string;
   createdAt: number;
   expiresAt: number;
+  employeeId?: string;
 }
 
 export interface CreditReportAttribution {

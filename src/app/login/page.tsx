@@ -20,28 +20,68 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  // email: ask who you are. password: temporary login. otp: lead team, a code WhatsApped to your saved number.
+  const [step, setStep] = useState<"email" | "password" | "otp">("email");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const askEmail = async () => {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!data.success) throw new Error(data.error || "Could not start sign-in. Try again.");
+    setStep(data.step === "otp" ? "otp" : "password");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!email || !password) {
-      setErrorMessage("Please enter both work email and password.");
-      return;
-    }
-
     setLoading(true);
     setErrorMessage(null);
 
-    const res = await login(email, password);
+    try {
+      if (step === "email") {
+        if (!email) throw new Error("Please enter your work email.");
+        await askEmail();
+        setLoading(false);
+        return;
+      }
 
-    if (res.success) {
-      router.push(res.role === "admin" ? "/admin" : "/branch");
-    } else {
-      setErrorMessage(res.error || "Authentication failed. Check your credentials.");
+      if (step === "password" && !password) throw new Error("Please enter your password.");
+      if (step === "otp" && !code.trim()) throw new Error("Please enter the code from WhatsApp.");
+
+      const res = step === "otp" ? await login(email, code.trim(), "otp") : await login(email, password);
+      if (res.success) {
+        router.push(res.role === "admin" ? "/admin" : "/branch");
+        return;
+      }
+      throw new Error(res.error || "Authentication failed. Check your credentials.");
+    } catch (err: any) {
+      setErrorMessage(err.message);
       setLoading(false);
     }
+  };
+
+  const resendCode = async () => {
+    setErrorMessage(null);
+    setLoading(true);
+    try {
+      await askEmail();
+      setCode("");
+    } catch (err: any) {
+      setErrorMessage(err.message);
+    }
+    setLoading(false);
+  };
+
+  const changeEmail = () => {
+    setStep("email");
+    setPassword("");
+    setCode("");
+    setErrorMessage(null);
   };
 
   const inputCls =
@@ -74,7 +114,7 @@ export default function LoginPage() {
           <div className="border-b border-slate-100 pb-3">
             <h2 className="text-base font-extrabold text-slate-900">Sign In</h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Enter your work email and password.
+              {step === "otp" ? "Enter the code we sent to your WhatsApp." : step === "password" ? "Enter your password." : "Enter your work email to continue."}
             </p>
           </div>
 
@@ -98,6 +138,7 @@ export default function LoginPage() {
                   required
                   autoComplete="username"
                   value={email}
+                  readOnly={step !== "email"}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@creditexpertindia.com"
                   className={inputCls}
@@ -105,6 +146,7 @@ export default function LoginPage() {
               </div>
             </div>
 
+            {step === "password" && (
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label htmlFor="login-password" className="text-xs font-bold text-slate-700">Password</label>
@@ -129,6 +171,38 @@ export default function LoginPage() {
                 />
               </div>
             </div>
+            )}
+
+            {step === "otp" && (
+              <div>
+                <label htmlFor="login-code" className="block text-xs font-bold text-slate-700 mb-1.5">
+                  6-digit code
+                </label>
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    id="login-code"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    required
+                    autoFocus
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                    placeholder="123456"
+                    className={inputCls}
+                  />
+                </div>
+                <div className="flex items-center justify-between mt-1">
+                  <button type="button" onClick={resendCode} disabled={loading} className="min-h-[44px] text-xs font-semibold text-[#3F8EFC] hover:underline cursor-pointer disabled:opacity-60">
+                    Send a new code
+                  </button>
+                  <button type="button" onClick={changeEmail} className="min-h-[44px] text-xs font-semibold text-slate-500 hover:underline cursor-pointer">
+                    Use a different email
+                  </button>
+                </div>
+              </div>
+            )}
 
             <button
               type="submit"
@@ -138,11 +212,11 @@ export default function LoginPage() {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Verifying Credentials...
+                  {step === "email" ? "Checking..." : "Verifying..."}
                 </>
               ) : (
                 <>
-                  Sign In
+                  {step === "email" ? "Continue" : "Sign In"}
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}

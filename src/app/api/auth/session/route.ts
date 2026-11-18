@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
         email: session.email,
         role: session.role,
         branch: session.branch,
-        employeeId: "TEMP-001",
+        employeeId: session.employeeId || "TEMP-001",
         status: "Active",
       },
     });
