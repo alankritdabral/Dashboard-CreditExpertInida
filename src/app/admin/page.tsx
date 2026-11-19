@@ -327,7 +327,7 @@ export default function AdminDashboardPage() {
   const [histLoading, setHistLoading] = useState(false);
   const [histFrom, setHistFrom] = useState("");
   const [histTo, setHistTo] = useState("");
-  const [histView, setHistView] = useState<"list" | "summary">("list");
+  const [histView, setHistView] = useState<"list" | "summary" | "branch">("list");
   const [summary, setSummary] = useState<{ counts: Record<string, { name: string; count: number }>; unattributed: number } | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [histPreset, setHistPreset] = useState<"all" | "today" | "yesterday" | "week" | "custom">("all");
@@ -375,12 +375,12 @@ export default function AdminDashboardPage() {
   // Per-employee counts for the chosen date range (only needed when a range is set;
   // otherwise the roster's all-time counts are used)
   useEffect(() => {
-    if (activeTab !== "activity" || histView !== "summary" || (!histFrom && !histTo)) {
+    if (activeTab !== "activity" || histView === "list" || (!histFrom && !histTo)) {
       setSummary(null);
       return;
     }
     const qs = new URLSearchParams({ summary: "1" });
-    if (histBranch) qs.set("branch", histBranch);
+    if (histBranch && histView === "summary") qs.set("branch", histBranch);
     if (histFrom) qs.set("startDate", new Date(`${histFrom}T00:00:00`).toISOString());
     if (histTo) qs.set("endDate", new Date(`${histTo}T23:59:59.999`).toISOString());
     let cancelled = false;
@@ -399,6 +399,18 @@ export default function AdminDashboardPage() {
         .map((e) => ({ ...e, count: summary.counts[e.email.toLowerCase()]?.count ?? 0 }))
     : employees.filter((e) => !histBranch || e.branch.toLowerCase() === histBranch.toLowerCase())
   ).sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  // "By branch" view: every employee grouped under their branch, counts from the same source
+  const branchGroups = (() => {
+    const groups = new Map<string, { branch: string; rows: { name: string; email: string; branch: string; count: number }[] }>();
+    for (const e of employees) {
+      const key = e.branch.toLowerCase().trim();
+      if (!groups.has(key)) groups.set(key, { branch: e.branch.trim(), rows: [] });
+      groups.get(key)!.rows.push({ ...e, count: summary ? summary.counts[e.email.toLowerCase()]?.count ?? 0 : e.count });
+    }
+    return Array.from(groups.values())
+      .map((g) => ({ ...g, rows: g.rows.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name)), total: g.rows.reduce((n, r) => n + r.count, 0) }))
+      .sort((a, b) => b.total - a.total || a.branch.localeCompare(b.branch));
+  })();
   const branchEmployees = employees.filter((e) => !histBranch || e.branch.toLowerCase() === histBranch.toLowerCase());
   const histEmployee = employees.find((e) => e.email === histEmail);
 
@@ -994,6 +1006,7 @@ export default function AdminDashboardPage() {
                 {([
                   ["list", "Pull details"],
                   ["summary", "Numbers by employee"],
+                  ["branch", "By branch"],
                 ] as const).map(([id, label]) => (
                   <button
                     key={id}
@@ -1054,7 +1067,53 @@ export default function AdminDashboardPage() {
                 )}
               </div>
 
-              {histView === "summary" ? (
+              {histView === "branch" ? (
+                <div className="space-y-4">
+                  <p className="text-xs text-slate-500">
+                    {histFrom || histTo ? "Selected dates" : "All time"} - {branchGroups.length} branches, {branchGroups.reduce((n, g) => n + g.total, 0)} pulls
+                  </p>
+                  {summaryLoading ? (
+                    <p className="text-xs text-slate-400 py-4 text-center">Loading...</p>
+                  ) : branchGroups.length === 0 ? (
+                    <p className="text-xs text-slate-400 py-4 text-center">No employees found.</p>
+                  ) : (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      {branchGroups.map((g) => (
+                        <div key={g.branch} className="border border-slate-200 rounded-2xl overflow-hidden">
+                          <div className="flex items-center justify-between gap-2 bg-slate-50 px-3 py-2.5">
+                            <span className="flex items-center gap-1.5 text-sm font-bold text-slate-900">
+                              <Building2 className="w-4 h-4 text-[#3F8EFC]" />
+                              {g.branch}
+                            </span>
+                            <span className="text-[11px] font-semibold text-slate-500">
+                              {g.rows.length} employees - {g.total} pulls
+                            </span>
+                          </div>
+                          <table className="w-full text-xs text-left">
+                            <tbody className="divide-y divide-slate-100">
+                              {g.rows.map((e) => (
+                                <tr key={e.email} className="text-slate-700">
+                                  <td className="px-3 py-2.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => { setHistBranch(e.branch); setHistEmail(e.email); setHistView("list"); }}
+                                      className="font-semibold text-[#3F8EFC] hover:underline cursor-pointer text-left"
+                                    >
+                                      {e.name.trim()}
+                                    </button>
+                                    <span className="block text-slate-400 break-all">{e.email}</span>
+                                  </td>
+                                  <td className="px-3 py-2.5 text-right font-bold tabular-nums">{e.count}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : histView === "summary" ? (
                 <>
                   <p className="text-xs text-slate-500">
                     {histBranch || "All branches"} - {histFrom || histTo ? "selected dates" : "all time"} - {summaryRows.reduce((n, r) => n + r.count, 0)} pulls by {summaryRows.filter((r) => r.count > 0).length} employees
