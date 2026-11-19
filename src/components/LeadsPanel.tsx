@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FileText, Flame, Loader2, Phone, RefreshCw, Search, Users, X } from "lucide-react";
+import { AlertTriangle, FileText, Flame, Loader2, Phone, RefreshCw, Search, Trash2, Users, X } from "lucide-react";
 import type { Lead, LeadStatus } from "@/lib/leads";
+import { leadKinds, LEAD_KIND_LABEL, type LeadKind } from "@/lib/leadKinds";
 import { isStale, leadScore } from "@/lib/leadScore";
 import { CreditReportDashboard } from "@/components/CreditReportDashboard";
 
@@ -16,12 +17,20 @@ const STATUS_LABEL: Record<LeadStatus, string> = {
 const POLL_MS = 8000;
 const STATUSES = Object.keys(STATUS_LABEL) as LeadStatus[];
 
+// Only the active auto-assign team can be given leads: they have the phone number the WhatsApp needs.
 interface Employee {
   name: string;
   email: string;
-  status?: string;
-  role?: string;
+  phone?: string;
+  active?: boolean;
 }
+
+const KIND_STYLE: Record<LeadKind, string> = {
+  eligibility: "bg-violet-50 text-violet-700 border-violet-200",
+  details: "bg-sky-50 text-sky-700 border-sky-200",
+  other: "bg-slate-100 text-slate-600 border-slate-200",
+};
+type KindTab = "all" | LeadKind;
 
 const fmtDate = (iso: string | null) =>
   iso ? new Date(iso).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—";
@@ -39,6 +48,10 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
   const [sort, setSort] = useState<"hot" | "newest" | "oldest" | "salary">("hot");
   const [statusF, setStatusF] = useState<"all" | LeadStatus>("all");
   const [tierF, setTierF] = useState<"all" | "hot">("all");
+  const [kindTab, setKindTab] = useState<KindTab>("all");
+  const [reportOnly, setReportOnly] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<{ ids: string[]; label: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [range, setRange] = useState<"all" | "today" | "7d" | "30d">("all");
   const [now, setNow] = useState(() => Date.now());
   const [viewingReport, setViewingReport] = useState<any | null>(null);
@@ -58,8 +71,8 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
     setOpeningReport(reportId);
     try {
       const res = await fetch(`/api/leads/${encodeURIComponent(leadId)}/report?reportId=${encodeURIComponent(reportId)}`, { cache: "no-store" });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error || "Could not load the report");
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.success) throw new Error(data?.error || "Could not load the report");
       setViewingReport(data.report);
     } catch (e: any) {
       setError(e.message || "Could not load the report");
@@ -109,9 +122,9 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
 
   useEffect(() => {
     if (!isAdmin) return;
-    fetch("/api/branch/users")
+    fetch("/api/lead-employees", { cache: "no-store" })
       .then((r) => r.json())
-      .then((d) => d.success && setEmployees(d.users.filter((u: Employee) => u.role !== "admin" && u.status !== "Suspended")))
+      .then((d) => d.success && setEmployees(d.employees.filter((u: Employee) => u.active)))
       .catch(() => {});
   }, [isAdmin]);
 
@@ -131,6 +144,48 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
       setError(e.message);
     } finally {
       setBusyId(null);
+    }
+  };
+
+  const assignOne = async (l: Lead, email: string) => {
+    if (!email) return patch(l.id, { assignTo: null });
+    const emp = employees.find((e) => e.email.toLowerCase() === email);
+    if (!window.confirm(`Assign ${l.name} to ${emp?.name || email}?\n\nThe customer and ${emp?.name || "the employee"} will each get a WhatsApp message, same as a website lead.`)) return;
+    await patch(l.id, { assignTo: email });
+    setNotice(`${l.name} assigned to ${emp?.name || email}. WhatsApp messages sent.`);
+  };
+
+  const askDelete = (ids: string[], label: string) => setConfirmDelete({ ids, label });
+
+  useEffect(() => {
+    if (!confirmDelete) return;
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && setConfirmDelete(null);
+    window.addEventListener("keydown", esc);
+    return () => window.removeEventListener("keydown", esc);
+  }, [confirmDelete]);
+
+  const runDelete = async () => {
+    if (!confirmDelete) return;
+    setDeleting(true);
+    setError("");
+    try {
+      const res = await fetch("/api/leads/bulk", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leadIds: confirmDelete.ids }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.success) throw new Error(data?.error || "Delete failed");
+      const gone = new Set(confirmDelete.ids);
+      setLeads((prev) => prev.filter((l) => !gone.has(l.id)));
+      knownIds.current = new Set([...(knownIds.current || [])].filter((id) => !gone.has(id)));
+      setSelected((prev) => new Set([...prev].filter((id) => !gone.has(id))));
+      setNotice(`Deleted ${confirmDelete.ids.length} lead${confirmDelete.ids.length > 1 ? "s" : ""}. Credit reports were kept.`);
+      setConfirmDelete(null);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -169,7 +224,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
       const r = data.result;
       const names = new Map(employees.map((e) => [e.email.toLowerCase(), e.name]));
       const parts = Object.entries(r.assigned).map(([em, n]) => `${names.get(em) || em}: ${n}`);
-      let msg = `Assigned — ${parts.join(", ")}.`;
+      let msg = `Assigned — ${parts.join(", ")}. WhatsApp sent for ${r.notified ?? 0} customer(s).`;
       if (r.keptWithOwner.length) msg += ` ${r.keptWithOwner.length} repeat customer(s) stayed with their current employee.`;
       setNotice(msg);
       setSelected(new Set());
@@ -182,6 +237,13 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
     }
   };
 
+  const kinds = useMemo(() => new Map(leads.map((l) => [l.id, leadKinds(l)])), [leads]);
+  const kindCount = useMemo(() => {
+    const c = { all: leads.length, eligibility: 0, details: 0, other: 0 };
+    for (const l of leads) for (const k of kinds.get(l.id) || []) c[k]++;
+    return c;
+  }, [leads, kinds]);
+
   const scored = useMemo(() => new Map(leads.map((l) => [l.id, leadScore(l, now)])), [leads, now]);
 
   const visible = useMemo(() => {
@@ -192,6 +254,8 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
       if (filter === "unassigned" && l.assignedToEmail) return false;
       if (filter !== "all" && filter !== "unassigned" && l.assignedToEmail !== filter) return false;
       if (statusF !== "all" && l.status !== statusF) return false;
+      if (kindTab !== "all" && !kinds.get(l.id)?.includes(kindTab)) return false;
+      if (reportOnly && !l.reports.length) return false;
       if (tierF === "hot" && scored.get(l.id)?.tier !== "hot") return false;
       if (since && (!l.createdAt || new Date(l.createdAt).getTime() < since)) return false;
       return !q || `${l.name} ${l.phone} ${l.requirement} ${l.assignedToName || ""}`.toLowerCase().includes(q);
@@ -203,7 +267,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
       if (sort === "hot") return (scored.get(b.id)?.score ?? 0) - (scored.get(a.id)?.score ?? 0) || t(b) - t(a);
       return t(b) - t(a);
     });
-  }, [leads, filter, query, sort, statusF, tierF, range, scored, now]);
+  }, [leads, filter, query, sort, statusF, tierF, range, scored, now, kindTab, reportOnly, kinds]);
 
   const stats = useMemo(() => {
     const today = new Date(now).setHours(0, 0, 0, 0);
@@ -211,37 +275,63 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
       total: leads.length,
       today: leads.filter((l) => l.createdAt && new Date(l.createdAt).getTime() >= today).length,
       hot: leads.filter((l) => scored.get(l.id)?.tier === "hot").length,
+      withReport: leads.filter((l) => l.reports.length > 0).length,
       stale: leads.filter((l) => isStale(l, now)).length,
     };
   }, [leads, scored, now]);
 
   const unassigned = leads.filter((l) => !l.assignedToEmail).length;
-  const visibleUnassigned = visible.filter((l) => !l.assignedToEmail);
   const perEmployee = pickedEmps.size ? Math.ceil(selected.size / pickedEmps.size) : 0;
   const field =
     "min-h-[44px] bg-slate-50 border border-slate-200 rounded-xl px-3 text-base sm:text-xs font-medium text-slate-900 focus:outline-none focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20";
 
   return (
     <div className="space-y-4 animate-fadeIn">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
-          { label: "Total leads", value: stats.total, onClick: () => { setTierF("all"); setRange("all"); } },
+          { label: "Total leads", value: stats.total, onClick: () => { setTierF("all"); setRange("all"); setFilter("all"); setReportOnly(false); setKindTab("all"); } },
           { label: "Today", value: stats.today, onClick: () => { setRange("today"); setTierF("all"); } },
+          ...(isAdmin ? [{ label: "Unassigned", value: unassigned, warn: unassigned > 0, onClick: () => setFilter("unassigned") }] : []),
+          { label: "With CIBIL report", value: stats.withReport, onClick: () => setReportOnly(true) },
           { label: "Hot", value: stats.hot, hot: true, onClick: () => { setTierF("hot"); setSort("hot"); } },
           { label: "Untouched 24h+", value: stats.stale, onClick: () => { setStatusF("NEW"); setSort("oldest"); setRange("all"); } },
-        ].map((c) => (
+        ].map((c: { label: string; value: number; hot?: boolean; warn?: boolean; onClick: () => void }) => (
           <button
             key={c.label}
             onClick={c.onClick}
             className="min-h-[44px] text-left bg-white border border-slate-200/90 rounded-2xl px-4 py-3 shadow-sm cursor-pointer hover:border-[#3F8EFC]/50"
           >
             <span className="block text-[11px] font-semibold text-slate-500">{c.label}</span>
-            <span className={`block text-2xl font-bold ${c.hot ? "text-orange-600" : "text-[#0A2540]"}`}>{c.value}</span>
+            <span className={`block text-2xl font-bold ${c.hot ? "text-orange-600" : c.warn ? "text-red-600" : "text-[#0A2540]"}`}>{c.value}</span>
           </button>
         ))}
       </div>
 
-      <div className="flex flex-col md:flex-row gap-3 bg-white border border-slate-200/90 p-4 rounded-3xl shadow-sm">
+      <div role="tablist" aria-label="Lead type" className="flex gap-2 overflow-x-auto -mx-1 px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {(
+          [
+            ["all", "All leads"],
+            ["eligibility", "Eligibility check"],
+            ["details", "Leave details form"],
+            ...(kindCount.other > 0 ? ([["other", "Calculator / other"]] as const) : []),
+          ] as [KindTab, string][]
+        ).map(([k, label]) => (
+          <button
+            key={k}
+            role="tab"
+            aria-selected={kindTab === k}
+            onClick={() => setKindTab(k)}
+            className={`shrink-0 whitespace-nowrap min-h-[44px] px-4 inline-flex items-center gap-2 rounded-full text-xs font-bold cursor-pointer border transition-colors ${
+              kindTab === k ? "bg-[#0A2540] text-white border-[#0A2540]" : "bg-white text-slate-700 border-slate-200 hover:border-[#3F8EFC]/50"
+            }`}
+          >
+            {label}
+            <span className={`rounded-full px-2 py-0.5 text-[10px] ${kindTab === k ? "bg-white/20" : "bg-slate-100 text-slate-600"}`}>{kindCount[k]}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-3 bg-white border border-slate-200/90 p-3 sm:p-4 rounded-3xl shadow-sm">
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
@@ -252,7 +342,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
           />
         </div>
         {isAdmin && (
-          <select value={filter} onChange={(e) => setFilter(e.target.value)} className={field} aria-label="Filter leads">
+          <select value={filter} onChange={(e) => setFilter(e.target.value)} className={`${field} w-full md:w-auto`} aria-label="Filter leads">
             <option value="all">All leads ({leads.length})</option>
             <option value="unassigned">Unassigned ({unassigned})</option>
             {employees.map((e) => (
@@ -265,7 +355,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
         <button
           onClick={() => load()}
           disabled={loading}
-          className="min-h-[44px] px-4 inline-flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl cursor-pointer"
+          className="min-h-[44px] px-4 inline-flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl cursor-pointer w-full md:w-auto"
         >
           {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
           Refresh
@@ -273,19 +363,19 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} className={field} aria-label="Sort leads">
+        <select value={sort} onChange={(e) => setSort(e.target.value as typeof sort)} className={`${field} flex-1 min-w-[9.5rem] sm:flex-none`} aria-label="Sort leads">
           <option value="hot">Sort: Hottest first</option>
           <option value="newest">Sort: Newest first</option>
           <option value="oldest">Sort: Oldest first</option>
           <option value="salary">Sort: Salary high → low</option>
         </select>
-        <select value={range} onChange={(e) => setRange(e.target.value as typeof range)} className={field} aria-label="Date range">
+        <select value={range} onChange={(e) => setRange(e.target.value as typeof range)} className={`${field} flex-1 min-w-[9.5rem] sm:flex-none`} aria-label="Date range">
           <option value="all">Any date</option>
           <option value="today">Today</option>
           <option value="7d">Last 7 days</option>
           <option value="30d">Last 30 days</option>
         </select>
-        <select value={statusF} onChange={(e) => setStatusF(e.target.value as typeof statusF)} className={field} aria-label="Status">
+        <select value={statusF} onChange={(e) => setStatusF(e.target.value as typeof statusF)} className={`${field} flex-1 min-w-[9.5rem] sm:flex-none`} aria-label="Status">
           <option value="all">Any status</option>
           {STATUSES.map((st) => (
             <option key={st} value={st}>
@@ -302,15 +392,24 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
         >
           <Flame className="w-3.5 h-3.5" /> Hot only
         </button>
-        {(statusF !== "all" || tierF !== "all" || range !== "all" || query) && (
+        <button
+          onClick={() => setReportOnly((v) => !v)}
+          aria-pressed={reportOnly}
+          className={`min-h-[44px] px-4 inline-flex items-center gap-1.5 rounded-xl text-xs font-bold cursor-pointer border ${
+            reportOnly ? "bg-[#3F8EFC] text-white border-[#3F8EFC]" : "bg-white text-slate-700 border-slate-200"
+          }`}
+        >
+          <FileText className="w-3.5 h-3.5" /> Has CIBIL report
+        </button>
+        {(statusF !== "all" || tierF !== "all" || range !== "all" || query || reportOnly || kindTab !== "all" || filter !== "all") && (
           <button
-            onClick={() => { setStatusF("all"); setTierF("all"); setRange("all"); setQuery(""); }}
+            onClick={() => { setStatusF("all"); setTierF("all"); setRange("all"); setQuery(""); setReportOnly(false); setKindTab("all"); setFilter("all"); }}
             className="min-h-[44px] px-3 text-xs font-bold text-[#3F8EFC] cursor-pointer"
           >
             Reset filters
           </button>
         )}
-        <span className="ml-auto text-[11px] text-slate-500">
+        <span className="w-full sm:w-auto sm:ml-auto text-[11px] text-slate-500">
           Showing {visible.length} of {leads.length}
         </span>
       </div>
@@ -342,11 +441,11 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Live
           {updatedAt ? ` · updated ${updatedAt.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}` : ""}
         </span>
-        {isAdmin && visibleUnassigned.length > 0 && (
+        {isAdmin && visible.length > 0 && (
           <button
             onClick={() =>
               setSelected((prev) => {
-                const ids = visibleUnassigned.map((l) => l.id);
+                const ids = visible.map((l) => l.id);
                 const all = ids.every((id) => prev.has(id));
                 const n = new Set(prev);
                 ids.forEach((id) => (all ? n.delete(id) : n.add(id)));
@@ -355,10 +454,22 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
             }
             className="min-h-[44px] px-2 text-xs font-bold text-[#3F8EFC] cursor-pointer"
           >
-            {visibleUnassigned.every((l) => selected.has(l.id)) ? "Clear unassigned" : `Select all unassigned (${visibleUnassigned.length})`}
+            {visible.every((l) => selected.has(l.id)) ? "Clear selection" : `Select all shown (${visible.length})`}
           </button>
         )}
       </div>
+
+      {loading && leads.length === 0 && (
+        <ul className="space-y-3" aria-hidden="true">
+          {[0, 1, 2, 3].map((i) => (
+            <li key={i} className="bg-white border border-slate-200/90 rounded-3xl p-5 space-y-3 animate-pulse">
+              <div className="h-4 w-1/3 bg-slate-100 rounded" />
+              <div className="h-3 w-2/3 bg-slate-100 rounded" />
+              <div className="h-3 w-1/2 bg-slate-100 rounded" />
+            </li>
+          ))}
+        </ul>
+      )}
 
       {!loading && visible.length === 0 && (
         <p className="text-center text-sm text-slate-500 bg-white border border-slate-200/90 rounded-3xl py-12">
@@ -376,9 +487,9 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                 fresh.has(l.id) ? "border-[#3F8EFC] ring-2 ring-[#3F8EFC]/20" : selected.has(l.id) ? "border-[#3F8EFC]/60" : "border-slate-200/90"
               }`}
             >
-              <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+              <div className="flex items-start gap-2 sm:gap-3">
                 {isAdmin && (
-                  <label className="min-h-[44px] min-w-[44px] -m-3 inline-flex items-center justify-center cursor-pointer shrink-0 self-start">
+                  <label className="min-h-[44px] min-w-[32px] -mt-3 -ml-1 inline-flex items-center justify-center cursor-pointer shrink-0">
                     <input
                       type="checkbox"
                       checked={selected.has(l.id)}
@@ -388,8 +499,9 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                     />
                   </label>
                 )}
+                <div className="min-w-0 flex-1 flex flex-col xl:flex-row xl:items-start xl:justify-between gap-4">
                 <div className="min-w-0 flex-1 space-y-1">
-                  <p className="font-bold text-[#0A2540] truncate">
+                  <p className="font-bold text-[#0A2540] break-words">
                     {l.name}
                     {scored.get(l.id)?.tier === "hot" && (
                       <span className="ml-2 align-middle inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide bg-orange-100 text-orange-700 rounded-full px-2 py-0.5">
@@ -410,10 +522,18 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                     {l.requirement} · Salary {rupees(l.netSalary)} · EMI {rupees(l.ongoingEmi)}
                     {l.city ? ` · ${l.city}` : ""}
                   </p>
-                  <p className="text-[11px] text-slate-500">
-                    {fmtDate(l.createdAt)} · {l.source}
-                    {l.assignedToName ? ` · Assigned to ${l.assignedToName}${l.assignedToPhone ? ` (${l.assignedToPhone})` : ""}` : " · Unassigned"}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                    {(kinds.get(l.id) || []).map((k) => (
+                      <span key={k} className={`text-[10px] font-bold uppercase tracking-wide border rounded-full px-2 py-0.5 ${KIND_STYLE[k]}`}>
+                        {LEAD_KIND_LABEL[k]}
+                      </span>
+                    ))}
+                    <span className="text-[11px] text-slate-500">
+                      {fmtDate(l.createdAt)}
+                      {l.assignedToName ? ` · Assigned to ${l.assignedToName}${l.assignedToPhone ? ` (${l.assignedToPhone})` : ""}` : ""}
+                    </span>
+                    {!l.assignedToName && <span className="text-[10px] font-bold uppercase tracking-wide bg-red-50 text-red-600 rounded-full px-2 py-0.5">Unassigned</span>}
+                  </div>
                   {l.assignedToEmail && (
                     <div className="flex flex-wrap items-center gap-2 pt-1">
                       <span
@@ -483,16 +603,18 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                           {l.enquiryCount} enquiries · 1 customer
                         </span>
                       )}
-                      {l.reports.length > 0 && (
+                      {l.reports.slice(0, 3).map((r) => (
                         <button
-                          onClick={() => openReport(l.id, l.reports[0].id)}
-                          disabled={openingReport === l.reports[0].id}
+                          key={r.id}
+                          onClick={() => openReport(l.id, r.id)}
+                          disabled={openingReport === r.id}
                           className="min-h-[44px] sm:min-h-0 inline-flex items-center gap-1.5 text-xs font-bold text-[#0A2540] bg-[#3F8EFC]/10 hover:bg-[#3F8EFC]/20 rounded-full px-3 py-1.5 cursor-pointer disabled:opacity-60"
                         >
-                          {openingReport === l.reports[0].id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
-                          Credit score {l.latestScore ?? "—"} · View report
+                          {openingReport === r.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
+                          {r.bureau ? r.bureau.toUpperCase() : "Report"} {r.creditScore ?? "—"} · {fmtDate(r.createdAt)} · View
                         </button>
-                      )}
+                      ))}
+                      {l.reports.length > 3 && <span className="text-[11px] text-slate-500">+{l.reports.length - 3} more</span>}
                     </div>
                   )}
                   {l.activity.length > 1 && (
@@ -517,13 +639,13 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                   )}
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+                <div className="flex gap-2 xl:shrink-0 xl:self-start">
                   {isAdmin && (
                     <select
                       value={l.assignedToEmail || ""}
                       disabled={busyId === l.id}
-                      onChange={(e) => patch(l.id, { assignTo: e.target.value || null })}
-                      className={field}
+                      onChange={(e) => assignOne(l, e.target.value)}
+                      className={`${field} flex-1 min-w-0 xl:flex-none xl:w-44`}
                       aria-label={`Assign ${l.name}`}
                     >
                       <option value="">Unassigned</option>
@@ -538,7 +660,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                     value={l.status}
                     disabled={busyId === l.id}
                     onChange={(e) => patch(l.id, { status: e.target.value })}
-                    className={field}
+                    className={`${field} flex-1 min-w-0 xl:flex-none xl:w-44`}
                     aria-label={`Status for ${l.name}`}
                   >
                     {STATUSES.map((s) => (
@@ -547,20 +669,64 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                       </option>
                     ))}
                   </select>
+                  {isAdmin && (
+                    <button
+                      onClick={() => askDelete([l.id], l.name)}
+                      aria-label={`Delete ${l.name}`}
+                      title="Delete lead"
+                      className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:text-red-600 hover:border-red-200 hover:bg-red-50 cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
-            </li>
+                </div>
+              </li>
           );
         })}
       </ul>
+      {confirmDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
+          onClick={() => !deleting && setConfirmDelete(null)}
+        >
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-label="Confirm delete"
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm bg-white rounded-3xl shadow-2xl border border-slate-200 p-5 space-y-4"
+          >
+            <div className="flex items-start gap-3">
+              <span className="w-9 h-9 shrink-0 rounded-full bg-red-50 text-red-600 flex items-center justify-center">
+                <AlertTriangle className="w-4 h-4" />
+              </span>
+              <div className="min-w-0">
+                <h3 className="font-bold text-sm text-[#0A2540] break-words">Delete {confirmDelete.label}?</h3>
+                <p className="text-xs text-slate-600 mt-1">Removes the enquiries and assignment. This cannot be undone. Credit reports are kept.</p>
+              </div>
+            </div>
+            {error && <p className="text-xs font-semibold text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>}
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setConfirmDelete(null)} disabled={deleting} className="min-h-[44px] px-3 text-xs font-bold text-slate-700 rounded-xl hover:bg-slate-100 cursor-pointer">
+                Cancel
+              </button>
+              <button onClick={runDelete} disabled={deleting} autoFocus className="min-h-[44px] px-4 inline-flex items-center gap-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 disabled:opacity-60 rounded-xl cursor-pointer">
+                {deleting && <Loader2 className="w-3.5 h-3.5 animate-spin" />} Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {viewingReport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white text-slate-900 w-full max-w-6xl max-h-[92dvh] rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-200">
+        <div className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white text-slate-900 w-full max-w-6xl h-[100dvh] sm:h-auto sm:max-h-[92dvh] rounded-none sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-200">
             <div className="flex items-center justify-between gap-3 p-4 sm:p-5 border-b border-slate-100 bg-slate-50">
               <div className="min-w-0">
                 <h3 className="text-base sm:text-lg font-bold text-slate-900 break-words">Bureau report: {viewingReport.name}</h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Bureau: <strong className="uppercase text-[#3F8EFC]">{viewingReport.bureau}</strong> · {fmtDate(new Date((viewingReport.created_at?.seconds || 0) * 1000).toISOString())}
+                  Bureau: <strong className="uppercase text-[#3F8EFC]">{viewingReport.bureau}</strong> · {viewingReport.created_at?.seconds ? fmtDate(new Date(viewingReport.created_at.seconds * 1000).toISOString()) : "—"}
                 </p>
               </div>
               <button
@@ -572,6 +738,12 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
               </button>
             </div>
             <div className="flex-1 p-3 sm:p-6 overflow-y-auto bg-slate-50">
+              {!viewingReport.raw_api_data ? (
+                <p className="text-sm text-slate-600 bg-white border border-slate-200 rounded-2xl p-6 text-center">
+                  This report has no stored bureau data, so the full details cannot be shown.
+                  {viewingReport.credit_score != null ? ` Score on record: ${viewingReport.credit_score}.` : ""}
+                </p>
+              ) : (
               <CreditReportDashboard
                 bureau={viewingReport.bureau}
                 cibilData={viewingReport.raw_api_data}
@@ -583,17 +755,24 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                   bureau: viewingReport.bureau,
                 }}
               />
+              )}
             </div>
           </div>
         </div>
       )}
       {isAdmin && selected.size > 0 && (
-        <div className="sticky bottom-3 z-20 bg-[#0A2540] text-white rounded-2xl shadow-xl p-3 sm:p-4 space-y-3">
-          <div className="flex items-center justify-between gap-3">
+        <div className="sticky bottom-3 z-20 bg-[#0A2540] text-white rounded-2xl shadow-xl p-3 sm:p-4 space-y-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-sm font-bold">{selected.size} selected</span>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button onClick={() => setSelected(new Set())} className="min-h-[44px] px-3 text-xs font-bold text-white/80 cursor-pointer">
                 Clear
+              </button>
+              <button
+                onClick={() => askDelete([...selected], `${selected.size} selected lead${selected.size > 1 ? "s" : ""}`)}
+                className="min-h-[44px] px-4 inline-flex items-center gap-1.5 bg-red-500/90 hover:bg-red-500 text-xs font-bold rounded-xl cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" /> Delete
               </button>
               <button
                 onClick={() => {
@@ -602,13 +781,14 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                 }}
                 className="min-h-[44px] px-4 inline-flex items-center gap-1.5 bg-[#3F8EFC] text-xs font-bold rounded-xl cursor-pointer"
               >
-                <Users className="w-3.5 h-3.5" /> Assign evenly…
+                <Users className="w-3.5 h-3.5" /> Assign…
               </button>
             </div>
           </div>
           {picking && (
             <div className="space-y-3 border-t border-white/15 pt-3">
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
+                {employees.length === 0 && <span className="text-xs text-white/70">No active employees on the lead team. Add them in Lead team.</span>}
                 {employees.map((e) => {
                   const key = e.email.toLowerCase();
                   const on = pickedEmps.has(key);
@@ -633,7 +813,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                   );
                 })}
               </div>
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <span className="text-xs text-white/70">
                   {pickedEmps.size
                     ? `${selected.size} leads → ${pickedEmps.size} employee${pickedEmps.size > 1 ? "s" : ""}, about ${Math.floor(selected.size / pickedEmps.size)}–${perEmployee} each`
@@ -642,9 +822,9 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                 <button
                   onClick={assignEvenly}
                   disabled={bulkBusy || !pickedEmps.size}
-                  className="min-h-[44px] px-4 inline-flex items-center gap-1.5 bg-emerald-500 disabled:opacity-50 text-xs font-bold rounded-xl cursor-pointer"
+                  className="min-h-[44px] px-4 inline-flex items-center justify-center gap-1.5 bg-emerald-500 disabled:opacity-50 text-xs font-bold rounded-xl cursor-pointer"
                 >
-                  {bulkBusy && <Loader2 className="w-3.5 h-3.5 animate-spin" />} Confirm
+                  {bulkBusy && <Loader2 className="w-3.5 h-3.5 animate-spin" />} Assign &amp; send WhatsApp
                 </button>
               </div>
             </div>

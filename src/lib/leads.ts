@@ -103,6 +103,29 @@ export async function assignLead(
   return fetchOne(id);
 }
 
+// One customer, scoped to what this person may see (admin: any, employee: only their own).
+export async function getLead(id: string, session: { role: string; email: string }): Promise<Lead | null> {
+  const data = await call<{ customers: Lead[] }>("GET", "", {
+    query: { key: id, ...(session.role === "admin" ? {} : { ownerEmail: normalizeEmail(session.email) }) },
+  });
+  return data.customers.find((c) => c.id === id) ?? null;
+}
+
+// Permanently delete customers' enquiries. Their credit reports are kept.
+export async function deleteLeads(ids: string[]): Promise<number> {
+  const keys = Array.from(new Set(ids)).slice(0, 200);
+  if (!keys.length) throw new LeadError("Select at least one lead", 400);
+  try {
+    return (await call<{ deleted: number }>("POST", "/delete", { body: { keys } })).deleted;
+  } catch (err) {
+    // `call` reports every 404 as "Lead not found"; here it means the backend has no delete endpoint yet.
+    if (err instanceof LeadError && err.httpStatus === 404) {
+      throw new LeadError("Delete is not available on the backend yet. Deploy the latest backend, then try again.", 501);
+    }
+    throw err;
+  }
+}
+
 // Admin may update any customer; an employee only their own.
 export async function updateLeadStatus(
   id: string,
@@ -141,6 +164,7 @@ async function fetchOne(id: string): Promise<Lead> {
 
 export interface BulkAssignResult {
   assigned: Record<string, number>; // employee email -> customers given in this batch
+  notified: number; // customers whose WhatsApps (customer + employee) were sent for this batch
   keptWithOwner: { phone: string; owner: string; count: number }[]; // customer already held by someone else
   skipped: number; // ids that no longer exist
 }
