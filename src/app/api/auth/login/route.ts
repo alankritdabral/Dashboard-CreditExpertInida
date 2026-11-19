@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSessionToken } from "@/lib/user-service";
+import { ADMIN_CHALLENGE_COOKIE, isAdminEmail, issueAdminChallenge, verifyAdminChallenge } from "@/lib/adminOtp";
 import { isLeadTeamMember, requestLeadTeamCode, verifyLeadTeamCode } from "@/lib/leads";
 
 // TEMP: branch assigned to the temporary login. Change as needed.
@@ -20,6 +21,40 @@ export async function POST(req: NextRequest) {
     const cleanEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
     if (!cleanEmail || !cleanEmail.includes("@")) {
       return NextResponse.json({ success: false, error: "Please enter a valid work email." }, { status: 400 });
+    }
+
+    // Admins: the full admin dashboard, behind a code emailed to the same address.
+    if (isAdminEmail(cleanEmail)) {
+      if (otp !== undefined) {
+        if (!verifyAdminChallenge(cleanEmail, String(otp), req.cookies.get(ADMIN_CHALLENGE_COOKIE)?.value)) {
+          return NextResponse.json({ success: false, error: "That code is wrong or has expired. Request a new one." }, { status: 401 });
+        }
+        const res = startSession({
+          id: `admin_${cleanEmail}`,
+          name: cleanEmail.split("@")[0],
+          email: cleanEmail,
+          role: "admin",
+          branch: "All",
+          employeeId: "ADMIN",
+          status: "Active",
+          createdAt: new Date().toISOString(),
+        });
+        res.cookies.delete(ADMIN_CHALLENGE_COOKIE);
+        return res;
+      }
+      if (password !== undefined) {
+        return NextResponse.json({ success: false, error: "Use the code emailed to you to sign in." }, { status: 403 });
+      }
+      let challenge: string;
+      try {
+        challenge = await issueAdminChallenge(cleanEmail);
+      } catch (err) {
+        console.error("[Auth Login] Could not email the admin code:", err);
+        return NextResponse.json({ success: false, error: "Could not send the code. Please try again shortly." }, { status: 503 });
+      }
+      const res = NextResponse.json({ success: true, step: "otp" });
+      res.cookies.set({ name: ADMIN_CHALLENGE_COOKIE, value: challenge, httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/api/auth/login", maxAge: 600 });
+      return res;
     }
 
     let member: boolean;
