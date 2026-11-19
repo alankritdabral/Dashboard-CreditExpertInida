@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifySessionToken } from "@/lib/user-service";
 import { backendErrorStatus } from "@/lib/cibil/backendApi";
 import { getReport } from "@/lib/cibil/reportStore";
-import { listLeads } from "@/lib/leads";
+import { getLead } from "@/lib/leads";
 
 // GET ?reportId=…  — a credit report belonging to this customer (lead).
 // Admin: any customer. Employee: only a customer assigned to them, and only a report that is
@@ -16,8 +16,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   try {
     const { id } = await params;
     const reportId = req.nextUrl.searchParams.get("reportId") || "";
-    const leads = await listLeads(session); // already scoped to what this person may see
-    const lead = leads.find((l) => l.id === id);
+    // One customer, scoped to what this person may see. Not the whole list: that is capped, so
+    // an older customer could be missing from it and the report would not open.
+    const lead = await getLead(id, session);
     if (!lead || !lead.reports.some((r) => r.id === reportId)) {
       return NextResponse.json({ success: false, error: "Report not found" }, { status: 404 });
     }

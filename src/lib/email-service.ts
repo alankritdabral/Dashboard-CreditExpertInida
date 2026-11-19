@@ -10,7 +10,7 @@ interface OtpEntry {
 const otpStore = new Map<string, OtpEntry>();
 const MAX_ATTEMPTS = 5;
 
-function getTransporter() {
+export function getTransporter() {
   const host = process.env.SMTP_HOST || "smtp.gmail.com";
   const port = parseInt(process.env.SMTP_PORT || "587", 10);
   const secure = process.env.SMTP_SECURE === "true";

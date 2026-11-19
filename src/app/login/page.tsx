@@ -114,7 +114,7 @@ export default function LoginPage() {
           <div className="border-b border-slate-100 pb-3">
             <h2 className="text-base font-extrabold text-slate-900">Sign In</h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              {step === "otp" ? "Enter the code we sent to your WhatsApp." : step === "password" ? "Enter your password." : "Enter your work email to continue."}
+              {step === "otp" ? "Enter the 6-digit code we sent you." : step === "password" ? "Enter your password." : "Enter your work email to continue."}
             </p>
           </div>
 
