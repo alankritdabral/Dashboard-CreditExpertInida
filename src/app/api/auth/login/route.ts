@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
         return res;
       }
       if (password !== undefined) {
-        return NextResponse.json({ success: false, error: "Use the code emailed to you to sign in." }, { status: 403 });
+        return NextResponse.json({ success: false, error: "Use the code sent to you to sign in." }, { status: 403 });
       }
       let challenge: string;
       try {

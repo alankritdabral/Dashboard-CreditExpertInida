@@ -1,8 +1,9 @@
 import crypto from "crypto";
 import { getTransporter } from "@/lib/email-service";
+import { sendWhatsappOtp } from "@/lib/messagebotWhatsapp";
 
 // Admin sign-in: an allow-listed email gets the full admin dashboard, but only after a 6-digit code
-// emailed to that same address. The code is not stored on the server (serverless instances do not
+// sent by WhatsApp (email as fallback). The code is not stored on the server (serverless instances do not
 // share memory): a signed, httpOnly challenge cookie carries a hash of it, and verify recomputes it.
 const SECRET = process.env.ENCRYPTION_SECRET || "credit-expert-dashboard-secret-32-bytes!";
 const TTL_MS = 10 * 60 * 1000;
@@ -29,14 +30,22 @@ export async function issueAdminChallenge(email: string): Promise<string> {
   const exp = Date.now() + TTL_MS;
   attempts.delete(email);
 
-  const transporter = getTransporter();
-  if (transporter) {
+  // WhatsApp first (ADMIN_OTP_PHONE, template ADMIN_OTP_WHATSAPP_TEMPLATE_ID = the approved
+  // employee7otpv1 template, MessageBot id 160). Email is the fallback if that send fails.
+  const phone = process.env.ADMIN_OTP_PHONE || "9105567268";
+  const wa = await sendWhatsappOtp({ phoneNumber: phone, otpCode: code, templateId: process.env.ADMIN_OTP_WHATSAPP_TEMPLATE_ID || "160" });
+  if (!wa.success) console.error("[Admin login] WhatsApp send failed, trying email:", wa.error);
+
+  const transporter = wa.success ? null : getTransporter();
+  if (!wa.success && transporter) {
     await transporter.sendMail({
       from: process.env.SMTP_FROM || `"Credit Expert India Security" <security@creditexpertindia.com>`,
       to: email,
       subject: `Your admin sign-in code: ${code}`,
       text: `Your Credit Expert India admin sign-in code is ${code}. It is valid for 10 minutes. If you did not try to sign in, ignore this email.`,
     });
+  } else if (wa.success) {
+    // delivered on WhatsApp
   } else if (process.env.NODE_ENV !== "production") {
     console.log(`[Admin login] code for ${email}: ${code}`);
   } else {
