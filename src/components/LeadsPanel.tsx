@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AlertTriangle, FileText, Flame, Loader2, Phone, RefreshCw, Search, Trash2, Users, X } from "lucide-react";
+import { AlertTriangle, Download, FileText, Flame, Loader2, Phone, RefreshCw, Search, Trash2, Users, X } from "lucide-react";
 import type { Lead, LeadStatus } from "@/lib/leads";
 import { leadKinds, LEAD_KIND_LABEL, type LeadKind } from "@/lib/leadKinds";
+import { downloadLeadsExcel } from "@/lib/leadExport";
 import { isStale, leadScore } from "@/lib/leadScore";
 import { CreditReportDashboard } from "@/components/CreditReportDashboard";
 
@@ -52,6 +53,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
   const [reportOnly, setReportOnly] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<{ ids: string[]; label: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [range, setRange] = useState<"all" | "today" | "7d" | "30d">("all");
   const [now, setNow] = useState(() => Date.now());
   const [viewingReport, setViewingReport] = useState<any | null>(null);
@@ -153,6 +155,20 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
     if (!window.confirm(`Assign ${l.name} to ${emp?.name || email}?\n\nThe customer and ${emp?.name || "the employee"} will each get a WhatsApp message, same as a website lead.`)) return;
     await patch(l.id, { assignTo: email });
     setNotice(`${l.name} assigned to ${emp?.name || email}. WhatsApp messages sent.`);
+  };
+
+  // Exports what is on screen (after the tab and filters), or only the ticked leads if any are ticked.
+  const exportExcel = async () => {
+    const list = selected.size ? visible.filter((l) => selected.has(l.id)) : visible;
+    if (!list.length) return setError("No leads to export");
+    setExporting(true);
+    try {
+      await downloadLeadsExcel(list, kindTab === "all" ? "leads" : `leads-${kindTab}`);
+    } catch (e: any) {
+      setError(e.message || "Could not create the Excel file");
+    } finally {
+      setExporting(false);
+    }
   };
 
   const askDelete = (ids: string[], label: string) => setConfirmDelete({ ids, label });
@@ -360,6 +376,17 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
           {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
           Refresh
         </button>
+        {isAdmin && (
+          <button
+            onClick={exportExcel}
+            disabled={exporting || visible.length === 0}
+            title={selected.size ? "Download the ticked leads" : "Download the leads shown"}
+            className="min-h-[44px] px-4 inline-flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl cursor-pointer w-full md:w-auto"
+          >
+            {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+            Excel ({selected.size || visible.length})
+          </button>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
