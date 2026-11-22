@@ -11,6 +11,9 @@ export interface DashboardUser {
   role: UserRole;
   branch: string; // e.g. "Rudrapur", "Delhi", "Dehradun", "Head Office", "All"
   employeeId?: string;
+  // A branch manager: a "branch" user who can also see and assign their branch's leads. Kept as a flag,
+  // not a new role, so every existing `role === "branch"` check (credit reports etc.) still applies.
+  manager?: boolean;
   avatar?: string;
   status: "Active" | "Suspended";
   createdAt: string;
@@ -31,6 +34,7 @@ export interface UserSession {
   createdAt: number;
   expiresAt: number;
   employeeId?: string;
+  manager?: boolean;
 }
 
 export interface CreditReportAttribution {

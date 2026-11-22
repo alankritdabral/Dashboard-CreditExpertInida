@@ -111,7 +111,7 @@ export default function BranchPortalPage() {
   const filteredReports = reports;
 
   const tabs: NavTabItem[] = [
-    { id: "leads", label: "My Leads", icon: Inbox },
+    { id: "leads", label: user?.manager ? "Branch Leads" : "My Leads", icon: Inbox },
     { id: "fetch", label: "Fetch CIBIL", icon: FileText },
     { id: "history", label: "Last 24h History", icon: History },
     { id: "emi", label: "EMI Calculator", icon: Calculator },
@@ -132,12 +132,12 @@ export default function BranchPortalPage() {
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={(tabId) => setActiveTab(tabId)}
-        badgeLabel={`${user.branch} Branch`}
+        badgeLabel={`${user.branch} Branch${user.manager ? " · Manager" : ""}`}
       />
 
       {/* Main Content Area */}
       <main className="flex-1 p-3 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-6">
-        {activeTab === "leads" && <LeadsPanel isAdmin={false} />}
+        {activeTab === "leads" && <LeadsPanel isAdmin={false} manager={!!user.manager} />}
 
         {/* TAB 1: FETCH CIBIL */}
         {activeTab === "fetch" && (

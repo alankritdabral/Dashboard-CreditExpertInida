@@ -1,4 +1,5 @@
 import { BackendApiError, backendRequest } from "@/lib/cibil/backendApi";
+import type { UnassignedReason } from "@/lib/leadKinds";
 
 // Website enquiries live in RDS (table website_leads). The dashboard cannot reach RDS, so it
 // goes through the backend, like credit reports. The backend groups enquiries and credit
@@ -44,6 +45,9 @@ export interface Lead {
   assignedByEmail: string | null;
   assignedAt: string | null; // ISO
   assignedToPhone: string | null; // employee's number, as told to the customer
+  branch: string | null; // owner's branch, or the branch the city routes to while the lead waits
+  // Why automatic assignment could not give the lead to anyone (null once it has an owner).
+  unassignedReason: UnassignedReason | null;
   // WhatsApp "your advisor is ..." message: SENT, FAILED, SKIPPED, or null when never attempted.
   welcomeStatus: "SENT" | "FAILED" | "SKIPPED" | null;
   welcomeSentAt: string | null; // ISO
@@ -73,18 +77,38 @@ export const phoneKey = (phone: unknown) => String(phone || "").replace(/\D/g, "
 
 async function call<T>(method: "GET" | "POST", path: string, opts: { query?: Record<string, string | number | undefined>; body?: unknown } = {}): Promise<T> {
   try {
-    return await backendRequest<T>(method, path, { basePath: API, ...opts });
+    return await backendRequest<T>(method, path, { basePath: API, target: "crm", ...opts });
   } catch (err) {
     if (err instanceof BackendApiError && err.status === 404) throw new LeadError("Lead not found", 404);
     throw err;
   }
 }
 
-// Admin sees every customer; an employee sees only those assigned to them.
-export async function listLeads(session: { role: string; email: string }): Promise<Lead[]> {
-  const data = await call<{ customers: Lead[] }>("GET", "", {
-    query: session.role === "admin" ? {} : { ownerEmail: normalizeEmail(session.email) },
-  });
+// Who is asking. `branch` and `manager` come from the signed session cookie, never from the browser.
+export interface LeadSession {
+  role: string;
+  email: string;
+  branch?: string;
+  manager?: boolean;
+}
+
+// A branch manager: a branch user with the manager flag and a real branch. (Admins are not managers;
+// they see everything anyway.) Without a branch there is nothing to scope to, so no manager powers.
+export const isLeadManager = (s: LeadSession) => s.role !== "admin" && s.manager === true && !!s.branch && s.branch !== "All";
+
+// What the backend should return for this person:
+//   admin    -> every customer
+//   manager  -> their branch's customers (routed to it, held by its staff, or nobody's yet)
+//   employee -> only customers assigned to them
+function scopeQuery(s: LeadSession): Record<string, string> {
+  if (s.role === "admin") return {};
+  if (isLeadManager(s)) return { branch: s.branch as string };
+  return { ownerEmail: normalizeEmail(s.email) };
+}
+
+// Admin sees every customer; a manager their branch; an employee only those assigned to them.
+export async function listLeads(session: LeadSession): Promise<Lead[]> {
+  const data = await call<{ customers: Lead[] }>("GET", "", { query: scopeQuery(session) });
   return data.customers;
 }
 
@@ -103,12 +127,24 @@ export async function assignLead(
   return fetchOne(id);
 }
 
-// One customer, scoped to what this person may see (admin: any, employee: only their own).
-export async function getLead(id: string, session: { role: string; email: string }): Promise<Lead | null> {
-  const data = await call<{ customers: Lead[] }>("GET", "", {
-    query: { key: id, ...(session.role === "admin" ? {} : { ownerEmail: normalizeEmail(session.email) }) },
-  });
+// One customer, scoped to what this person may see (admin: any, manager: their branch, employee: only their own).
+export async function getLead(id: string, session: LeadSession): Promise<Lead | null> {
+  const data = await call<{ customers: Lead[] }>("GET", "", { query: { key: id, ...scopeQuery(session) } });
   return data.customers.find((c) => c.id === id) ?? null;
+}
+
+// 404 unless this person may see the customer. Looked up through the same scope as the list, so a
+// manager can never touch another branch's lead by guessing its id.
+async function requireVisible(id: string, session: LeadSession): Promise<Lead> {
+  const lead = await getLead(id, session);
+  if (!lead) throw new LeadError("Lead not found", 404);
+  return lead;
+}
+
+// Which of these customers this person may see: used to check a bulk action before it runs.
+export async function visibleLeadIds(ids: string[], session: LeadSession): Promise<Set<string>> {
+  const wanted = new Set(ids);
+  return new Set((await listLeads(session)).filter((l) => wanted.has(l.id)).map((l) => l.id));
 }
 
 // Permanently delete customers' enquiries. Their credit reports are kept.
@@ -126,27 +162,26 @@ export async function deleteLeads(ids: string[]): Promise<number> {
   }
 }
 
-// Admin may update any customer; an employee only their own.
-export async function updateLeadStatus(
-  id: string,
-  status: LeadStatus,
-  session: { role: string; email: string }
-): Promise<Lead> {
+// Admin may update any customer; a manager their branch's; an employee only their own.
+export async function updateLeadStatus(id: string, status: LeadStatus, session: LeadSession): Promise<Lead> {
+  const manager = isLeadManager(session);
+  if (manager) await requireVisible(id, session);
   await call("POST", "/status", {
     body: {
       key: id,
       status,
       updatedBy: normalizeEmail(session.email),
-      ...(session.role !== "admin" && { ownerEmail: normalizeEmail(session.email) }),
+      ...(session.role !== "admin" && !manager && { ownerEmail: normalizeEmail(session.email) }),
     },
   });
   return fetchOne(id);
 }
 
-// Send the "your advisor is ..." WhatsApp message to the customer again. Admin, or the employee who holds the lead.
-export async function resendWelcome(id: string, session: { role: string; email: string }): Promise<Lead> {
-  const lead = await fetchOne(id);
-  if (session.role !== "admin" && normalizeEmail(lead.assignedToEmail) !== normalizeEmail(session.email)) {
+// Send the "your advisor is ..." WhatsApp message to the customer again. Admin, a manager for their
+// branch, or the employee who holds the lead.
+export async function resendWelcome(id: string, session: LeadSession): Promise<Lead> {
+  const lead = isLeadManager(session) ? await requireVisible(id, session) : await fetchOne(id);
+  if (session.role !== "admin" && !isLeadManager(session) && normalizeEmail(lead.assignedToEmail) !== normalizeEmail(session.email)) {
     throw new LeadError("Lead not found", 404);
   }
   if (!lead.assignedToEmail) throw new LeadError("Assign the lead to an employee first", 400);
@@ -193,6 +228,9 @@ export interface LeadEmployee {
   phone: string;
   hrmsId: string | null;
   branch: string;
+  role: "EMPLOYEE" | "MANAGER";
+  maxOpenLeads: number | null; // null = no limit
+  openCount: number; // customers they hold right now that are not finished
   active: boolean;
   lastAssignedAt: string | null;
 }
@@ -201,14 +239,47 @@ export async function listLeadEmployees(): Promise<LeadEmployee[]> {
   return (await call<{ employees: LeadEmployee[] }>("GET", "/employees")).employees;
 }
 
-export async function saveLeadEmployee(e: { name: string; email: string; phone: string; hrmsId?: string; branch?: string; active?: boolean }): Promise<LeadEmployee> {
+export async function saveLeadEmployee(e: {
+  name: string;
+  email: string;
+  phone: string;
+  hrmsId?: string;
+  branch?: string;
+  active?: boolean;
+  role?: "EMPLOYEE" | "MANAGER";
+  maxOpenLeads?: number | null; // null removes the limit; leave out to keep it
+}): Promise<LeadEmployee> {
   return call<LeadEmployee>("POST", "/employees", { body: e });
 }
 
+// ---- Which branch a city goes to ----
+
+export interface BranchRule {
+  city: string; // saved lower-case, punctuation removed
+  branch: string;
+}
+
+export async function listBranchRules(): Promise<BranchRule[]> {
+  return (await call<{ rules: BranchRule[] }>("GET", "/branch-rules")).rules;
+}
+
+export async function saveBranchRule(city: string, branch: string): Promise<BranchRule> {
+  return call<BranchRule>("POST", "/branch-rules", { body: { city, branch } });
+}
+
+export async function deleteBranchRule(city: string): Promise<void> {
+  await call("POST", "/branch-rules/delete", { body: { city } });
+}
+
+// Try again to give every waiting lead an owner (backend does this every 5 minutes as well).
+export async function retryUnassigned(): Promise<{ tried: number; assigned: number; stillUnassigned: number }> {
+  return call("POST", "/auto-assign-pending");
+}
+
 // Delivery of the "your advisor is ..." message: looked up at MessageBot on demand.
-export async function leadWelcomeDelivery(id: string, session: { role: string; email: string }) {
-  const lead = await fetchOne(id);
-  if (session.role !== "admin" && normalizeEmail(lead.assignedToEmail) !== normalizeEmail(session.email)) {
+export async function leadWelcomeDelivery(id: string, session: LeadSession) {
+  const lead = isLeadManager(session) ? await requireVisible(id, session) : await fetchOne(id);
+  if (session.role !== "admin" && !isLeadManager(session) && normalizeEmail(lead.assignedToEmail) !== normalizeEmail(session.email)) {
     throw new LeadError("Lead not found", 404);
   }
   if (!lead.welcomeCampaignId) throw new LeadError("No WhatsApp message has been sent for this lead", 404);
@@ -227,6 +298,7 @@ export interface LeadTeamIdentity {
   phone: string;
   hrmsId: string | null;
   branch: string;
+  role: "EMPLOYEE" | "MANAGER";
 }
 
 export async function isLeadTeamMember(email: string): Promise<boolean> {

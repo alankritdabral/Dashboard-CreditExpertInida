@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, Download, FileText, Flame, Loader2, Phone, RefreshCw, Search, Trash2, Users, X } from "lucide-react";
 import type { Lead, LeadStatus } from "@/lib/leads";
-import { leadKinds, LEAD_KIND_LABEL, type LeadKind } from "@/lib/leadKinds";
+import { leadKinds, LEAD_KIND_LABEL, UNASSIGNED_REASON_LABEL, type LeadKind } from "@/lib/leadKinds";
 import { downloadLeadsExcel } from "@/lib/leadExport";
 import { isStale, leadScore } from "@/lib/leadScore";
 import { CreditReportDashboard } from "@/components/CreditReportDashboard";
@@ -37,8 +37,10 @@ const fmtDate = (iso: string | null) =>
   iso ? new Date(iso).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—";
 const rupees = (n: number | null) => (n == null ? "—" : `₹${n.toLocaleString("en-IN")}`);
 
-// Admin: all leads + assign each to one employee. Employee: own leads only.
-export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
+// Admin: all leads + assign each to one employee. Branch manager: their branch's leads, assigned to their
+// branch's employees. Employee: own leads only. Deleting and exporting stay admin-only.
+export function LeadsPanel({ isAdmin, manager = false }: { isAdmin: boolean; manager?: boolean }) {
+  const canAssign = isAdmin || manager;
   const [leads, setLeads] = useState<Lead[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
@@ -123,12 +125,34 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
   }, [load]);
 
   useEffect(() => {
-    if (!isAdmin) return;
+    if (!canAssign) return;
     fetch("/api/lead-employees", { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => d.success && setEmployees(d.employees.filter((u: Employee) => u.active)))
       .catch(() => {});
-  }, [isAdmin]);
+  }, [canAssign]);
+
+  const [retrying, setRetrying] = useState(false);
+  const retryAssign = async () => {
+    setRetrying(true);
+    setError("");
+    try {
+      const res = await fetch("/api/leads/retry", { method: "POST" });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || "Could not retry assignment");
+      const r = data.result as { tried: number; assigned: number; stillUnassigned: number };
+      setNotice(
+        r.tried === 0
+          ? "Nothing was waiting."
+          : `${r.assigned} lead${r.assigned === 1 ? "" : "s"} assigned${r.stillUnassigned ? `, ${r.stillUnassigned} still waiting for someone with room` : ""}.`
+      );
+      await load(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not retry assignment");
+    } finally {
+      setRetrying(false);
+    }
+  };
 
   const patch = async (id: string, body: object) => {
     setBusyId(id);
@@ -307,7 +331,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
         {[
           { label: "Total leads", value: stats.total, onClick: () => { setTierF("all"); setRange("all"); setFilter("all"); setReportOnly(false); setKindTab("all"); } },
           { label: "Today", value: stats.today, onClick: () => { setRange("today"); setTierF("all"); } },
-          ...(isAdmin ? [{ label: "Unassigned", value: unassigned, warn: unassigned > 0, onClick: () => setFilter("unassigned") }] : []),
+          ...(canAssign ? [{ label: "Unassigned", value: unassigned, warn: unassigned > 0, onClick: () => setFilter("unassigned") }] : []),
           { label: "With CIBIL report", value: stats.withReport, onClick: () => setReportOnly(true) },
           { label: "Hot", value: stats.hot, hot: true, onClick: () => { setTierF("hot"); setSort("hot"); } },
           { label: "Untouched 24h+", value: stats.stale, onClick: () => { setStatusF("NEW"); setSort("oldest"); setRange("all"); } },
@@ -357,7 +381,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
             className={`${field} w-full pl-10`}
           />
         </div>
-        {isAdmin && (
+        {canAssign && (
           <select value={filter} onChange={(e) => setFilter(e.target.value)} className={`${field} w-full md:w-auto`} aria-label="Filter leads">
             <option value="all">All leads ({leads.length})</option>
             <option value="unassigned">Unassigned ({unassigned})</option>
@@ -376,6 +400,17 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
           {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
           Refresh
         </button>
+        {canAssign && unassigned > 0 && (
+          <button
+            onClick={retryAssign}
+            disabled={retrying}
+            title="Try to give the waiting leads to someone who now has room"
+            className="min-h-[44px] px-4 inline-flex items-center justify-center gap-1.5 bg-amber-100 hover:bg-amber-200 disabled:opacity-60 text-amber-900 text-xs font-bold rounded-xl cursor-pointer w-full md:w-auto"
+          >
+            {retrying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Users className="w-3.5 h-3.5" />}
+            Retry assignment ({unassigned})
+          </button>
+        )}
         {isAdmin && (
           <button
             onClick={exportExcel}
@@ -468,7 +503,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Live
           {updatedAt ? ` · updated ${updatedAt.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}` : ""}
         </span>
-        {isAdmin && visible.length > 0 && (
+        {canAssign && visible.length > 0 && (
           <button
             onClick={() =>
               setSelected((prev) => {
@@ -500,7 +535,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
 
       {!loading && visible.length === 0 && (
         <p className="text-center text-sm text-slate-500 bg-white border border-slate-200/90 rounded-3xl py-12">
-          {isAdmin ? "No leads match." : "No leads have been assigned to you yet."}
+          {canAssign ? "No leads match." : "No leads have been assigned to you yet."}
         </p>
       )}
 
@@ -515,7 +550,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
               }`}
             >
               <div className="flex items-start gap-2 sm:gap-3">
-                {isAdmin && (
+                {canAssign && (
                   <label className="min-h-[44px] min-w-[32px] -mt-3 -ml-1 inline-flex items-center justify-center cursor-pointer shrink-0">
                     <input
                       type="checkbox"
@@ -560,6 +595,14 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                       {l.assignedToName ? ` · Assigned to ${l.assignedToName}${l.assignedToPhone ? ` (${l.assignedToPhone})` : ""}` : ""}
                     </span>
                     {!l.assignedToName && <span className="text-[10px] font-bold uppercase tracking-wide bg-red-50 text-red-600 rounded-full px-2 py-0.5">Unassigned</span>}
+                    {!l.assignedToName && l.unassignedReason && (
+                      <span className="text-[10px] font-bold uppercase tracking-wide bg-amber-50 text-amber-700 rounded-full px-2 py-0.5">
+                        {UNASSIGNED_REASON_LABEL[l.unassignedReason] ?? l.unassignedReason}
+                      </span>
+                    )}
+                    {canAssign && l.branch && (
+                      <span className="text-[10px] font-bold uppercase tracking-wide bg-slate-100 text-slate-600 rounded-full px-2 py-0.5">{l.branch}</span>
+                    )}
                   </div>
                   {l.assignedToEmail && (
                     <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -667,7 +710,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                 </div>
 
                 <div className="flex gap-2 xl:shrink-0 xl:self-start">
-                  {isAdmin && (
+                  {canAssign && (
                     <select
                       value={l.assignedToEmail || ""}
                       disabled={busyId === l.id}
@@ -787,7 +830,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
           </div>
         </div>
       )}
-      {isAdmin && selected.size > 0 && (
+      {canAssign && selected.size > 0 && (
         <div className="sticky bottom-3 z-20 bg-[#0A2540] text-white rounded-2xl shadow-xl p-3 sm:p-4 space-y-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-sm font-bold">{selected.size} selected</span>
@@ -795,12 +838,14 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
               <button onClick={() => setSelected(new Set())} className="min-h-[44px] px-3 text-xs font-bold text-white/80 cursor-pointer">
                 Clear
               </button>
-              <button
-                onClick={() => askDelete([...selected], `${selected.size} selected lead${selected.size > 1 ? "s" : ""}`)}
-                className="min-h-[44px] px-4 inline-flex items-center gap-1.5 bg-red-500/90 hover:bg-red-500 text-xs font-bold rounded-xl cursor-pointer"
-              >
-                <Trash2 className="w-3.5 h-3.5" /> Delete
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={() => askDelete([...selected], `${selected.size} selected lead${selected.size > 1 ? "s" : ""}`)}
+                  className="min-h-[44px] px-4 inline-flex items-center gap-1.5 bg-red-500/90 hover:bg-red-500 text-xs font-bold rounded-xl cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> Delete
+                </button>
+              )}
               <button
                 onClick={() => {
                   setPicking((v) => !v);

@@ -39,11 +39,18 @@ type QueryValue = string | number | boolean | null | undefined;
 export async function backendRequest<T>(
   method: "GET" | "POST" | "DELETE",
   path: string,
-  options: { query?: Record<string, QueryValue>; body?: unknown; basePath?: string } = {},
+  options: { query?: Record<string, QueryValue>; body?: unknown; basePath?: string; target?: "crm" } = {},
 ): Promise<T> {
-  const baseUrl = (process.env.BACKEND_API_URL || "").replace(/\/+$/, "");
-  const apiKey = process.env.BACKEND_API_KEY || "";
-  const missing = [!baseUrl && "BACKEND_API_URL", !apiKey && "BACKEND_API_KEY"].filter(Boolean) as string[];
+  // Leads, the lead team and branch rules live in the CRM backend. While CRM_BACKEND_API_URL is unset
+  // they keep using the main backend, so the switch is one environment variable and easy to undo.
+  // The two services have different keys and each key goes only to its own service: once the CRM URL
+  // is set, the CRM key is required and the main key is never sent there (or the other way round).
+  const crm = options.target === "crm" && !!process.env.CRM_BACKEND_API_URL;
+  const urlVar = crm ? "CRM_BACKEND_API_URL" : "BACKEND_API_URL";
+  const keyVar = crm ? "CRM_BACKEND_API_KEY" : "BACKEND_API_KEY";
+  const baseUrl = (process.env[urlVar] || "").replace(/\/+$/, "");
+  const apiKey = process.env[keyVar] || "";
+  const missing = [!baseUrl && urlVar, !apiKey && keyVar].filter(Boolean) as string[];
   if (missing.length > 0) throw new BackendNotConfiguredError(missing);
 
   const url = new URL(`${baseUrl}${options.basePath ?? "/internal/dashboard-reports"}${path}`);

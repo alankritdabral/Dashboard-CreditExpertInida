@@ -10,6 +10,7 @@ import { DashboardHeader, NavTabItem } from "@/components/DashboardHeader";
 import { AdminSidebar } from "@/components/AdminSidebar";
 import { LeadsPanel } from "@/components/LeadsPanel";
 import { LeadEmployeesPanel } from "@/components/LeadEmployeesPanel";
+import { BranchRulesPanel } from "@/components/BranchRulesPanel";
 import * as XLSX from "xlsx";
 import {
   Database,
@@ -528,7 +529,12 @@ export default function AdminDashboardPage() {
       {/* Main Content Area */}
       <main className="flex-1 min-w-0 p-4 sm:p-8 max-w-7xl mx-auto w-full space-y-6">
         {activeTab === "leads" && <LeadsPanel isAdmin />}
-        {activeTab === "leadteam" && <LeadEmployeesPanel />}
+        {activeTab === "leadteam" && (
+          <div className="space-y-8">
+            <LeadEmployeesPanel />
+            <BranchRulesPanel />
+          </div>
+        )}
 
         {/* ============================================================== */}
         {/* TAB 1: ALL REPORTS */}

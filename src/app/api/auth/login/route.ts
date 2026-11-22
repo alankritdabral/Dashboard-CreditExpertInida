@@ -78,6 +78,7 @@ export async function POST(req: NextRequest) {
           role: "branch",
           branch: identity.branch,
           employeeId: identity.hrmsId || undefined,
+          manager: identity.role === "MANAGER",
           status: "Active",
           createdAt: new Date().toISOString(),
         });
@@ -115,7 +116,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-function startSession(user: { id: string; name: string; email: string; role: "admin" | "branch"; branch: string; employeeId?: string; status: string; createdAt: string }) {
+function startSession(user: { id: string; name: string; email: string; role: "admin" | "branch"; branch: string; employeeId?: string; manager?: boolean; status: string; createdAt: string }) {
   const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
   const sessionToken = createSessionToken({
     sessionId: `sess_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
@@ -125,6 +126,7 @@ function startSession(user: { id: string; name: string; email: string; role: "ad
     role: user.role,
     branch: user.branch,
     employeeId: user.employeeId,
+    ...(user.manager && { manager: true }),
     createdAt: Date.now(),
     expiresAt,
   });
@@ -139,6 +141,7 @@ function startSession(user: { id: string; name: string; email: string; role: "ad
       role: user.role,
       branch: user.branch,
       employeeId: user.employeeId,
+      ...(user.manager && { manager: true }),
       status: user.status,
       createdAt: user.createdAt,
     },
