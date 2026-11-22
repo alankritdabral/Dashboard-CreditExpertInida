@@ -77,7 +77,7 @@ export const phoneKey = (phone: unknown) => String(phone || "").replace(/\D/g, "
 
 async function call<T>(method: "GET" | "POST", path: string, opts: { query?: Record<string, string | number | undefined>; body?: unknown } = {}): Promise<T> {
   try {
-    return await backendRequest<T>(method, path, { basePath: API, ...opts });
+    return await backendRequest<T>(method, path, { basePath: API, target: "crm", ...opts });
   } catch (err) {
     if (err instanceof BackendApiError && err.status === 404) throw new LeadError("Lead not found", 404);
     throw err;
