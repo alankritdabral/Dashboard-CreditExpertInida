@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySessionToken } from "@/lib/user-service";
-import { assignLead, deleteLeads, LeadError, LEAD_STATUSES, LeadStatus, listLeadEmployees, normalizeEmail, resendWelcome, updateLeadStatus } from "@/lib/leads";
+import { assignLead, deleteLeads, getLead, isLeadManager, LeadError, LEAD_STATUSES, LeadStatus, listLeadEmployees, normalizeEmail, resendWelcome, updateLeadStatus } from "@/lib/leads";
 
-// PATCH { assignTo: email | null }  — admin only; one employee per lead.
+// PATCH { assignTo: email | null }  — admin, or a branch manager for a lead in their branch and an employee of that branch.
+//                                      One employee per lead. Unassigning (null) is admin only.
 // PATCH { status }                   — admin, or the employee the lead is assigned to.
 // PATCH { resendWelcome: true }      — send the "your advisor is ..." WhatsApp message again; admin or the assignee.
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -17,8 +18,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const body = await req.json().catch(() => ({}));
 
     if ("assignTo" in body) {
-      if (session.role !== "admin") {
+      const manager = isLeadManager(session);
+      if (session.role !== "admin" && !manager) {
         return NextResponse.json({ success: false, error: "Admin access required" }, { status: 403 });
+      }
+      if (manager) {
+        if (!body.assignTo) {
+          return NextResponse.json({ success: false, error: "Admin access required" }, { status: 403 });
+        }
+        // The lead must be one this manager can see (their branch's, or nobody's yet).
+        if (!(await getLead(id, session))) {
+          return NextResponse.json({ success: false, error: "Lead not found" }, { status: 404 });
+        }
       }
       let employee: { email: string; name: string } | null = null;
       if (body.assignTo) {
@@ -27,6 +38,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         const u = team.find((x) => normalizeEmail(x.email) === email && x.active);
         if (!u) {
           return NextResponse.json({ success: false, error: "Employee is not on the active lead team" }, { status: 400 });
+        }
+        if (manager && u.branch !== session.branch) {
+          return NextResponse.json({ success: false, error: "You can only assign to your own branch" }, { status: 403 });
         }
         employee = { email, name: u.name };
       }

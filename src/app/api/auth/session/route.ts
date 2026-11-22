@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
         role: session.role,
         branch: session.branch,
         employeeId: session.employeeId || "TEMP-001",
+        ...(session.manager && { manager: true }),
         status: "Active",
       },
     });

@@ -1,5 +1,15 @@
 import type { Lead } from "@/lib/leads";
 
+// Why automatic assignment could not give a lead to anyone. Lives here (not in lib/leads.ts, which
+// has server-only code) so the leads screen can show it.
+export type UnassignedReason = "NO_ACTIVE_EMPLOYEE" | "NO_EMPLOYEE_IN_BRANCH" | "ALL_AT_LIMIT";
+
+export const UNASSIGNED_REASON_LABEL: Record<UnassignedReason, string> = {
+  NO_ACTIVE_EMPLOYEE: "No one is taking leads",
+  NO_EMPLOYEE_IN_BRANCH: "No one in this branch",
+  ALL_AT_LIMIT: "Everyone is at their limit",
+};
+
 // Client-safe: no server imports, so the leads screen can use it.
 // Where the customer came from. A customer who used several forms has several kinds.
 export type LeadKind = "eligibility" | "details" | "other";
