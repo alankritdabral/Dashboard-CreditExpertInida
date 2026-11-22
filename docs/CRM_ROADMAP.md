@@ -1,9 +1,10 @@
 # CRM & WhatsApp — dashboard roadmap
 
 Status: **work in progress.** This draft PR tracks the dashboard (screens and
-API routes) side of the CRM work. The data and business rules live in the
-backend repo (`NodeBankend-Server`), on a branch with the same name
-(`crm-work-ongoing`).
+API routes) side of the CRM work. The data and business rules live in a **new
+standalone CRM backend service** (its own repository and its own database).
+`NodeBankend-Server` keeps its current job (credit reports, loans, auth) and is
+not changed by this work.
 
 The dashboard keeps its current stack (Next.js, React, Tailwind, Firebase for
 staff accounts and logs) and stays on Vercel. It never connects to the database;
@@ -33,12 +34,14 @@ it calls the backend's internal API, as it does today for leads and credit repor
 - **City rules (admin).** Which branch a city goes to.
 - **Unassigned leads.** Shown with the reason, a branch badge, and a "Retry assignment" button.
 
-Requires the backend phase 1 change (PR on the backend repo) to be deployed first; the screens read `role`, `maxOpenLeads`, `openCount`, `branch` and `unassignedReason` from it.
+Requires the CRM backend to be deployed (own database, own API key) and `CRM_BACKEND_API_URL` / `CRM_BACKEND_API_KEY` to be set. While `CRM_BACKEND_API_URL` is unset the dashboard keeps using the main backend for leads, exactly as today, so switching is one environment variable and easy to undo. The two services have different keys; each key is sent only to its own service. The screens read `role`, `maxOpenLeads`, `openCount`, `branch` and `unassignedReason` from the CRM backend.
+
+Credit reports still come from the main backend. The CRM backend's lead list carries no reports yet, so the report badges on a lead are empty until that is added.
 
 ## Progress
 
 - [x] Branch and draft PR created
-- [x] Phase 1 — branches and assignment (needs the matching backend change deployed first)
+- [x] Phase 1 — branches and assignment (needs the CRM backend deployed first)
 - [ ] Phase 2 — Excel import
 - [ ] Phase 3 — follow-ups
 - [ ] Phase 4 — consent
