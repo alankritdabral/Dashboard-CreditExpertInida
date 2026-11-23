@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySessionToken } from "@/lib/user-service";
-import { assignLead, deleteLeads, LeadError, LEAD_STATUSES, LeadStatus, listLeadEmployees, normalizeEmail, resendWelcome, updateLeadStatus } from "@/lib/leads";
+import { assignLead, deleteLeads, EMPLOYMENT_TYPES, LeadError, LEAD_STATUSES, updateLeadNotes, LeadStatus, listLeadEmployees, normalizeEmail, resendWelcome, updateLeadStatus } from "@/lib/leads";
 
 // PATCH { assignTo: email | null }  — admin only; one employee per lead.
 // PATCH { status }                   — admin, or the employee the lead is assigned to.
+// PATCH { employmentType | customerRequirement | remarks } — admin, or the assignee.
 // PATCH { resendWelcome: true }      — send the "your advisor is ..." WhatsApp message again; admin or the assignee.
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const cookie = req.cookies.get("credit_dashboard_session");
@@ -44,6 +45,20 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         return NextResponse.json({ success: false, error: "Invalid status" }, { status: 400 });
       }
       const lead = await updateLeadStatus(id, body.status as LeadStatus, session);
+      return NextResponse.json({ success: true, lead });
+    }
+
+    if ("employmentType" in body || "customerRequirement" in body || "remarks" in body) {
+      const notes: { employmentType?: (typeof EMPLOYMENT_TYPES)[number] | null; customerRequirement?: string | null; remarks?: string | null } = {};
+      if ("employmentType" in body) {
+        if (body.employmentType !== null && !EMPLOYMENT_TYPES.includes(body.employmentType)) {
+          return NextResponse.json({ success: false, error: "Invalid employment type" }, { status: 400 });
+        }
+        notes.employmentType = body.employmentType;
+      }
+      if ("customerRequirement" in body) notes.customerRequirement = String(body.customerRequirement ?? "").slice(0, 500);
+      if ("remarks" in body) notes.remarks = String(body.remarks ?? "").slice(0, 2000);
+      const lead = await updateLeadNotes(id, notes, session);
       return NextResponse.json({ success: true, lead });
     }
 

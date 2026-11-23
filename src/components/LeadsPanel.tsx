@@ -14,6 +14,9 @@ const STATUS_LABEL: Record<LeadStatus, string> = {
   FOLLOW_UP: "Follow up",
   CONVERTED: "Converted",
   NOT_INTERESTED: "Not interested",
+  NOT_ELIGIBLE: "Not eligible",
+  BUSY: "Busy",
+  RINGING: "Ringing",
 };
 const POLL_MS = 8000;
 const STATUSES = Object.keys(STATUS_LABEL) as LeadStatus[];
@@ -656,6 +659,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                       </ul>
                     </details>
                   )}
+                  <LeadNotesEditor lead={l} disabled={busyId === l.id} onSave={(body) => patch(l.id, body)} />
                   {digits && (
                     <a
                       href={`tel:+91${digits}`}
@@ -858,6 +862,57 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+
+// Employment type, what the customer needs, and remarks. Text saves when the field loses focus.
+function LeadNotesEditor({ lead, disabled, onSave }: { lead: Lead; disabled: boolean; onSave: (body: object) => void }) {
+  const [req, setReq] = useState(lead.customerRequirement || "");
+  const [remarks, setRemarks] = useState(lead.remarks || "");
+  useEffect(() => setReq(lead.customerRequirement || ""), [lead.customerRequirement]);
+  useEffect(() => setRemarks(lead.remarks || ""), [lead.remarks]);
+  const box = "w-full text-xs rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-slate-800 placeholder:text-slate-400";
+  return (
+    <div className="pt-2 space-y-2">
+      <div className="flex gap-1.5" role="group" aria-label={`Employment type for ${lead.name}`}>
+        {([["SALARIED", "Salaried"], ["SELF_EMPLOYED", "Self-employed"]] as const).map(([v, label]) => (
+          <button
+            key={v}
+            type="button"
+            disabled={disabled}
+            aria-pressed={lead.employmentType === v}
+            onClick={() => onSave({ employmentType: lead.employmentType === v ? null : v })}
+            className={`min-h-[36px] px-3 text-xs font-bold rounded-full border cursor-pointer ${
+              lead.employmentType === v ? "bg-[#0A2540] text-white border-[#0A2540]" : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      <input
+        value={req}
+        maxLength={500}
+        disabled={disabled}
+        onChange={(e) => setReq(e.target.value)}
+        onBlur={() => req.trim() !== (lead.customerRequirement || "") && onSave({ customerRequirement: req })}
+        placeholder="Customer requirement (e.g. ₹5L personal loan)"
+        aria-label={`Customer requirement for ${lead.name}`}
+        className={box}
+      />
+      <textarea
+        value={remarks}
+        maxLength={2000}
+        rows={2}
+        disabled={disabled}
+        onChange={(e) => setRemarks(e.target.value)}
+        onBlur={() => remarks.trim() !== (lead.remarks || "") && onSave({ remarks })}
+        placeholder="Remarks"
+        aria-label={`Remarks for ${lead.name}`}
+        className={box}
+      />
     </div>
   );
 }
