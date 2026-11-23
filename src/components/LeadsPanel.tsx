@@ -1,5 +1,6 @@
 "use client";
 
+import { createPortal } from "react-dom";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, Download, FileText, Flame, Loader2, Phone, RefreshCw, Search, Trash2, Users, X } from "lucide-react";
 import type { Lead, LeadStatus } from "@/lib/leads";
@@ -61,6 +62,16 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
   const [now, setNow] = useState(() => Date.now());
   const [viewingReport, setViewingReport] = useState<any | null>(null);
   const [openingReport, setOpeningReport] = useState<string | null>(null);
+
+  // Lock background scroll while the full-screen report is open.
+  useEffect(() => {
+    if (!viewingReport) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setViewingReport(null); };
+    window.addEventListener("keydown", onKey);
+    return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", onKey); };
+  }, [viewingReport]);
   const [delivery, setDelivery] = useState<Record<string, string>>({}); // lead id -> MessageBot delivery text
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -750,9 +761,9 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
           </div>
         </div>
       )}
-      {viewingReport && (
-        <div className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-white text-slate-900 w-full max-w-6xl h-[100dvh] sm:h-auto sm:max-h-[92dvh] rounded-none sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-200">
+      {viewingReport && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 z-[100] h-[100dvh] w-screen flex items-stretch justify-center bg-slate-900/60 backdrop-blur-sm" role="dialog" aria-modal="true">
+          <div className="bg-white text-slate-900 w-full h-[100dvh] overflow-hidden flex flex-col">
             <div className="flex items-center justify-between gap-3 p-4 sm:p-5 border-b border-slate-100 bg-slate-50">
               <div className="min-w-0">
                 <h3 className="text-base sm:text-lg font-bold text-slate-900 break-words">Bureau report: {viewingReport.name}</h3>
@@ -789,7 +800,8 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
       {isAdmin && selected.size > 0 && (
         <div className="sticky bottom-3 z-20 bg-[#0A2540] text-white rounded-2xl shadow-xl p-3 sm:p-4 space-y-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
