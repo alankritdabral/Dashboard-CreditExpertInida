@@ -6,8 +6,18 @@ import { BackendApiError, backendRequest } from "@/lib/cibil/backendApi";
 
 const API = "/internal/website-leads";
 
-export const LEAD_STATUSES = ["NEW", "CONTACTED", "FOLLOW_UP", "CONVERTED", "NOT_INTERESTED"] as const;
+export const LEAD_STATUSES = ["NEW", "CONTACTED", "FOLLOW_UP", "CONVERTED", "NOT_INTERESTED", "NOT_ELIGIBLE", "BUSY", "RINGING"] as const;
 export type LeadStatus = (typeof LEAD_STATUSES)[number];
+
+export const EMPLOYMENT_TYPES = ["SALARIED", "SELF_EMPLOYED"] as const;
+export type EmploymentType = (typeof EMPLOYMENT_TYPES)[number];
+
+// Notes an employee records about a customer.
+export interface LeadNotes {
+  employmentType?: EmploymentType | null;
+  customerRequirement?: string | null;
+  remarks?: string | null;
+}
 
 export interface LeadReport {
   id: string;
@@ -37,6 +47,9 @@ export interface Lead {
   city: string | null;
   source: string;
   status: LeadStatus;
+  employmentType: EmploymentType | null;
+  customerRequirement: string | null; // what the customer needs, noted by the employee (`requirement` is the enquiry form's)
+  remarks: string | null;
   createdAt: string | null; // latest enquiry, ISO
   firstSeenAt: string | null;
   assignedToEmail: string | null;
@@ -136,6 +149,19 @@ export async function updateLeadStatus(
     body: {
       key: id,
       status,
+      updatedBy: normalizeEmail(session.email),
+      ...(session.role !== "admin" && { ownerEmail: normalizeEmail(session.email) }),
+    },
+  });
+  return fetchOne(id);
+}
+
+// Save employment type, requirement and remarks. Same access rule as status.
+export async function updateLeadNotes(id: string, notes: LeadNotes, session: { role: string; email: string }): Promise<Lead> {
+  await call("POST", "/status", {
+    body: {
+      key: id,
+      ...notes,
       updatedBy: normalizeEmail(session.email),
       ...(session.role !== "admin" && { ownerEmail: normalizeEmail(session.email) }),
     },
