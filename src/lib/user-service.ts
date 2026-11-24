@@ -1,4 +1,4 @@
-import { adminDb } from "./firebaseAdmin";
+import { adminDb } from "./staffStore";
 import { hashPassword } from "@/lib/password";
 import { UserAccount, UserSession, UserRole } from "./types";
 import crypto from "crypto";

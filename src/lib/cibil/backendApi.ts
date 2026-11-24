@@ -37,7 +37,7 @@ export function backendErrorStatus(err: unknown): number {
 type QueryValue = string | number | boolean | null | undefined;
 
 export async function backendRequest<T>(
-  method: "GET" | "POST" | "DELETE",
+  method: "GET" | "POST" | "PUT" | "DELETE",
   path: string,
   options: { query?: Record<string, QueryValue>; body?: unknown; basePath?: string } = {},
 ): Promise<T> {

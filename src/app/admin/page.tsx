@@ -1283,7 +1283,9 @@ export default function AdminDashboardPage() {
                         <td className="p-4 text-slate-500 text-[11px]">
                           {log.timestamp?.seconds
                             ? new Date(log.timestamp.seconds * 1000).toLocaleTimeString()
-                            : "Recent"}
+                            : typeof log.timestamp === "string" && !Number.isNaN(Date.parse(log.timestamp))
+                              ? new Date(log.timestamp).toLocaleTimeString()
+                              : "Recent"}
                         </td>
                         <td className="p-4 font-bold text-slate-900">{log.event || "LOG_EVENT"}</td>
                         <td className="p-4">

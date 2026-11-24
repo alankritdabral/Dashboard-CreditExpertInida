@@ -1,4 +1,4 @@
-import { adminDb } from "@/lib/firebaseAdmin";
+import { adminDb } from "@/lib/staffStore";
 import { getWhatsappDlrDetails, WhatsappDlrData } from "@/lib/messagebotWhatsapp";
 import { TtlCache } from "@/lib/ttl-cache";
 

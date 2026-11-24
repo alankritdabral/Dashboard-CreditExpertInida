@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminDb } from "@/lib/firebaseAdmin";
+import { adminDb } from "@/lib/staffStore";
 import { invalidateWhatsappMessagesCache } from "@/lib/whatsappLogs";
 
 export async function GET() {
