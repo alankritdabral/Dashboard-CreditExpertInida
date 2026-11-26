@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/lib/staffStore";
 import { bureauFailureReason, bureauKind } from "@/lib/cibil/bureau";
 
 export async function POST(req: NextRequest) {
-  const startTime = Date.now();
   let requestedBureau = "v1";
   let bodyPayload: any = null;
 
@@ -123,7 +121,6 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify(finalPayload),
     });
 
-    const duration = Date.now() - startTime;
     const contentType = res.headers.get("content-type");
     let responseData: any = null;
 
@@ -151,7 +148,6 @@ export async function POST(req: NextRequest) {
     // as a failure and the caller can fall back to another bureau instead of saving an empty report.
     const kind = bureauKind(requestedBureau);
     const failureReason = res.ok && kind ? bureauFailureReason(kind, true, responseData) : null;
-    const succeeded = res.ok && !failureReason;
     if (failureReason) {
       console.warn(`[IDSPay ${requestedBureau}] HTTP 200 without a usable report: ${failureReason}`);
       responseData = {
@@ -159,29 +155,6 @@ export async function POST(req: NextRequest) {
         message_code: responseData?.message_code ?? null,
         status_code: responseData?.status_code ?? null,
       };
-    }
-
-    // Async record log to Firestore system_logs
-    if (adminDb && typeof adminDb.collection === "function") {
-      adminDb
-        .collection("system_logs")
-        .add({
-          timestamp: new Date(),
-          event: "IDSPAY_BUREAU_REQUEST",
-          level: succeeded ? "info" : "error",
-          duration_ms: duration,
-          provider: {
-            requested: requestedBureau,
-            http_status: res.status,
-          },
-          identifiers: {
-            pan_hash: bodyPayload.pan ? bodyPayload.pan.substring(0, 5) + "*****" : "N/A",
-            mobile_last4: bodyPayload.mobile ? bodyPayload.mobile.slice(-4) : "N/A",
-          },
-          request_id: `req_${Date.now()}`,
-          message: succeeded ? "Bureau report fetched successfully" : failureReason ? "Bureau API returned 200 without a usable report" : "Bureau API returned non-200 status",
-        })
-        .catch(() => {});
     }
 
     return NextResponse.json(responseData, { status: failureReason ? 502 : res.status });

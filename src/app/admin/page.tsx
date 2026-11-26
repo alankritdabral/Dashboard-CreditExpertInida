@@ -16,7 +16,6 @@ import {
   Building2,
   Users,
   Activity,
-  FileWarning,
   MessageSquare,
   Calculator,
   Search,
@@ -415,46 +414,6 @@ export default function AdminDashboardPage() {
   const histEmployee = employees.find((e) => e.email === histEmail);
 
   // ==========================================
-  // TAB 5: SYSTEM LOGS
-  // ==========================================
-  const [logs, setLogs] = useState<any[]>([]);
-  const [logsLoading, setLogsLoading] = useState(false);
-  const [logFilterQuery, setLogFilterQuery] = useState("");
-  const [viewingLog, setViewingLog] = useState<any | null>(null);
-
-  const fetchLogs = async () => {
-    setLogsLoading(true);
-    try {
-      const res = await fetch(`/api/admin/logs?limit=200&_t=${Date.now()}`);
-      const data = await res.json();
-      if (data.success) {
-        setLogs(data.logs || []);
-      }
-    } catch (e) {
-      console.error("Failed to load logs:", e);
-    } finally {
-      setLogsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (activeTab === "logs") {
-      fetchLogs();
-    }
-  }, [activeTab]);
-
-  const filteredLogs = useMemo(() => {
-    if (!logFilterQuery.trim()) return logs;
-    const q = logFilterQuery.toLowerCase();
-    return logs.filter(
-      (l) =>
-        l.event?.toLowerCase().includes(q) ||
-        l.message?.toLowerCase().includes(q) ||
-        l.request_id?.toLowerCase().includes(q)
-    );
-  }, [logs, logFilterQuery]);
-
-  // ==========================================
   // TAB 6: WHATSAPP HUB STATE
   // ==========================================
   const [waMobile, setWaMobile] = useState("");
@@ -500,7 +459,6 @@ export default function AdminDashboardPage() {
     { id: "fetch", label: "Fetch CIBIL", icon: CreditCard },
     { id: "users", label: "Branch Users", icon: Users, count: branchUsers.length },
     { id: "activity", label: "Activity", icon: Activity },
-    { id: "logs", label: "Logs", icon: FileWarning, count: logs.length },
     { id: "emi", label: "EMI Calculator", icon: Calculator },
     { id: "whatsapp", label: "WhatsApp Hub", icon: MessageSquare },
   ];
@@ -1237,98 +1195,6 @@ export default function AdminDashboardPage() {
         )}
 
         {/* ============================================================== */}
-        {/* TAB 5: SYSTEM LOGS */}
-        {/* ============================================================== */}
-        {activeTab === "logs" && (
-          <div className="space-y-4 animate-fadeIn">
-            <div className="flex flex-wrap items-center justify-between gap-2 bg-white p-4 rounded-2xl border border-slate-200/90 shadow-xs">
-              <div className="relative flex-1 max-w-md">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={logFilterQuery}
-                  onChange={(e) => setLogFilterQuery(e.target.value)}
-                  placeholder="Filter logs by event or request ID..."
-                  className="max-sm:min-h-11 w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 max-sm:text-base text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#FF5A00]"
-                />
-              </div>
-
-              <button
-                onClick={fetchLogs}
-                disabled={logsLoading}
-                className="max-sm:min-h-11 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${logsLoading ? "animate-spin" : ""}`} />
-                Refresh Logs
-              </button>
-            </div>
-
-            {/* Logs Table */}
-            <div className="bg-white border border-slate-200/90 rounded-3xl overflow-hidden shadow-xl shadow-slate-900/5">
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[640px] text-left text-xs font-mono">
-                  <thead className="bg-slate-50/90 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200">
-                    <tr>
-                      <th className="p-4">Time</th>
-                      <th className="p-4">Event</th>
-                      <th className="p-4">Level</th>
-                      <th className="p-4">Status</th>
-                      <th className="p-4">Duration</th>
-                      <th className="p-4 text-right">Details</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 text-slate-700">
-                    {filteredLogs.map((log) => (
-                      <tr key={log.id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="p-4 text-slate-500 text-[11px]">
-                          {log.timestamp?.seconds
-                            ? new Date(log.timestamp.seconds * 1000).toLocaleTimeString()
-                            : typeof log.timestamp === "string" && !Number.isNaN(Date.parse(log.timestamp))
-                              ? new Date(log.timestamp).toLocaleTimeString()
-                              : "Recent"}
-                        </td>
-                        <td className="p-4 font-bold text-slate-900">{log.event || "LOG_EVENT"}</td>
-                        <td className="p-4">
-                          <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                              log.level === "error"
-                                ? "bg-red-50 text-red-700 border border-red-200"
-                                : "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                            }`}
-                          >
-                            {log.level || "info"}
-                          </span>
-                        </td>
-                        <td className="p-4 font-bold">
-                          {log.provider?.http_status || 200}
-                        </td>
-                        <td className="p-4">{log.duration_ms ? `${log.duration_ms}ms` : "-"}</td>
-                        <td className="p-4 text-right">
-                          <button
-                            onClick={() => setViewingLog(log)}
-                            className="max-sm:min-h-11 px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-[11px] font-bold transition-all cursor-pointer"
-                          >
-                            Inspect JSON
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-
-                    {filteredLogs.length === 0 && (
-                      <tr>
-                        <td colSpan={6} className="p-12 text-center text-slate-500">
-                          {logsLoading ? "Loading logs..." : "No logs available."}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ============================================================== */}
         {/* TAB 6: WHATSAPP HUB */}
         {/* ============================================================== */}
         {activeTab === "whatsapp" && (
@@ -1553,34 +1419,6 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Inspect Log Modal */}
-      {viewingLog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-800 w-full max-w-3xl max-h-[85dvh] rounded-2xl p-5 flex flex-col space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
-              <div>
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <FileWarning className="w-4 h-4 text-[#FF5A00]" />
-                  Diagnostic Log: {viewingLog.event}
-                </h3>
-                <span className="text-[10px] text-slate-400 font-mono">
-                  Request ID: {viewingLog.request_id || "N/A"}
-                </span>
-              </div>
-              <button
-                onClick={() => setViewingLog(null)}
-                className="max-sm:min-h-11 max-sm:min-w-11 w-7 h-7 shrink-0 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs text-emerald-400 whitespace-pre-wrap">
-              {JSON.stringify(viewingLog, null, 2)}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -14,7 +14,7 @@ interface AuthContextType {
 
 // The signed session cookie is the source of truth. Mirror the last validated
 // user in sessionStorage so reloads inside the freshness window skip the
-// /api/auth/session round-trip (and its Firestore lookup).
+// /api/auth/session round-trip (and its backend lookup).
 const CACHE_KEY = "cei_session_user";
 const FRESH_MS = 5 * 60_000;
 

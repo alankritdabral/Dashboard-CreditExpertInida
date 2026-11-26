@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
       return respond({ reports: await pullHistory({ branch }, range, HISTORY_LIMIT) });
     }
 
-    // Roster: staff live in Firestore, read once through the cached getAllBranchUsers().
+    // Roster: staff live in RDS (staff-data), read once through the cached getAllBranchUsers().
     const byEmail = new Map<string, any>();
     for (const u of await getAllBranchUsers()) {
       const key = String(u.email || "").toLowerCase().trim();

@@ -66,26 +66,3 @@ export interface CreditReportRecord {
   fallbackData?: any;
 }
 
-export interface SystemLogEntry {
-  id: string;
-  timestamp: string | { seconds: number };
-  event: string;
-  level: "info" | "warn" | "error" | "critical";
-  request_id?: string;
-  application_id?: string;
-  duration_ms?: number;
-  provider?: {
-    requested?: string;
-    fallback?: string;
-    http_status?: number;
-    error_code?: string;
-  };
-  identifiers?: {
-    pan?: string;
-    pan_hash?: string;
-    mobile?: string;
-    mobile_last4?: string;
-  };
-  message?: string;
-  raw_payload?: any;
-}

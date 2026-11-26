@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Admin access required" }, { status: 403 });
     }
 
-    // Staff still live in Firestore ("users" / "dashboard_users"); their branch names give the
+    // Staff live in RDS (staff-data) ("users" / "dashboard_users"); their branch names give the
     // display spelling for each branch.
     const displayNames = new Map<string, string>([["admin", "Admin"], ["website", "Website"], ["online", "Online"]]);
     for (const u of await getAllBranchUsers()) {

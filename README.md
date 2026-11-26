@@ -35,12 +35,12 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
-## Credit reports are stored in RDS (through the backend)
+## All data lives in RDS (through the backend)
 
 The RDS database is private to the backend's network, so the dashboard never connects to it.
 Every bureau pull is handed to `NodeBankend-Server` (on EC2), which saves it and serves the report
-lists back. Firestore is still used for staff accounts, logs and WhatsApp, but no longer for credit
-reports.
+lists back. Staff accounts and WhatsApp message logs are stored there too (the generic
+`/internal/staff-data` API, wrapped by `src/lib/staffStore.ts`). Firestore is no longer used anywhere.
 
 ```
 dashboard ──(IDSPay)──► bureau
@@ -72,13 +72,3 @@ The dashboard needs no database, PAN-encryption or AWS settings — those live o
 - `src/lib/cibil/saveReport.ts`, `reportStore.ts` — save / list / open / delete / stats / activity, used by `src/app/api/reports/*`.
 - `src/lib/cibil/bureau.ts` — decides whether an IDSPay answer is a usable report (same rules as the backend).
 
-**Importing the old Firestore reports** (one-off, repeatable):
-
-```bash
-npm run backfill:rds -- --dry-run     # count only
-npm run backfill:rds -- --limit 20    # try a few
-npm run backfill:rds                  # everything
-```
-
-This sends each old record to the backend so it appears in the lists. It creates no user and no
-credit report for past applicants, and never changes Firestore.

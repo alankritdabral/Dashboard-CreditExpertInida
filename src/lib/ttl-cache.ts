@@ -1,4 +1,4 @@
-// Tiny per-instance TTL cache used to avoid repeat Firestore reads.
+// Tiny per-instance TTL cache used to avoid repeat backend reads.
 export class TtlCache<T> {
   private store = new Map<string, { value: T; expires: number }>();
 
