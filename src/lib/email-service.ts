@@ -50,30 +50,30 @@ export async function sendPasswordResetOtp(
   });
 
   const transporter = getTransporter();
-  const fromAddress = process.env.SMTP_FROM || `"Credit Expert India Security" <security@creditexpertindia.com>`;
-  const subject = `Your Password Reset Code: ${code} - Credit Expert India`;
+  const fromAddress = process.env.SMTP_FROM || `"Amortas Security" <security@creditexpertindia.com>`;
+  const subject = `Your Password Reset Code: ${code} - Amortas`;
 
   const htmlContent = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #E5E5E5; border-radius: 12px; background-color: #ffffff;">
       <div style="text-align: center; margin-bottom: 24px;">
-        <h2 style="color: #2563eb; margin: 0; font-size: 24px;">Credit Expert India</h2>
-        <p style="color: #64748b; font-size: 14px; margin-top: 4px;">Staff & Admin Portal Security Verification</p>
+        <h2 style="color: #FF5A00; margin: 0; font-size: 24px;">Amortas</h2>
+        <p style="color: #737373; font-size: 14px; margin-top: 4px;">Staff & Admin Portal Security Verification</p>
       </div>
-      <div style="padding: 24px; background-color: #f8fafc; border-radius: 8px; margin-bottom: 20px;">
-        <p style="color: #334155; font-size: 15px; margin: 0 0 12px 0;">Hello <strong>${userName}</strong>,</p>
-        <p style="color: #475569; font-size: 14px; margin: 0 0 20px 0;">
-          A password reset was requested for your Credit Expert India Dashboard account (${normalizedEmail}).
+      <div style="padding: 24px; background-color: #FFF8F3; border-radius: 8px; margin-bottom: 20px;">
+        <p style="color: #575757; font-size: 15px; margin: 0 0 12px 0;">Hello <strong>${userName}</strong>,</p>
+        <p style="color: #575757; font-size: 14px; margin: 0 0 20px 0;">
+          A password reset was requested for your Amortas Dashboard account (${normalizedEmail}).
           Use the 6-digit verification code below to authorize this change:
         </p>
-        <div style="text-align: center; padding: 18px; background-color: #ffffff; border: 2px dashed #93c5fd; border-radius: 8px; margin: 20px 0;">
-          <span style="font-size: 34px; font-weight: 800; letter-spacing: 10px; color: #2563eb; font-family: monospace;">${code}</span>
+        <div style="text-align: center; padding: 18px; background-color: #ffffff; border: 2px dashed #FFB380; border-radius: 8px; margin: 20px 0;">
+          <span style="font-size: 34px; font-weight: 800; letter-spacing: 10px; color: #FF5A00; font-family: monospace;">${code}</span>
         </div>
-        <p style="color: #64748b; font-size: 12px; margin: 0; text-align: center;">
+        <p style="color: #737373; font-size: 12px; margin: 0; text-align: center;">
           This verification code is strictly valid for 10 minutes. Do not disclose this code to anyone.
         </p>
       </div>
-      <p style="color: #94a3b8; font-size: 11px; text-align: center; margin: 0;">
-        &copy; ${new Date().getFullYear()} Credit Expert India. Secure Authorized Workplace Access.
+      <p style="color: #A3A3A3; font-size: 11px; text-align: center; margin: 0;">
+        &copy; ${new Date().getFullYear()} Amortas. Secure Authorized Workplace Access.
       </p>
     </div>
   `;
@@ -180,15 +180,15 @@ export function clearPasswordResetOtp(email: string): void {
 export async function sendPasswordChangedEmail(email: string, userName: string): Promise<boolean> {
   const normalizedEmail = email.toLowerCase().trim();
   const transporter = getTransporter();
-  const fromAddress = process.env.SMTP_FROM || `"Credit Expert India Security" <security@creditexpertindia.com>`;
+  const fromAddress = process.env.SMTP_FROM || `"Amortas Security" <security@creditexpertindia.com>`;
   const subject = `Security Notice: Your Dashboard Password Was Updated`;
 
   const htmlContent = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #E5E5E5; border-radius: 12px; background-color: #ffffff;">
       <h3 style="color: #059669; margin: 0 0 12px 0;">Password Reset Confirmed</h3>
-      <p style="color: #334155; font-size: 14px;">Hello ${userName},</p>
-      <p style="color: #475569; font-size: 14px;">
-        Your password for the Credit Expert India Dashboard was successfully reset on <strong>${new Date().toLocaleString()}</strong>.
+      <p style="color: #575757; font-size: 14px;">Hello ${userName},</p>
+      <p style="color: #575757; font-size: 14px;">
+        Your password for the Amortas Dashboard was successfully reset on <strong>${new Date().toLocaleString()}</strong>.
       </p>
       <p style="color: #dc2626; font-size: 13px; font-weight: bold;">
         If you did NOT perform this action, please contact executive administration immediately.

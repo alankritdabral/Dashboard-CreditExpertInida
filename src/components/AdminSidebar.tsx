@@ -27,8 +27,8 @@ export function AdminSidebar({ tabs, activeTab, onTabChange }: AdminSidebarProps
                     aria-current={isActive ? "page" : undefined}
                     className={`w-full min-h-[44px] px-3.5 rounded-xl flex items-center gap-3 text-[13px] font-semibold text-left cursor-pointer transition-colors ${
                       isActive
-                        ? "bg-[#3F8EFC] text-white shadow-md shadow-[#3F8EFC]/25"
-                        : "text-[#3C4F69] hover:bg-slate-100 hover:text-[#0A2540]"
+                        ? "bg-[#FF5A00] text-white shadow-md shadow-[#FF5A00]/25"
+                        : "text-[#575757] hover:bg-slate-100 hover:text-[#2E2E2E]"
                     }`}
                   >
                     {Icon && <Icon className="w-4 h-4 shrink-0" />}
@@ -66,8 +66,8 @@ export function AdminSidebar({ tabs, activeTab, onTabChange }: AdminSidebarProps
                   aria-current={isActive ? "page" : undefined}
                   className={`min-h-[44px] px-4 rounded-full flex items-center gap-1.5 text-xs font-semibold whitespace-nowrap cursor-pointer border transition-colors ${
                     isActive
-                      ? "bg-[#3F8EFC] text-white border-[#3F8EFC] shadow-md shadow-[#3F8EFC]/25"
-                      : "bg-white text-[#3C4F69] border-slate-200 hover:bg-slate-50"
+                      ? "bg-[#FF5A00] text-white border-[#FF5A00] shadow-md shadow-[#FF5A00]/25"
+                      : "bg-white text-[#575757] border-slate-200 hover:bg-slate-50"
                   }`}
                 >
                   {Icon && <Icon className="w-3.5 h-3.5 shrink-0" />}

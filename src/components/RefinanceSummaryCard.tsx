@@ -40,7 +40,7 @@ const FONT = `"Inter", "Segoe UI", "Noto Sans", Roboto, Arial, sans-serif`;
 const INK = "#10224A";
 const SLATE = "#5B6B88";
 const LINE = "#E3EAF5";
-const BLUE = "#2563EB";
+const BLUE = "#FF5A00";
 const GREEN = "#16A34A";
 const GREEN_DARK = "#0B7A3E";
 
@@ -59,7 +59,7 @@ function LogoMark() {
       <defs>
         <linearGradient id="rsc-logo" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#4F8BFF" />
-          <stop offset="1" stopColor="#1D4ED8" />
+          <stop offset="1" stopColor="#E04F00" />
         </linearGradient>
       </defs>
       <rect width="46" height="46" rx="12" fill="url(#rsc-logo)" />
@@ -90,8 +90,8 @@ function BankShield() {
           <stop offset="1" stopColor="#0E9F4F" />
         </linearGradient>
         <radialGradient id="rsc-glow" cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0" stopColor="#3B82F6" stopOpacity="0.55" />
-          <stop offset="1" stopColor="#3B82F6" stopOpacity="0" />
+          <stop offset="0" stopColor="#FF5A00" stopOpacity="0.55" />
+          <stop offset="1" stopColor="#FF5A00" stopOpacity="0" />
         </radialGradient>
       </defs>
       <ellipse cx="190" cy="165" rx="190" ry="160" fill="url(#rsc-glow)" />
@@ -233,7 +233,7 @@ function OfferColumn({ tone, pill, rate, emi }: { tone: "current" | "offer"; pil
   );
 }
 
-export function RefinanceSummaryCard({ r, id, company = "Credit Expert India" }: { r: SummaryData; id?: string; company?: string }) {
+export function RefinanceSummaryCard({ r, id, company = "Amortas" }: { r: SummaryData; id?: string; company?: string }) {
   const saving = r.totalDiff > 0;
   const rate = r.interestRate.toFixed(2);
   const newRate = r.specialRate.toFixed(2);
@@ -374,7 +374,7 @@ export function RefinanceSummaryCard({ r, id, company = "Credit Expert India" }:
               <span style={{ fontSize: 21, color: SLATE, fontWeight: 500 }}>{r.percentPaid}% Completed</span>
             </div>
             <div style={{ height: 16, borderRadius: 8, background: "#E3EAF5", margin: "14px 0 8px", overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${Math.max(r.percentPaid, 2)}%`, background: "linear-gradient(90deg, #2563EB, #22C55E)", borderRadius: 8 }} />
+              <div style={{ height: "100%", width: `${Math.max(r.percentPaid, 2)}%`, background: "linear-gradient(90deg, #FF5A00, #22C55E)", borderRadius: 8 }} />
             </div>
             <Row label="EMIs Remaining" value={`${r.remainingMonths} Months`} />
             <Row label="Current Outstanding" value={inr(r.outstandingBalance)} last />

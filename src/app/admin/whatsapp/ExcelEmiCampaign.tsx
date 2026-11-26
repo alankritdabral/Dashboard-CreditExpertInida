@@ -134,7 +134,7 @@ const DEFAULT_TEST_DETAILS: CustomTestDetails = {
   tenure: 24,
   currentRoi: 23.5,
   targetRoi: 9.99,
-  companyName: "Credit Expert India",
+  companyName: "Amortas",
 };
 
 export default function ExcelEmiCampaign({
@@ -510,7 +510,7 @@ export default function ExcelEmiCampaign({
         tenure: tenure > 0 ? tenure : 24,
         currentRoi: currentRoi > 0 ? currentRoi : 23.5,
         targetRoi: targetRoi,
-        companyName: "Credit Expert India",
+        companyName: "Amortas",
       });
     }
 
@@ -652,7 +652,7 @@ export default function ExcelEmiCampaign({
         tenure: tenure > 0 ? tenure : 24,
         currentRoi: currentRoi > 0 ? currentRoi : 23.5,
         targetRoi: targetRoi,
-        companyName: "Credit Expert India",
+        companyName: "Amortas",
       });
     }
   };
@@ -1073,7 +1073,7 @@ export default function ExcelEmiCampaign({
         tenure: first.tenure || 24,
         currentRoi: first.currentRoi || 23.5,
         targetRoi: targetRoi,
-        companyName: "Credit Expert India",
+        companyName: "Amortas",
       });
 
       // Auto-populate extra fields from any unmapped columns in Row 1
@@ -1434,7 +1434,7 @@ export default function ExcelEmiCampaign({
   };
 
   return (
-    <div className="space-y-6 text-[#0A2540]">
+    <div className="space-y-6 text-[#2E2E2E]">
       {/* Hidden Global Workbook File Input */}
       <input
         ref={fileInputRef}
@@ -1444,25 +1444,25 @@ export default function ExcelEmiCampaign({
         className="hidden"
       />
 
-      {/* SECTION HEADER CARD (Credit Expert India Website Theme) */}
-      <div className="bg-white border border-[#E2E8F0] rounded-[28px] p-4 sm:p-8 shadow-[0_2px_16px_-3px_rgba(50,50,93,0.06),0_4px_6px_-2px_rgba(0,0,0,0.03)] relative overflow-hidden">
+      {/* SECTION HEADER CARD (Amortas Website Theme) */}
+      <div className="bg-white border border-[#E5E5E5] rounded-[28px] p-4 sm:p-8 shadow-[0_2px_16px_-3px_rgba(50,50,93,0.06),0_4px_6px_-2px_rgba(0,0,0,0.03)] relative overflow-hidden">
         {/* Subtle decorative Misty Skyline image from homepage */}
         <div className="absolute right-0 top-0 bottom-0 w-1/2 opacity-15 pointer-events-none overflow-hidden">
           <img
             src="/Misty India Skyline with Orbital Arcs.webp"
-            alt="Decorative Skyline"
+            alt=""
             className="w-full h-full object-cover object-left"
           />
         </div>
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/5 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative z-10">
           <div>
             <div className="flex flex-wrap items-center gap-2.5 mb-2">
-              <span className="p-2.5 rounded-xl bg-[#EAF3FF] text-[#0066FF] border border-[#BFDBFE] shadow-sm">
+              <span className="p-2.5 rounded-xl bg-[#F7E0D4] text-[#FF5A00] border border-[#FFD1A3] shadow-sm">
                 <FileSpreadsheet className="w-5 h-5" />
               </span>
-              <h2 className="text-xl sm:text-2xl font-bold text-[#0A2540] tracking-tight">
+              <h2 className="text-xl sm:text-2xl font-bold text-[#2E2E2E] tracking-tight">
                 Excel Bulk EMI Campaign Engine
               </h2>
               <span className="text-[11px] px-3 py-1 rounded-full bg-[#F0FDF4] text-[#15803D] font-bold border border-[#BBF7D0] uppercase tracking-wider flex items-center gap-1 shadow-sm">
@@ -1470,23 +1470,23 @@ export default function ExcelEmiCampaign({
                 Automated 9.99% EMI Reduction
               </span>
             </div>
-            <p className="text-sm text-[#3C4F69] max-w-2xl leading-relaxed">
-              Upload customer portfolios (like <code className="bg-[#F1F5F9] text-[#0A2540] px-1.5 py-0.5 rounded font-mono font-semibold">Dec-25.xlsx</code>), automatically calculate current vs 9.99% reduced EMIs, configure drag &amp; drop WhatsApp variable tags, test with custom details, and launch personalized campaigns.
+            <p className="text-sm text-[#575757] max-w-2xl leading-relaxed">
+              Upload customer portfolios (like <code className="bg-[#F5F0EB] text-[#2E2E2E] px-1.5 py-0.5 rounded font-mono font-semibold">Dec-25.xlsx</code>), automatically calculate current vs 9.99% reduced EMIs, configure drag &amp; drop WhatsApp variable tags, test with custom details, and launch personalized campaigns.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5 shrink-0">
             {fileName ? (
               <div className="flex flex-wrap items-center gap-2">
-                <div className="flex items-center gap-3 bg-white border border-[#E2E8F0] rounded-2xl px-4 py-2.5 shadow-sm">
-                  <div className="w-9 h-9 rounded-xl bg-[#EAF3FF] flex items-center justify-center text-[#0066FF]">
+                <div className="flex items-center gap-3 bg-white border border-[#E5E5E5] rounded-2xl px-4 py-2.5 shadow-sm">
+                  <div className="w-9 h-9 rounded-xl bg-[#F7E0D4] flex items-center justify-center text-[#FF5A00]">
                     <FileSpreadsheet className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-[#0A2540] truncate max-w-[170px]" title={fileName}>
+                    <div className="text-xs font-bold text-[#2E2E2E] truncate max-w-[170px]" title={fileName}>
                       {fileName}
                     </div>
-                    <div className="text-[11px] text-[#64748B]">
+                    <div className="text-[11px] text-[#737373]">
                       {fileSize} &bull; {sheets.length} sheet{sheets.length > 1 ? "s" : ""}
                     </div>
                   </div>
@@ -1494,16 +1494,16 @@ export default function ExcelEmiCampaign({
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="max-sm:min-h-11 px-3.5 py-2.5 rounded-2xl bg-white hover:bg-slate-50 text-[#0A2540] hover:text-[#0066FF] font-semibold text-xs transition border border-[#CBD5E1] hover:border-[#0066FF] shadow-xs flex items-center gap-1.5"
+                  className="max-sm:min-h-11 px-3.5 py-2.5 rounded-2xl bg-white hover:bg-slate-50 text-[#2E2E2E] hover:text-[#FF5A00] font-semibold text-xs transition border border-[#D4D4D4] hover:border-[#FF5A00] shadow-xs flex items-center gap-1.5"
                   title="Upload another Excel file"
                 >
-                  <UploadCloud className="w-3.5 h-3.5 text-[#0066FF]" />
+                  <UploadCloud className="w-3.5 h-3.5 text-[#FF5A00]" />
                   <span>Change</span>
                 </button>
                 <button
                   type="button"
                   onClick={handleClearWorkbook}
-                  className="max-sm:min-h-11 max-sm:min-w-11 p-2.5 rounded-2xl bg-white hover:bg-red-50 text-slate-400 hover:text-red-600 font-semibold text-xs transition border border-[#CBD5E1] hover:border-red-300 shadow-xs"
+                  className="max-sm:min-h-11 max-sm:min-w-11 p-2.5 rounded-2xl bg-white hover:bg-red-50 text-slate-400 hover:text-red-600 font-semibold text-xs transition border border-[#D4D4D4] hover:border-red-300 shadow-xs"
                   title="Clear loaded workbook"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -1515,7 +1515,7 @@ export default function ExcelEmiCampaign({
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={parsingFile}
-                  className="max-sm:min-h-11 px-4 py-2.5 rounded-2xl bg-[#0066FF] hover:bg-[#0052cc] text-white font-semibold text-xs transition flex items-center gap-2 shadow-md shadow-blue-500/20 disabled:opacity-50 cursor-pointer"
+                  className="max-sm:min-h-11 px-4 py-2.5 rounded-2xl bg-[#FF5A00] hover:bg-[#FF5A00] text-white font-semibold text-xs transition flex items-center gap-2 shadow-md shadow-brand-500/20 disabled:opacity-50 cursor-pointer"
                 >
                   <UploadCloud className="w-4 h-4" />
                   <span>Upload Excel File</span>
@@ -1524,10 +1524,10 @@ export default function ExcelEmiCampaign({
                   type="button"
                   onClick={handleLoadDemoDec25}
                   disabled={parsingFile}
-                  className="max-sm:min-h-11 px-3.5 py-2.5 rounded-2xl bg-white hover:bg-slate-50 text-[#0A2540] font-semibold text-xs transition flex items-center gap-1.5 border border-[#CBD5E1] shadow-xs disabled:opacity-50"
+                  className="max-sm:min-h-11 px-3.5 py-2.5 rounded-2xl bg-white hover:bg-slate-50 text-[#2E2E2E] font-semibold text-xs transition flex items-center gap-1.5 border border-[#D4D4D4] shadow-xs disabled:opacity-50"
                   title="Load sample Dec-25.xlsx demo workbook"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-[#0066FF]" />
+                  <Sparkles className="w-3.5 h-3.5 text-[#FF5A00]" />
                   <span>Sample Dec-25.xlsx</span>
                 </button>
               </div>
@@ -1537,23 +1537,23 @@ export default function ExcelEmiCampaign({
       </div>
 
       {/* STEP 1: UPLOAD & MULTI-SHEET SELECTOR */}
-      <div className="bg-white border border-[#E2E8F0] rounded-[28px] p-4 sm:p-8 shadow-sm space-y-5">
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E2E8F0] pb-4">
+      <div className="bg-white border border-[#E5E5E5] rounded-[28px] p-4 sm:p-8 shadow-sm space-y-5">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E5E5E5] pb-4">
           <div className="flex flex-wrap items-center gap-2.5">
-            <span className="w-8 h-8 rounded-xl bg-[#EAF3FF] text-[#0066FF] border border-[#BFDBFE] flex items-center justify-center text-xs font-bold shadow-sm">
+            <span className="w-8 h-8 rounded-xl bg-[#F7E0D4] text-[#FF5A00] border border-[#FFD1A3] flex items-center justify-center text-xs font-bold shadow-sm">
               1
             </span>
             <div>
-              <h3 className="text-base font-bold text-[#0A2540]">Upload Excel File &amp; Select Sheet</h3>
-              <p className="text-xs text-[#64748B]">Select multi-sheet workbook or combine all sheets</p>
+              <h3 className="text-base font-bold text-[#2E2E2E]">Upload Excel File &amp; Select Sheet</h3>
+              <p className="text-xs text-[#737373]">Select multi-sheet workbook or combine all sheets</p>
             </div>
           </div>
           {sheets.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
               {isColumnFilterActive ? (
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="text-xs text-blue-700 font-bold flex items-center gap-1.5 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-200 shadow-sm">
-                    <Filter className="w-3.5 h-3.5 text-[#0066FF]" />
+                  <span className="text-xs text-brand-700 font-bold flex items-center gap-1.5 bg-brand-50 px-3 py-1.5 rounded-full border border-brand-200 shadow-sm">
+                    <Filter className="w-3.5 h-3.5 text-[#FF5A00]" />
                     {activeRows.length.toLocaleString()} / {rawActiveRows.length.toLocaleString()} rows (Filtered)
                   </span>
                   <button
@@ -1585,29 +1585,29 @@ export default function ExcelEmiCampaign({
               onDrop={handleFileDrop}
               onClick={() => fileInputRef.current?.click()}
               className={`flex flex-col items-center justify-center p-10 border-2 border-dashed rounded-2xl cursor-pointer transition-all shadow-sm ${isDragging
-                  ? "border-[#0066FF] bg-blue-50/70 ring-4 ring-[#0066FF]/20 scale-[1.01]"
-                  : "border-[#CBD5E1] hover:border-[#0066FF] bg-gradient-to-b from-[#F8FAFC] to-[#F1F5F9] hover:from-[#F0F7FF] hover:to-[#EAF3FF]"
+                  ? "border-[#FF5A00] bg-brand-50/70 ring-4 ring-[#FF5A00]/20 scale-[1.01]"
+                  : "border-[#D4D4D4] hover:border-[#FF5A00] bg-gradient-to-b from-[#FFF8F3] to-[#F5F0EB] hover:from-[#F0F7FF] hover:to-[#F7E0D4]"
                 }`}
             >
               <div
                 className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all shadow-sm mb-3 ${isDragging
-                    ? "bg-[#0066FF] text-white animate-bounce"
-                    : "bg-[#EAF3FF] text-[#0066FF]"
+                    ? "bg-[#FF5A00] text-white animate-bounce"
+                    : "bg-[#F7E0D4] text-[#FF5A00]"
                   }`}
               >
                 <UploadCloud className="w-7 h-7" />
               </div>
-              <span className="text-base font-bold text-[#0A2540]">
+              <span className="text-base font-bold text-[#2E2E2E]">
                 {parsingFile
                   ? "Reading & parsing workbook sheets..."
                   : isDragging
                     ? "Drop your Excel workbook here"
                     : "Drag & drop your Excel workbook here, or click to browse"}
               </span>
-              <span className="text-xs text-[#64748B] mt-1.5 text-center max-w-md">
-                Supports <code className="font-mono text-[#0A2540] font-semibold">.xlsx</code>,{" "}
-                <code className="font-mono text-[#0A2540] font-semibold">.xls</code>, and{" "}
-                <code className="font-mono text-[#0A2540] font-semibold">.csv</code> (multi-sheet workbooks supported)
+              <span className="text-xs text-[#737373] mt-1.5 text-center max-w-md">
+                Supports <code className="font-mono text-[#2E2E2E] font-semibold">.xlsx</code>,{" "}
+                <code className="font-mono text-[#2E2E2E] font-semibold">.xls</code>, and{" "}
+                <code className="font-mono text-[#2E2E2E] font-semibold">.csv</code> (multi-sheet workbooks supported)
               </span>
 
               <div className="mt-5">
@@ -1618,7 +1618,7 @@ export default function ExcelEmiCampaign({
                     fileInputRef.current?.click();
                   }}
                   disabled={parsingFile}
-                  className="max-sm:min-h-11 px-5 py-2.5 rounded-xl bg-[#0066FF] hover:bg-[#0052cc] text-white text-xs font-semibold shadow-md shadow-blue-500/20 transition flex items-center gap-2 cursor-pointer"
+                  className="max-sm:min-h-11 px-5 py-2.5 rounded-xl bg-[#FF5A00] hover:bg-[#FF5A00] text-white text-xs font-semibold shadow-md shadow-brand-500/20 transition flex items-center gap-2 cursor-pointer"
                 >
                   <UploadCloud className="w-4 h-4" />
                   <span>Browse File from Computer</span>
@@ -1627,15 +1627,15 @@ export default function ExcelEmiCampaign({
             </div>
 
             {/* Clearly Separated Sample Demo Loader */}
-            <div className="p-4 rounded-2xl bg-white border border-[#E2E8F0] flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
+            <div className="p-4 rounded-2xl bg-white border border-[#E5E5E5] flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
               <div className="flex flex-wrap items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-[#EAF3FF] text-[#0066FF] flex items-center justify-center shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-[#F7E0D4] text-[#FF5A00] flex items-center justify-center shrink-0">
                   <Sparkles className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-[#0A2540]">Need sample data to test with?</div>
-                  <div className="text-[11px] text-[#64748B]">
-                    Load our pre-packaged sample portfolio (<code className="font-mono text-[#0A2540]">Dec-25.xlsx</code> with 2 sheets &amp; 49,664 records)
+                  <div className="text-xs font-bold text-[#2E2E2E]">Need sample data to test with?</div>
+                  <div className="text-[11px] text-[#737373]">
+                    Load our pre-packaged sample portfolio (<code className="font-mono text-[#2E2E2E]">Dec-25.xlsx</code> with 2 sheets &amp; 49,664 records)
                   </div>
                 </div>
               </div>
@@ -1643,9 +1643,9 @@ export default function ExcelEmiCampaign({
                 type="button"
                 onClick={handleLoadDemoDec25}
                 disabled={parsingFile}
-                className="max-sm:min-h-11 px-4 py-2 rounded-xl text-xs font-semibold bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#0A2540] transition border border-[#CBD5E1] flex items-center gap-1.5 shrink-0 disabled:opacity-50 cursor-pointer"
+                className="max-sm:min-h-11 px-4 py-2 rounded-xl text-xs font-semibold bg-[#F5F0EB] hover:bg-[#E5E5E5] text-[#2E2E2E] transition border border-[#D4D4D4] flex items-center gap-1.5 shrink-0 disabled:opacity-50 cursor-pointer"
               >
-                <Sparkles className="w-3.5 h-3.5 text-[#0066FF]" />
+                <Sparkles className="w-3.5 h-3.5 text-[#FF5A00]" />
                 <span>Load Sample Dec-25.xlsx</span>
               </button>
             </div>
@@ -1661,8 +1661,8 @@ export default function ExcelEmiCampaign({
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
               <div className="md:col-span-8">
-                <label className="block text-xs font-bold text-[#0A2540] mb-2 flex items-center gap-1.5">
-                  <Layers className="w-4 h-4 text-[#0066FF]" />
+                <label className="block text-xs font-bold text-[#2E2E2E] mb-2 flex items-center gap-1.5">
+                  <Layers className="w-4 h-4 text-[#FF5A00]" />
                   Select Workbook Sheet:
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -1672,15 +1672,15 @@ export default function ExcelEmiCampaign({
                       type="button"
                       onClick={() => handleSheetChange(sheet.name)}
                       className={`max-sm:min-h-11 px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2 border ${selectedSheetName === sheet.name
-                          ? "bg-[#0066FF] text-white border-[#0066FF] shadow-md shadow-blue-500/20"
-                          : "bg-white text-[#3C4F69] border-[#E2E8F0] hover:border-[#0066FF] hover:bg-slate-50"
+                          ? "bg-[#FF5A00] text-white border-[#FF5A00] shadow-md shadow-brand-500/20"
+                          : "bg-white text-[#575757] border-[#E5E5E5] hover:border-[#FF5A00] hover:bg-slate-50"
                         }`}
                     >
                       <span>{sheet.name}</span>
                       <span
                         className={`text-[11px] px-1.5 py-0.5 rounded-md font-mono ${selectedSheetName === sheet.name
-                            ? "bg-blue-700 text-white"
-                            : "bg-[#F1F5F9] text-[#64748B]"
+                            ? "bg-brand-700 text-[#2E2E2E]"
+                            : "bg-[#F5F0EB] text-[#737373]"
                           }`}
                       >
                         {sheet.rowCount.toLocaleString()} rows
@@ -1694,12 +1694,12 @@ export default function ExcelEmiCampaign({
                       onClick={() => handleSheetChange("all")}
                       className={`max-sm:min-h-11 px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2 border ${selectedSheetName === "all"
                           ? "bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-500/20"
-                          : "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                          : "bg-brand-50 text-brand-700 border-brand-200 hover:bg-brand-100"
                         }`}
                     >
                       <Layers className="w-3.5 h-3.5" />
                       <span>All Sheets Combined</span>
-                      <span className="text-[11px] px-1.5 py-0.5 rounded-md font-mono bg-blue-100 text-blue-800">
+                      <span className="text-[11px] px-1.5 py-0.5 rounded-md font-mono bg-brand-100 text-brand-800">
                         {sheets.reduce((acc, s) => acc + s.rowCount, 0).toLocaleString()} rows
                       </span>
                     </button>
@@ -1711,15 +1711,15 @@ export default function ExcelEmiCampaign({
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="max-sm:min-h-11 cursor-pointer text-xs font-semibold text-[#0A2540] hover:text-[#0066FF] px-3.5 py-2 rounded-xl border border-[#E2E8F0] hover:border-[#0066FF] bg-white hover:bg-blue-50/50 transition flex items-center gap-2 shadow-sm"
+                  className="max-sm:min-h-11 cursor-pointer text-xs font-semibold text-[#2E2E2E] hover:text-[#FF5A00] px-3.5 py-2 rounded-xl border border-[#E5E5E5] hover:border-[#FF5A00] bg-white hover:bg-brand-50/50 transition flex items-center gap-2 shadow-sm"
                 >
-                  <UploadCloud className="w-4 h-4 text-[#0066FF]" />
+                  <UploadCloud className="w-4 h-4 text-[#FF5A00]" />
                   <span>Upload different file</span>
                 </button>
                 <button
                   type="button"
                   onClick={handleClearWorkbook}
-                  className="max-sm:min-h-11 max-sm:min-w-11 p-2 rounded-xl text-xs font-semibold bg-white border border-[#E2E8F0] hover:border-red-300 hover:text-red-600 text-slate-400 hover:bg-red-50/50 transition shadow-sm"
+                  className="max-sm:min-h-11 max-sm:min-w-11 p-2 rounded-xl text-xs font-semibold bg-white border border-[#E5E5E5] hover:border-red-300 hover:text-red-600 text-slate-400 hover:bg-red-50/50 transition shadow-sm"
                   title="Remove file and reset"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -1728,16 +1728,16 @@ export default function ExcelEmiCampaign({
             </div>
 
             {/* SINGLE COLUMN KEYWORD FILTER PANEL */}
-            <div className="mt-4 pt-4 border-t border-[#E2E8F0] space-y-3.5">
+            <div className="mt-4 pt-4 border-t border-[#E5E5E5] space-y-3.5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="flex flex-wrap items-center gap-2">
-                  <div className="w-6 h-6 rounded-lg bg-[#EAF3FF] text-[#0066FF] flex items-center justify-center shrink-0">
+                  <div className="w-6 h-6 rounded-lg bg-[#F7E0D4] text-[#FF5A00] flex items-center justify-center shrink-0">
                     <Filter className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-[#0A2540] flex items-center gap-2">
+                    <h4 className="text-xs font-bold text-[#2E2E2E] flex items-center gap-2">
                       <span>Filter Entire Excel by Column Keyword</span>
-                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-[#0066FF] border border-blue-200 font-semibold">
+                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-brand-50 text-[#FF5A00] border border-brand-200 font-semibold">
                         Target Specific Audience
                       </span>
                     </h4>
@@ -1756,15 +1756,15 @@ export default function ExcelEmiCampaign({
                 )}
               </div>
 
-              <p className="text-xs text-[#64748B]">
+              <p className="text-xs text-[#737373]">
                 Filter records by any column keyword (e.g., Company, City, State, or Status). The campaign and calculations will only apply to matching rows.
               </p>
 
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-[#F8FAFC] to-[#F1F5F9] border border-[#CBD5E1] space-y-3.5 shadow-xs">
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-[#FFF8F3] to-[#F5F0EB] border border-[#D4D4D4] space-y-3.5 shadow-xs">
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
                   {/* Column to filter */}
                   <div className="sm:col-span-4">
-                    <label className="block text-[11px] font-bold text-[#0A2540] mb-1">
+                    <label className="block text-[11px] font-bold text-[#2E2E2E] mb-1">
                       1. Select Column to Filter:
                     </label>
                     <select
@@ -1773,7 +1773,7 @@ export default function ExcelEmiCampaign({
                         setColumnFilterCol(e.target.value);
                         setCurrentPage(1);
                       }}
-                      className="max-sm:min-h-11 w-full bg-white border border-[#CBD5E1] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#0A2540] font-medium focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20 shadow-xs"
+                      className="max-sm:min-h-11 w-full bg-white border border-[#D4D4D4] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#2E2E2E] font-medium focus:outline-none focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20 shadow-xs"
                     >
                       <option value="">-- Choose Column to Filter --</option>
                       <option value="__ALL__">🌐 All Columns (Search Entire Row)</option>
@@ -1787,7 +1787,7 @@ export default function ExcelEmiCampaign({
 
                   {/* Match condition */}
                   <div className="sm:col-span-3">
-                    <label className="block text-[11px] font-bold text-[#0A2540] mb-1">
+                    <label className="block text-[11px] font-bold text-[#2E2E2E] mb-1">
                       2. Match Rule:
                     </label>
                     <select
@@ -1796,7 +1796,7 @@ export default function ExcelEmiCampaign({
                         setColumnFilterCondition(e.target.value);
                         setCurrentPage(1);
                       }}
-                      className="max-sm:min-h-11 w-full bg-white border border-[#CBD5E1] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#0A2540] font-medium focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20 shadow-xs"
+                      className="max-sm:min-h-11 w-full bg-white border border-[#D4D4D4] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#2E2E2E] font-medium focus:outline-none focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20 shadow-xs"
                     >
                       <option value="contains">Contains Keyword</option>
                       <option value="exact">Exact Match (Equals)</option>
@@ -1807,7 +1807,7 @@ export default function ExcelEmiCampaign({
 
                   {/* Keyword Input & Case Toggle */}
                   <div className="sm:col-span-5">
-                    <label className="block text-[11px] font-bold text-[#0A2540] mb-1">
+                    <label className="block text-[11px] font-bold text-[#2E2E2E] mb-1">
                       3. Keyword / Value to Match:
                     </label>
                     <div className="flex flex-wrap items-center gap-1.5">
@@ -1825,7 +1825,7 @@ export default function ExcelEmiCampaign({
                               ? `Type keyword for "${columnFilterCol}"...`
                               : "Type keyword (e.g. TCS, DELHI, UJJAIN)..."
                           }
-                          className="max-sm:min-h-11 w-full bg-white border border-[#CBD5E1] rounded-xl pl-8 pr-8 py-2 max-sm:text-base text-xs text-[#0A2540] placeholder-slate-400 font-medium focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20 shadow-xs"
+                          className="max-sm:min-h-11 w-full bg-white border border-[#D4D4D4] rounded-xl pl-8 pr-8 py-2 max-sm:text-base text-xs text-[#2E2E2E] placeholder-slate-400 font-medium focus:outline-none focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20 shadow-xs"
                         />
                         {columnFilterKeyword && (
                           <button
@@ -1854,8 +1854,8 @@ export default function ExcelEmiCampaign({
                             : "Case Insensitive (click to match exact case)"
                         }
                         className={`max-sm:min-h-11 px-2.5 py-2 rounded-xl text-xs font-mono font-bold transition border ${columnFilterCaseSensitive
-                            ? "bg-[#0066FF] text-white border-[#0066FF]"
-                            : "bg-white text-[#64748B] border-[#CBD5E1] hover:text-[#0A2540]"
+                            ? "bg-[#FF5A00] text-white border-[#FF5A00]"
+                            : "bg-white text-[#737373] border-[#D4D4D4] hover:text-[#2E2E2E]"
                           }`}
                       >
                         Aa
@@ -1867,9 +1867,9 @@ export default function ExcelEmiCampaign({
                 {/* Popular value suggestions for selected column */}
                 {topColumnSuggestions.length > 0 && (
                   <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[11px]">
-                    <span className="text-[#64748B] font-medium flex items-center gap-1">
+                    <span className="text-[#737373] font-medium flex items-center gap-1">
                       <Sparkles className="w-3 h-3 text-amber-500" />
-                      Popular in <span className="font-semibold text-[#0A2540]">{columnFilterCol}:</span>
+                      Popular in <span className="font-semibold text-[#2E2E2E]">{columnFilterCol}:</span>
                     </span>
                     {topColumnSuggestions.map(({ value, count }) => (
                       <button
@@ -1881,8 +1881,8 @@ export default function ExcelEmiCampaign({
                           setCurrentPage(1);
                         }}
                         className={`max-sm:min-h-11 px-2 py-0.5 rounded-lg text-[11px] font-medium transition border flex items-center gap-1 ${columnFilterKeyword === value && columnFilterCondition === "exact"
-                            ? "bg-[#0066FF] text-white border-[#0066FF] shadow-xs"
-                            : "bg-white text-[#3C4F69] border-[#CBD5E1] hover:border-[#0066FF] hover:bg-blue-50/50"
+                            ? "bg-[#FF5A00] text-white border-[#FF5A00] shadow-xs"
+                            : "bg-white text-[#575757] border-[#D4D4D4] hover:border-[#FF5A00] hover:bg-brand-50/50"
                           }`}
                       >
                         <span className="truncate max-w-[140px]">{value}</span>
@@ -1926,7 +1926,7 @@ export default function ExcelEmiCampaign({
                     <button
                       type="button"
                       onClick={handleClearColumnFilter}
-                      className="max-sm:min-h-11 px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-[#0A2540] shadow-xs"
+                      className="max-sm:min-h-11 px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-[#2E2E2E] shadow-xs"
                     >
                       Clear Filter
                     </button>
@@ -1941,15 +1941,15 @@ export default function ExcelEmiCampaign({
       {sheets.length > 0 && (
         <>
           {/* STEP 2: COLUMN MAPPING & RATE PARAMETERS */}
-          <div className="bg-white border border-[#E2E8F0] rounded-2xl p-4 sm:p-6 shadow-sm space-y-5">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E2E8F0] pb-3.5">
+          <div className="bg-white border border-[#E5E5E5] rounded-2xl p-4 sm:p-6 shadow-sm space-y-5">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E5E5E5] pb-3.5">
               <div className="flex flex-wrap items-center gap-2.5">
-                <span className="w-7 h-7 rounded-lg bg-[#EAF3FF] text-[#0066FF] border border-[#BFDBFE] flex items-center justify-center text-xs font-bold">
+                <span className="w-7 h-7 rounded-lg bg-[#F7E0D4] text-[#FF5A00] border border-[#FFD1A3] flex items-center justify-center text-xs font-bold">
                   2
                 </span>
-                <h3 className="text-base font-bold text-[#0A2540]">Map Excel Columns &amp; Loan Parameters</h3>
+                <h3 className="text-base font-bold text-[#2E2E2E]">Map Excel Columns &amp; Loan Parameters</h3>
               </div>
-              <span className="text-xs text-[#64748B]">
+              <span className="text-xs text-[#737373]">
                 Match sheet headers to calculate EMIs and customer variables
               </span>
             </div>
@@ -1977,9 +1977,9 @@ export default function ExcelEmiCampaign({
                 </span>
               </div>
             ) : !amountCol || !tenureCol || !roiCol ? (
-              <div className="p-3 rounded-xl bg-blue-50 border border-blue-200 text-xs text-blue-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-xs">
+              <div className="p-3 rounded-xl bg-brand-50 border border-brand-200 text-xs text-brand-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-xs">
                 <div className="flex flex-wrap items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-brand-600 shrink-0" />
                   <span>
                     Essential columns mapped: <strong>{nameCol}</strong> (Name) &amp; <strong>{phoneCol}</strong> (Phone). Ready for messaging!
                     <span className="block sm:inline sm:ml-1 text-slate-500 text-[11px]">
@@ -1987,7 +1987,7 @@ export default function ExcelEmiCampaign({
                     </span>
                   </span>
                 </div>
-                <span className="text-[11px] text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md font-semibold shrink-0">
+                <span className="text-[11px] text-brand-700 bg-brand-100 px-2 py-0.5 rounded-md font-semibold shrink-0">
                   Ready (General Campaign)
                 </span>
               </div>
@@ -2008,14 +2008,14 @@ export default function ExcelEmiCampaign({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               {/* Column 1: Customer Name */}
               <div>
-                <label className="block text-xs font-bold text-[#0A2540] mb-1.5 flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-[#0066FF]" />
+                <label className="block text-xs font-bold text-[#2E2E2E] mb-1.5 flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-[#FF5A00]" />
                   Customer / Candidate Name <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={nameCol}
                   onChange={(e) => setNameCol(e.target.value)}
-                  className="max-sm:min-h-11 w-full bg-white border border-[#CBD5E1] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#0A2540] focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20 font-medium transition shadow-sm"
+                  className="max-sm:min-h-11 w-full bg-white border border-[#D4D4D4] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#2E2E2E] focus:outline-none focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20 font-medium transition shadow-sm"
                 >
                   <option value="">-- Choose Column --</option>
                   {availableColumns.map((col) => (
@@ -2024,21 +2024,21 @@ export default function ExcelEmiCampaign({
                     </option>
                   ))}
                 </select>
-                <p className="text-[11px] text-[#64748B] mt-1 truncate">
+                <p className="text-[11px] text-[#737373] mt-1 truncate">
                   e.g. Candidate Name / CUSTOMERNAME
                 </p>
               </div>
 
               {/* Column 2: Total Amount */}
               <div>
-                <label className="block text-xs font-bold text-[#0A2540] mb-1.5 flex items-center gap-1.5">
-                  <DollarSign className="w-3.5 h-3.5 text-[#0066FF]" />
+                <label className="block text-xs font-bold text-[#2E2E2E] mb-1.5 flex items-center gap-1.5">
+                  <DollarSign className="w-3.5 h-3.5 text-[#FF5A00]" />
                   Total Amount (Loan) <span className="text-slate-400 font-normal text-[11px] ml-1">(Optional)</span>
                 </label>
                 <select
                   value={amountCol}
                   onChange={(e) => setAmountCol(e.target.value)}
-                  className="max-sm:min-h-11 w-full bg-white border border-[#CBD5E1] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#0A2540] focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20 font-medium transition shadow-sm"
+                  className="max-sm:min-h-11 w-full bg-white border border-[#D4D4D4] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#2E2E2E] focus:outline-none focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20 font-medium transition shadow-sm"
                 >
                   <option value="">-- Choose Column --</option>
                   {availableColumns.map((col) => (
@@ -2047,7 +2047,7 @@ export default function ExcelEmiCampaign({
                     </option>
                   ))}
                 </select>
-                <p className="text-[11px] text-[#64748B] mt-1 truncate">
+                <p className="text-[11px] text-[#737373] mt-1 truncate">
                   e.g. DISBURSEMENTAMOUNT
                 </p>
               </div>
@@ -2055,8 +2055,8 @@ export default function ExcelEmiCampaign({
               {/* Column 3: Tenure */}
               <div>
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
-                  <label className="text-xs font-bold text-[#0A2540] flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-[#0066FF]" />
+                  <label className="text-xs font-bold text-[#2E2E2E] flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-[#FF5A00]" />
                     Tenure <span className="text-slate-400 font-normal text-[11px] ml-1">(Optional)</span>
                   </label>
                   <div className="flex items-center gap-1 text-[11px]">
@@ -2064,8 +2064,8 @@ export default function ExcelEmiCampaign({
                       type="button"
                       onClick={() => setTenureUnit("months")}
                       className={`max-sm:min-h-11 px-1.5 py-0.5 rounded ${tenureUnit === "months"
-                          ? "bg-[#0066FF] text-white font-bold"
-                          : "text-[#64748B] hover:text-[#0A2540]"
+                          ? "bg-[#FF5A00] text-white font-bold"
+                          : "text-[#737373] hover:text-[#2E2E2E]"
                         }`}
                     >
                       Mos
@@ -2074,8 +2074,8 @@ export default function ExcelEmiCampaign({
                       type="button"
                       onClick={() => setTenureUnit("years")}
                       className={`max-sm:min-h-11 px-1.5 py-0.5 rounded ${tenureUnit === "years"
-                          ? "bg-[#0066FF] text-white font-bold"
-                          : "text-[#64748B] hover:text-[#0A2540]"
+                          ? "bg-[#FF5A00] text-white font-bold"
+                          : "text-[#737373] hover:text-[#2E2E2E]"
                         }`}
                     >
                       Yrs
@@ -2085,7 +2085,7 @@ export default function ExcelEmiCampaign({
                 <select
                   value={tenureCol}
                   onChange={(e) => setTenureCol(e.target.value)}
-                  className="max-sm:min-h-11 w-full bg-white border border-[#CBD5E1] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#0A2540] focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20 font-medium transition shadow-sm"
+                  className="max-sm:min-h-11 w-full bg-white border border-[#D4D4D4] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#2E2E2E] focus:outline-none focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20 font-medium transition shadow-sm"
                 >
                   <option value="">-- Choose Column --</option>
                   {availableColumns.map((col) => (
@@ -2094,21 +2094,21 @@ export default function ExcelEmiCampaign({
                     </option>
                   ))}
                 </select>
-                <p className="text-[11px] text-[#64748B] mt-1 truncate">
+                <p className="text-[11px] text-[#737373] mt-1 truncate">
                   e.g. TENOR ({tenureUnit === "months" ? "Months" : "Years"})
                 </p>
               </div>
 
               {/* Column 4: Current ROI */}
               <div>
-                <label className="block text-xs font-bold text-[#0A2540] mb-1.5 flex items-center gap-1.5">
+                <label className="block text-xs font-bold text-[#2E2E2E] mb-1.5 flex items-center gap-1.5">
                   <TrendingDown className="w-3.5 h-3.5 text-amber-500" />
                   Current ROI (%) <span className="text-slate-400 font-normal text-[11px] ml-1">(Optional)</span>
                 </label>
                 <select
                   value={roiCol}
                   onChange={(e) => setRoiCol(e.target.value)}
-                  className="max-sm:min-h-11 w-full bg-white border border-[#CBD5E1] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#0A2540] focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20 font-medium transition shadow-sm"
+                  className="max-sm:min-h-11 w-full bg-white border border-[#D4D4D4] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#2E2E2E] focus:outline-none focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20 font-medium transition shadow-sm"
                 >
                   <option value="">-- Choose Column --</option>
                   {availableColumns.map((col) => (
@@ -2117,21 +2117,21 @@ export default function ExcelEmiCampaign({
                     </option>
                   ))}
                 </select>
-                <p className="text-[11px] text-[#64748B] mt-1 truncate">
+                <p className="text-[11px] text-[#737373] mt-1 truncate">
                   e.g. ROI (e.g. 23.5)
                 </p>
               </div>
 
               {/* Column 5: Phone Number */}
               <div>
-                <label className="block text-xs font-bold text-[#0A2540] mb-1.5 flex items-center gap-1.5">
-                  <Phone className="w-3.5 h-3.5 text-[#0066FF]" />
+                <label className="block text-xs font-bold text-[#2E2E2E] mb-1.5 flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-[#FF5A00]" />
                   Mobile / WhatsApp <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={phoneCol}
                   onChange={(e) => setPhoneCol(e.target.value)}
-                  className="max-sm:min-h-11 w-full bg-white border border-[#CBD5E1] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#0A2540] focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20 font-medium transition shadow-sm"
+                  className="max-sm:min-h-11 w-full bg-white border border-[#D4D4D4] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#2E2E2E] focus:outline-none focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20 font-medium transition shadow-sm"
                 >
                   <option value="">-- Choose Column --</option>
                   {availableColumns.map((col) => (
@@ -2140,7 +2140,7 @@ export default function ExcelEmiCampaign({
                     </option>
                   ))}
                 </select>
-                <p className="text-[11px] text-[#64748B] mt-1 truncate">
+                <p className="text-[11px] text-[#737373] mt-1 truncate">
                   e.g. standardizedMobileNo
                 </p>
               </div>
@@ -2148,21 +2148,21 @@ export default function ExcelEmiCampaign({
 
             {/* Phone Number Treatment & Format Rule Option Selector Panel */}
             {phoneCol && (
-              <div className="mt-3 p-4 rounded-2xl bg-gradient-to-br from-blue-50/90 via-[#F8FAFC] to-blue-50/70 border border-[#BFDBFE] space-y-3.5 shadow-xs">
+              <div className="mt-3 p-4 rounded-2xl bg-gradient-to-br from-brand-50/90 via-[#FFF8F3] to-brand-50/70 border border-[#FFD1A3] space-y-3.5 shadow-xs">
                 {/* Header & Validity Count Badge */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-[#BFDBFE]">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-[#FFD1A3]">
                   <div className="flex flex-wrap items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-[#0066FF] text-white flex items-center justify-center shadow-xs">
+                    <div className="w-7 h-7 rounded-lg bg-[#FF5A00] text-white flex items-center justify-center shadow-xs">
                       <Phone className="w-4 h-4" />
                     </div>
                     <div>
-                      <h4 className="text-xs font-bold text-[#0A2540] flex items-center gap-2">
+                      <h4 className="text-xs font-bold text-[#2E2E2E] flex items-center gap-2">
                         <span>Phone Number Column Format Rule</span>
-                        <span className="text-[11px] px-2 py-0.5 rounded-md bg-[#0066FF]/10 text-[#0066FF] font-mono font-semibold">
+                        <span className="text-[11px] px-2 py-0.5 rounded-md bg-[#FF5A00]/10 text-[#FF5A00] font-mono font-semibold">
                           Column: {phoneCol}
                         </span>
                       </h4>
-                      <p className="text-[11px] text-[#64748B]">
+                      <p className="text-[11px] text-[#737373]">
                         Select how phone numbers in this column are structured (plain 10-digit, with 91, 91 with space, or mixed).
                       </p>
                     </div>
@@ -2183,14 +2183,14 @@ export default function ExcelEmiCampaign({
                     )}
 
                     {/* Country Code Prefix Setting */}
-                    <div className="flex items-center gap-1 bg-white border border-[#CBD5E1] rounded-xl px-2.5 py-1 shadow-xs">
-                      <span className="text-[11px] font-bold text-[#64748B]">Prefix:</span>
-                      <span className="text-[11px] font-mono font-bold text-[#0066FF]">+</span>
+                    <div className="flex items-center gap-1 bg-white border border-[#D4D4D4] rounded-xl px-2.5 py-1 shadow-xs">
+                      <span className="text-[11px] font-bold text-[#737373]">Prefix:</span>
+                      <span className="text-[11px] font-mono font-bold text-[#FF5A00]">+</span>
                       <input
                         type="text"
                         value={phoneDefaultCountryCode}
                         onChange={(e) => setPhoneDefaultCountryCode(e.target.value.replace(/\D/g, "") || "91")}
-                        className="max-sm:min-h-11 w-7 text-[11px] font-mono font-bold text-[#0A2540] focus:outline-none text-center bg-transparent"
+                        className="max-sm:min-h-11 w-7 text-[11px] font-mono font-bold text-[#2E2E2E] focus:outline-none text-center bg-transparent"
                         title="Default country dialing code (defaults to 91 for India)"
                       />
                     </div>
@@ -2199,9 +2199,9 @@ export default function ExcelEmiCampaign({
 
                 {/* Auto Detection Intelligence Tip */}
                 {autoDetectedPhoneHint && (
-                  <div className="p-2.5 rounded-xl bg-white/80 border border-blue-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-[#0A2540]">
+                  <div className="p-2.5 rounded-xl bg-white/80 border border-brand-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-[#2E2E2E]">
                     <div className="flex flex-wrap items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-[#0066FF] shrink-0" />
+                      <Sparkles className="w-4 h-4 text-[#FF5A00] shrink-0" />
                       <span>
                         <strong>Smart Auto-Analysis:</strong> {autoDetectedPhoneHint.summary}
                       </span>
@@ -2210,7 +2210,7 @@ export default function ExcelEmiCampaign({
                       <button
                         type="button"
                         onClick={() => setPhoneFormatMode(autoDetectedPhoneHint.detectedMode)}
-                        className="max-sm:min-h-11 text-[11px] font-semibold text-[#0066FF] hover:underline self-start sm:self-auto shrink-0"
+                        className="max-sm:min-h-11 text-[11px] font-semibold text-[#FF5A00] hover:underline self-start sm:self-auto shrink-0"
                       >
                         Apply Detected Mode
                       </button>
@@ -2229,37 +2229,37 @@ export default function ExcelEmiCampaign({
                         onClick={() => setPhoneFormatMode(opt.id)}
                         className={`max-sm:min-h-11 max-sm:min-w-11 text-left p-3 rounded-xl border transition-all duration-150 flex flex-col justify-between ${
                           isSelected
-                            ? "bg-white border-[#0066FF] ring-2 ring-[#0066FF]/20 shadow-sm"
-                            : "bg-white/60 hover:bg-white border-[#CBD5E1] text-[#3C4F69] hover:border-[#94A3B8]"
+                            ? "bg-white border-[#FF5A00] ring-2 ring-[#FF5A00]/20 shadow-sm"
+                            : "bg-white/60 hover:bg-white border-[#D4D4D4] text-[#575757] hover:border-[#A3A3A3]"
                         }`}
                       >
                         <div>
                           <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
                             <span
                               className={`text-xs font-bold ${
-                                isSelected ? "text-[#0066FF]" : "text-[#0A2540]"
+                                isSelected ? "text-[#FF5A00]" : "text-[#2E2E2E]"
                               }`}
                             >
                               {opt.label}
                             </span>
                             {opt.badge && (
-                              <span className="text-[11px] uppercase px-1.5 py-0.5 rounded-md font-bold bg-[#0066FF] text-white">
+                              <span className="text-[11px] uppercase px-1.5 py-0.5 rounded-md font-bold bg-[#FF5A00] text-white">
                                 {opt.badge}
                               </span>
                             )}
                           </div>
-                          <p className="text-[11px] text-[#64748B] leading-snug line-clamp-2">
+                          <p className="text-[11px] text-[#737373] leading-snug line-clamp-2">
                             {opt.description}
                           </p>
                         </div>
                         <div className="mt-2 pt-1.5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
-                          <code className="text-[11px] font-mono text-[#0066FF] font-semibold truncate max-w-[140px]">
+                          <code className="text-[11px] font-mono text-[#FF5A00] font-semibold truncate max-w-[140px]">
                             {opt.example}
                           </code>
                           <span
                             className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[11px] shrink-0 ${
                               isSelected
-                                ? "bg-[#0066FF] text-white font-bold"
+                                ? "bg-[#FF5A00] text-white font-bold"
                                 : "border border-slate-300"
                             }`}
                           >
@@ -2275,11 +2275,11 @@ export default function ExcelEmiCampaign({
                 {phoneSamples.length > 0 && (
                   <div className="pt-2">
                     <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
-                      <span className="text-[11px] font-bold text-[#3C4F69] flex items-center gap-1.5">
-                        <Eye className="w-3.5 h-3.5 text-[#0066FF]" />
+                      <span className="text-[11px] font-bold text-[#575757] flex items-center gap-1.5">
+                        <Eye className="w-3.5 h-3.5 text-[#FF5A00]" />
                         Live Row Sanitization Preview (Sheet: {selectedSheetName || "Active"}):
                       </span>
-                      <span className="text-[11px] text-[#64748B]">
+                      <span className="text-[11px] text-[#737373]">
                         Formatted to WhatsApp API requirement (+91XXXXXXXXXX)
                       </span>
                     </div>
@@ -2289,8 +2289,8 @@ export default function ExcelEmiCampaign({
                           key={sample.index}
                           className="bg-white p-2.5 rounded-xl border border-slate-200 text-xs shadow-2xs"
                         >
-                          <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#64748B] mb-1">
-                            <span className="font-semibold text-[#0A2540] truncate max-w-[120px]">
+                          <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#737373] mb-1">
+                            <span className="font-semibold text-[#2E2E2E] truncate max-w-[120px]">
                               {sample.name}
                             </span>
                             <span className="font-mono text-[11px]">Row {sample.index}</span>
@@ -2300,7 +2300,7 @@ export default function ExcelEmiCampaign({
                               Excel: <span className="font-mono font-medium text-slate-700">{sample.raw || "(empty)"}</span>
                             </div>
                             <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
-                              <span className="text-[11px] font-mono font-bold text-[#0066FF] truncate">
+                              <span className="text-[11px] font-mono font-bold text-[#FF5A00] truncate">
                                 ➔ +{sample.formatted}
                               </span>
                               {sample.isValid ? (
@@ -2329,7 +2329,7 @@ export default function ExcelEmiCampaign({
             <div className="pt-2 flex flex-wrap items-center gap-4 bg-[#F0FDF4] p-3.5 rounded-xl border border-[#BBF7D0]">
               <div className="flex flex-wrap items-center gap-2">
                 <Sparkles className="w-4 h-4 text-[#15803D]" />
-                <span className="text-xs font-bold text-[#0A2540]">Target Reduced ROI:</span>
+                <span className="text-xs font-bold text-[#2E2E2E]">Target Reduced ROI:</span>
               </div>
               <div className="flex flex-wrap items-center gap-1.5">
                 <input
@@ -2350,17 +2350,17 @@ export default function ExcelEmiCampaign({
           </div>
 
           {/* STEP 3: TEMPLATE & DYNAMIC VARIABLE SLOT CONFIGURATOR */}
-          <div className="bg-white border border-[#E2E8F0] rounded-2xl p-4 sm:p-6 shadow-sm space-y-5">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E2E8F0] pb-3.5">
+          <div className="bg-white border border-[#E5E5E5] rounded-2xl p-4 sm:p-6 shadow-sm space-y-5">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E5E5E5] pb-3.5">
               <div className="flex flex-wrap items-center gap-2.5">
-                <span className="w-7 h-7 rounded-lg bg-[#EAF3FF] text-[#0066FF] border border-[#BFDBFE] flex items-center justify-center text-xs font-bold">
+                <span className="w-7 h-7 rounded-lg bg-[#F7E0D4] text-[#FF5A00] border border-[#FFD1A3] flex items-center justify-center text-xs font-bold">
                   3
                 </span>
-                <h3 className="text-base font-bold text-[#0A2540]">
+                <h3 className="text-base font-bold text-[#2E2E2E]">
                   WhatsApp Template &amp; Variable Slots Configurator
                 </h3>
               </div>
-              <span className="text-xs text-[#0066FF] font-semibold flex items-center gap-1 bg-[#EAF3FF] px-2.5 py-1 rounded-full border border-[#BFDBFE]">
+              <span className="text-xs text-[#FF5A00] font-semibold flex items-center gap-1 bg-[#F7E0D4] px-2.5 py-1 rounded-full border border-[#FFD1A3]">
                 <GripVertical className="w-3.5 h-3.5" />
                 Drag to reorder &bull; Write custom text &amp; tags
               </span>
@@ -2371,13 +2371,13 @@ export default function ExcelEmiCampaign({
               <div className="lg:col-span-6 space-y-4">
                 <div>
                   <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
-                    <label className="block text-xs font-bold text-[#0A2540]">
+                    <label className="block text-xs font-bold text-[#2E2E2E]">
                       Approved WhatsApp Template <span className="text-red-500">*</span>
                     </label>
                     {currentTemplate && (
                       <span
                         className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase ${isMediaTemplate
-                            ? "bg-blue-50 text-blue-700 border border-blue-200"
+                            ? "bg-brand-50 text-brand-700 border border-brand-200"
                             : "bg-[#F0FDF4] text-[#15803D] border border-[#BBF7D0]"
                           }`}
                       >
@@ -2396,7 +2396,7 @@ export default function ExcelEmiCampaign({
                         applyPreset(req.presetKey);
                       }
                     }}
-                    className="max-sm:min-h-11 w-full bg-white border border-[#CBD5E1] rounded-xl px-3 py-2.5 max-sm:text-base text-xs text-[#0A2540] focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20 font-medium transition shadow-sm"
+                    className="max-sm:min-h-11 w-full bg-white border border-[#D4D4D4] rounded-xl px-3 py-2.5 max-sm:text-base text-xs text-[#2E2E2E] focus:outline-none focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20 font-medium transition shadow-sm"
                   >
                     {templatesList.map((tpl) => (
                       <option key={tpl.WhatsAppTemplateId} value={tpl.WhatsAppTemplateId}>
@@ -2425,7 +2425,7 @@ export default function ExcelEmiCampaign({
                       const req = KNOWN_TEMPLATE_REQUIREMENTS[selectedTemplateId];
                       if (!req) {
                         return (
-                          <p className="text-[#64748B]">
+                          <p className="text-[#737373]">
                             Configured variables will be sent in comma-separated order to the gateway.
                           </p>
                         );
@@ -2465,15 +2465,15 @@ export default function ExcelEmiCampaign({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#0A2540] mb-1.5">
-                    Campaign Tag / Name <span className="text-[#64748B] font-normal">(Optional for tracking)</span>
+                  <label className="block text-xs font-bold text-[#2E2E2E] mb-1.5">
+                    Campaign Tag / Name <span className="text-[#737373] font-normal">(Optional for tracking)</span>
                   </label>
                   <input
                     type="text"
                     value={campaignName}
                     onChange={(e) => setCampaignName(e.target.value)}
                     placeholder="e.g. Dec25_EMI_Campaign_Batch1"
-                    className="max-sm:min-h-11 w-full bg-white border border-[#CBD5E1] rounded-xl px-3.5 py-2 max-sm:text-base text-xs text-[#0A2540] placeholder-[#94A3B8] focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20 transition shadow-sm font-medium"
+                    className="max-sm:min-h-11 w-full bg-white border border-[#D4D4D4] rounded-xl px-3.5 py-2 max-sm:text-base text-xs text-[#2E2E2E] placeholder-[#A3A3A3] focus:outline-none focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20 transition shadow-sm font-medium"
                   />
                 </div>
               </div>
@@ -2482,44 +2482,44 @@ export default function ExcelEmiCampaign({
               <div className="lg:col-span-6">
                 <div
                   className={`p-4 rounded-xl border transition h-full flex flex-col justify-between ${isMediaTemplate
-                      ? "bg-blue-50/60 border-blue-200"
-                      : "bg-[#F8FAFC] border-[#E2E8F0]"
+                      ? "bg-brand-50/60 border-brand-200"
+                      : "bg-[#FFF8F3] border-[#E5E5E5]"
                     }`}
                 >
                   <div>
                     <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
                       <div className="flex flex-wrap items-center gap-2">
                         <ImageIcon
-                          className={`w-4 h-4 ${isMediaTemplate ? "text-blue-600" : "text-slate-500"
+                          className={`w-4 h-4 ${isMediaTemplate ? "text-brand-600" : "text-slate-500"
                             }`}
                         />
-                        <span className="text-xs font-bold text-[#0A2540]">
+                        <span className="text-xs font-bold text-[#2E2E2E]">
                           Header Media File{" "}
                           {isMediaTemplate ? (
                             <span className="text-red-500 font-semibold">* (Required for #72 &amp; #71)</span>
                           ) : (
-                            <span className="text-[#64748B] font-normal">(Optional)</span>
+                            <span className="text-[#737373] font-normal">(Optional)</span>
                           )}
                         </span>
                       </div>
                       {isMediaTemplate && (
-                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold border border-blue-200">
+                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 font-bold border border-brand-200">
                           Prevents ErrorCode 34
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-[#64748B] mb-3">
+                    <p className="text-xs text-[#737373] mb-3">
                       Required by Meta when sending image-header templates. Upload banner once; it will be sent with all campaign rows.
                     </p>
                   </div>
 
                   {!headerFile ? (
-                    <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-[#CBD5E1] hover:border-[#0066FF] rounded-xl cursor-pointer bg-white hover:bg-slate-50 transition group shadow-sm">
-                      <UploadCloud className="w-6 h-6 text-slate-400 group-hover:text-[#0066FF] transition mb-1" />
-                      <span className="text-xs font-semibold text-[#0A2540] group-hover:text-[#0066FF] transition">
+                    <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-[#D4D4D4] hover:border-[#FF5A00] rounded-xl cursor-pointer bg-white hover:bg-slate-50 transition group shadow-sm">
+                      <UploadCloud className="w-6 h-6 text-slate-400 group-hover:text-[#FF5A00] transition mb-1" />
+                      <span className="text-xs font-semibold text-[#2E2E2E] group-hover:text-[#FF5A00] transition">
                         Select Campaign Header Image
                       </span>
-                      <span className="text-[11px] text-[#64748B] mt-0.5">
+                      <span className="text-[11px] text-[#737373] mt-0.5">
                         PNG, JPG, JPEG or WEBP (up to 5MB)
                       </span>
                       <input
@@ -2530,7 +2530,7 @@ export default function ExcelEmiCampaign({
                       />
                     </label>
                   ) : (
-                    <div className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-white border border-[#E2E8F0] shadow-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl bg-white border border-[#E5E5E5] shadow-sm">
                       <div className="flex flex-wrap items-center gap-3">
                         {headerFilePreview ? (
                           <img
@@ -2544,10 +2544,10 @@ export default function ExcelEmiCampaign({
                           </div>
                         )}
                         <div>
-                          <div className="text-xs font-bold text-[#0A2540] truncate max-w-[200px]">
+                          <div className="text-xs font-bold text-[#2E2E2E] truncate max-w-[200px]">
                             {headerFile.name}
                           </div>
-                          <div className="text-[11px] text-[#64748B]">
+                          <div className="text-[11px] text-[#737373]">
                             {(headerFile.size / 1024).toFixed(1)} KB &bull; Attached to campaign
                           </div>
                         </div>
@@ -2567,45 +2567,45 @@ export default function ExcelEmiCampaign({
             </div>
 
             {/* Variable Slots Mapping Card */}
-            <div className="space-y-4 pt-3.5 border-t border-[#E2E8F0]">
+            <div className="space-y-4 pt-3.5 border-t border-[#E5E5E5]">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-2">
-                  <Sliders className="w-4 h-4 text-[#0066FF]" />
-                  <span className="text-xs font-bold text-[#0A2540]">Variable Slots Configurator:</span>
-                  <span className="text-xs text-[#64748B]">
+                  <Sliders className="w-4 h-4 text-[#FF5A00]" />
+                  <span className="text-xs font-bold text-[#2E2E2E]">Variable Slots Configurator:</span>
+                  <span className="text-xs text-[#737373]">
                     ({variableSlots.length} active slot{variableSlots.length > 1 ? "s" : ""})
                   </span>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs text-[#64748B] font-medium">Quick Presets:</span>
+                  <span className="text-xs text-[#737373] font-medium">Quick Presets:</span>
                   <button
                     type="button"
                     onClick={() => applyPreset("excelv3_78")}
-                    className="max-sm:min-h-11 px-2.5 py-1 rounded-lg text-xs font-semibold bg-[#EAF3FF] text-[#0066FF] border border-[#BFDBFE] hover:bg-blue-100 transition flex items-center gap-1 shadow-2xs"
+                    className="max-sm:min-h-11 px-2.5 py-1 rounded-lg text-xs font-semibold bg-[#F7E0D4] text-[#FF5A00] border border-[#FFD1A3] hover:bg-brand-100 transition flex items-center gap-1 shadow-2xs"
                   >
-                    <Sparkles className="w-3 h-3 text-[#0066FF]" />
+                    <Sparkles className="w-3 h-3 text-[#FF5A00]" />
                     #78 excelv3 (6 vars)
                   </button>
                   <button
                     type="button"
                     onClick={() => applyPreset("reduce_emi_72")}
-                    className="max-sm:min-h-11 px-2.5 py-1 rounded-lg text-xs font-semibold bg-[#EAF3FF] text-[#0066FF] border border-[#BFDBFE] hover:bg-blue-100 transition flex items-center gap-1 shadow-2xs"
+                    className="max-sm:min-h-11 px-2.5 py-1 rounded-lg text-xs font-semibold bg-[#F7E0D4] text-[#FF5A00] border border-[#FFD1A3] hover:bg-brand-100 transition flex items-center gap-1 shadow-2xs"
                   >
-                    <Sparkles className="w-3 h-3 text-[#0066FF]" />
+                    <Sparkles className="w-3 h-3 text-[#FF5A00]" />
                     #72 reduce_emi (4 vars)
                   </button>
                   <button
                     type="button"
                     onClick={() => applyPreset("crminqueri_71")}
-                    className="max-sm:min-h-11 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-[#3C4F69] border border-slate-200 hover:bg-slate-200 transition"
+                    className="max-sm:min-h-11 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-[#575757] border border-slate-200 hover:bg-slate-200 transition"
                   >
                     #71 crm (5 vars)
                   </button>
                   <button
                     type="button"
                     onClick={addVariableSlot}
-                    className="max-sm:min-h-11 px-3 py-1 rounded-lg text-xs font-semibold bg-[#0066FF] hover:bg-blue-700 text-white transition flex items-center gap-1 shadow-sm"
+                    className="max-sm:min-h-11 px-3 py-1 rounded-lg text-xs font-semibold bg-[#FF5A00] hover:bg-brand-700 text-white transition flex items-center gap-1 shadow-sm"
                   >
                     <Plus className="w-3 h-3" />
                     Add Slot
@@ -2631,14 +2631,14 @@ export default function ExcelEmiCampaign({
                       onDrop={(e) => handleDrop(e, idx)}
                       onDragEnd={handleDragEnd}
                       className={`p-4 rounded-xl border transition-all duration-200 ${isDragOverThis
-                          ? "bg-blue-50/80 border-[#0066FF] shadow-lg scale-[1.01]"
+                          ? "bg-brand-50/80 border-[#FF5A00] shadow-lg scale-[1.01]"
                           : isDraggingThis
-                            ? "opacity-40 border-dashed border-[#0066FF] bg-slate-50"
+                            ? "opacity-40 border-dashed border-[#FF5A00] bg-slate-50"
                             : isDifferenceMode
-                              ? "bg-[#F8FAFC] border-amber-200 hover:border-amber-300 shadow-sm"
+                              ? "bg-[#FFF8F3] border-amber-200 hover:border-amber-300 shadow-sm"
                               : isCustomMode
-                                ? "bg-[#FAF8FF] border-blue-200 hover:border-blue-300 shadow-sm"
-                                : "bg-[#F8FAFC] border-[#E2E8F0] hover:border-slate-300 shadow-sm"
+                                ? "bg-[#FAF8FF] border-brand-200 hover:border-brand-300 shadow-sm"
+                                : "bg-[#FFF8F3] border-[#E5E5E5] hover:border-slate-300 shadow-sm"
                         }`}
                     >
                       <div className="flex flex-col gap-3">
@@ -2647,19 +2647,19 @@ export default function ExcelEmiCampaign({
                           <div className="flex flex-wrap items-center gap-2.5">
                             {/* Drag Handle */}
                             <div
-                              className="cursor-grab active:cursor-grabbing p-1.5 rounded-lg text-slate-400 hover:text-[#0066FF] hover:bg-white transition flex items-center justify-center border border-transparent hover:border-slate-200"
+                              className="cursor-grab active:cursor-grabbing p-1.5 rounded-lg text-slate-400 hover:text-[#FF5A00] hover:bg-white transition flex items-center justify-center border border-transparent hover:border-slate-200"
                               title="Drag to change variable position"
                             >
                               <GripVertical className="w-4 h-4" />
                             </div>
 
                             {/* Variable Slot Number */}
-                            <span className="px-2.5 py-1 rounded-lg bg-[#EAF3FF] text-[#0066FF] font-mono font-bold text-xs border border-[#BFDBFE] shrink-0">
+                            <span className="px-2.5 py-1 rounded-lg bg-[#F7E0D4] text-[#FF5A00] font-mono font-bold text-xs border border-[#FFD1A3] shrink-0">
                               {`{{${idx + 1}}}`}
                             </span>
 
                             {/* Mode Switcher: Predefined Tag vs Difference (A - B) vs Custom Text */}
-                            <div className="flex items-center bg-white rounded-lg p-0.5 border border-[#CBD5E1] text-xs shadow-sm">
+                            <div className="flex items-center bg-white rounded-lg p-0.5 border border-[#D4D4D4] text-xs shadow-sm">
                               <button
                                 type="button"
                                 onClick={() =>
@@ -2672,8 +2672,8 @@ export default function ExcelEmiCampaign({
                                   })
                                 }
                                 className={`max-sm:min-h-11 px-2.5 py-1 rounded-md font-medium transition flex items-center gap-1 ${isSelectMode
-                                    ? "bg-[#0066FF] text-white font-semibold shadow-sm"
-                                    : "text-[#64748B] hover:text-[#0A2540]"
+                                    ? "bg-[#FF5A00] text-white font-semibold shadow-sm"
+                                    : "text-[#737373] hover:text-[#2E2E2E]"
                                   }`}
                               >
                                 <Tag className="w-3 h-3" />
@@ -2696,7 +2696,7 @@ export default function ExcelEmiCampaign({
                                 }
                                 className={`max-sm:min-h-11 px-2.5 py-1 rounded-md font-medium transition flex items-center gap-1 ${isDifferenceMode
                                     ? "bg-amber-600 text-white font-semibold shadow-sm"
-                                    : "text-[#64748B] hover:text-[#0A2540]"
+                                    : "text-[#737373] hover:text-[#2E2E2E]"
                                   }`}
                               >
                                 <MinusCircle className="w-3 h-3" />
@@ -2713,8 +2713,8 @@ export default function ExcelEmiCampaign({
                                   })
                                 }
                                 className={`max-sm:min-h-11 px-2.5 py-1 rounded-md font-medium transition flex items-center gap-1 ${isCustomMode
-                                    ? "bg-blue-600 text-white font-semibold shadow-sm"
-                                    : "text-[#64748B] hover:text-[#0A2540]"
+                                    ? "bg-brand-600 text-[#2E2E2E] font-semibold shadow-sm"
+                                    : "text-[#737373] hover:text-[#2E2E2E]"
                                   }`}
                               >
                                 <PenLine className="w-3 h-3" />
@@ -2729,7 +2729,7 @@ export default function ExcelEmiCampaign({
                               type="button"
                               onClick={() => moveSlot(idx, idx - 1)}
                               disabled={idx === 0}
-                              className="max-sm:min-h-11 max-sm:min-w-11 p-1.5 rounded-lg text-slate-500 hover:text-[#0A2540] hover:bg-white border border-transparent hover:border-slate-200 disabled:opacity-25 disabled:pointer-events-none transition"
+                              className="max-sm:min-h-11 max-sm:min-w-11 p-1.5 rounded-lg text-slate-500 hover:text-[#2E2E2E] hover:bg-white border border-transparent hover:border-slate-200 disabled:opacity-25 disabled:pointer-events-none transition"
                               title="Move variable up"
                             >
                               <ArrowUp className="w-3.5 h-3.5" />
@@ -2738,7 +2738,7 @@ export default function ExcelEmiCampaign({
                               type="button"
                               onClick={() => moveSlot(idx, idx + 1)}
                               disabled={idx === variableSlots.length - 1}
-                              className="max-sm:min-h-11 max-sm:min-w-11 p-1.5 rounded-lg text-slate-500 hover:text-[#0A2540] hover:bg-white border border-transparent hover:border-slate-200 disabled:opacity-25 disabled:pointer-events-none transition"
+                              className="max-sm:min-h-11 max-sm:min-w-11 p-1.5 rounded-lg text-slate-500 hover:text-[#2E2E2E] hover:bg-white border border-transparent hover:border-slate-200 disabled:opacity-25 disabled:pointer-events-none transition"
                               title="Move variable down"
                             >
                               <ArrowDown className="w-3.5 h-3.5" />
@@ -2771,7 +2771,7 @@ export default function ExcelEmiCampaign({
                                     onChange={(e) =>
                                       updateVariableSlot(idx, { diffOperandA: e.target.value })
                                     }
-                                    className="max-sm:min-h-11 w-full bg-white border border-amber-300 rounded-lg px-2.5 py-1.5 max-sm:text-base text-xs text-[#0A2540] font-medium focus:outline-none focus:border-[#0066FF] shadow-xs"
+                                    className="max-sm:min-h-11 w-full bg-white border border-amber-300 rounded-lg px-2.5 py-1.5 max-sm:text-base text-xs text-[#2E2E2E] font-medium focus:outline-none focus:border-[#FF5A00] shadow-xs"
                                   >
                                     <optgroup label="Calculated EMI & Loan Values">
                                       <option value="current_emi">Current Monthly EMI</option>
@@ -2824,7 +2824,7 @@ export default function ExcelEmiCampaign({
                                     onChange={(e) =>
                                       updateVariableSlot(idx, { diffOperandB: e.target.value })
                                     }
-                                    className="max-sm:min-h-11 w-full bg-white border border-amber-300 rounded-lg px-2.5 py-1.5 max-sm:text-base text-xs text-[#0A2540] font-medium focus:outline-none focus:border-[#0066FF] shadow-xs"
+                                    className="max-sm:min-h-11 w-full bg-white border border-amber-300 rounded-lg px-2.5 py-1.5 max-sm:text-base text-xs text-[#2E2E2E] font-medium focus:outline-none focus:border-[#FF5A00] shadow-xs"
                                   >
                                     <optgroup label="Calculated EMI & Loan Values">
                                       <option value="current_emi">Current Monthly EMI</option>
@@ -2910,7 +2910,7 @@ export default function ExcelEmiCampaign({
                                   <span className="font-sans font-semibold text-amber-700">
                                     {processedData.length > 0 ? "Row 1 Output:" : "Preview:"}
                                   </span>
-                                  <span className="font-bold text-[#0A2540]">
+                                  <span className="font-bold text-[#2E2E2E]">
                                     {resolveVariableValue(
                                       slot,
                                       processedData.length > 0
@@ -2976,7 +2976,7 @@ export default function ExcelEmiCampaign({
                                     });
                                   }
                                 }}
-                                className="max-sm:min-h-11 w-full bg-white border border-[#CBD5E1] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#0A2540] focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20 font-medium transition shadow-sm"
+                                className="max-sm:min-h-11 w-full bg-white border border-[#D4D4D4] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#2E2E2E] focus:outline-none focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20 font-medium transition shadow-sm"
                               >
                                 {VARIABLE_SOURCE_OPTIONS.filter((o) => o.value !== "custom_text").map(
                                   (opt) => (
@@ -2992,28 +2992,28 @@ export default function ExcelEmiCampaign({
                             <div className="flex flex-wrap items-center gap-3">
                               {slot.sourceType === "static_text" && (
                                 <div className="flex flex-wrap items-center gap-2">
-                                  <span className="text-xs text-[#64748B]">Fixed Text:</span>
+                                  <span className="text-xs text-[#737373]">Fixed Text:</span>
                                   <input
                                     type="text"
                                     value={slot.staticValue ?? ""}
                                     onChange={(e) =>
                                       updateVariableSlot(idx, { staticValue: e.target.value })
                                     }
-                                    placeholder="e.g. Credit Expert India"
-                                    className="max-sm:min-h-11 bg-white border border-[#CBD5E1] rounded-xl px-3 py-1.5 max-sm:text-base text-xs text-[#0A2540] font-mono focus:outline-none focus:border-[#0066FF] w-full sm:w-48 shadow-sm"
+                                    placeholder="e.g. Amortas"
+                                    className="max-sm:min-h-11 bg-white border border-[#D4D4D4] rounded-xl px-3 py-1.5 max-sm:text-base text-xs text-[#2E2E2E] font-mono focus:outline-none focus:border-[#FF5A00] w-full sm:w-48 shadow-sm"
                                   />
                                 </div>
                               )}
 
                               {slot.sourceType === "custom_column" && (
                                 <div className="flex flex-wrap items-center gap-2">
-                                  <span className="text-xs text-[#64748B]">Sheet Column:</span>
+                                  <span className="text-xs text-[#737373]">Sheet Column:</span>
                                   <select
                                     value={slot.customColumnName ?? ""}
                                     onChange={(e) =>
                                       updateVariableSlot(idx, { customColumnName: e.target.value })
                                     }
-                                    className="max-sm:min-h-11 bg-white border border-[#CBD5E1] rounded-xl px-3 py-1.5 max-sm:text-base text-xs text-[#0A2540] font-mono focus:outline-none focus:border-[#0066FF] shadow-sm"
+                                    className="max-sm:min-h-11 bg-white border border-[#D4D4D4] rounded-xl px-3 py-1.5 max-sm:text-base text-xs text-[#2E2E2E] font-mono focus:outline-none focus:border-[#FF5A00] shadow-sm"
                                   >
                                     <option value="">-- Select Column --</option>
                                     {availableColumns.map((col) => (
@@ -3031,20 +3031,20 @@ export default function ExcelEmiCampaign({
                                 slot.sourceType === "total_savings" ||
                                 slot.sourceType === "total_amount") && (
                                   <div className="flex flex-wrap items-center gap-3">
-                                    <label className="flex items-center gap-1.5 text-xs text-[#3C4F69] cursor-pointer">
+                                    <label className="flex items-center gap-1.5 text-xs text-[#575757] cursor-pointer">
                                       <input
                                         type="checkbox"
                                         checked={slot.formatAsCurrency ?? false}
                                         onChange={(e) =>
                                           updateVariableSlot(idx, { formatAsCurrency: e.target.checked })
                                         }
-                                        className="rounded border-[#CBD5E1] text-[#0066FF] focus:ring-0 w-3.5 h-3.5"
+                                        className="rounded border-[#D4D4D4] text-[#FF5A00] focus:ring-0 w-3.5 h-3.5"
                                       />
                                       <span>Format Indian Numbering</span>
                                     </label>
 
                                     {slot.formatAsCurrency && (
-                                      <label className="flex items-center gap-1 text-xs text-[#3C4F69] cursor-pointer">
+                                      <label className="flex items-center gap-1 text-xs text-[#575757] cursor-pointer">
                                         <input
                                           type="checkbox"
                                           checked={slot.includeRupeeSymbol ?? false}
@@ -3053,7 +3053,7 @@ export default function ExcelEmiCampaign({
                                               includeRupeeSymbol: e.target.checked,
                                             })
                                           }
-                                          className="rounded border-[#CBD5E1] text-[#0066FF] focus:ring-0 w-3.5 h-3.5"
+                                          className="rounded border-[#D4D4D4] text-[#FF5A00] focus:ring-0 w-3.5 h-3.5"
                                         />
                                         <span>Include ₹ Symbol</span>
                                       </label>
@@ -3075,14 +3075,14 @@ export default function ExcelEmiCampaign({
                                     staticValue: e.target.value,
                                   })
                                 }
-                                placeholder="Type custom text or write tokens e.g. Credit Expert India, or Offer: ₹{emi_diff} saved!"
-                                className="max-sm:min-h-11 w-full bg-white border border-blue-300 rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#0A2540] placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 font-mono transition shadow-sm"
+                                placeholder="Type custom text or write tokens e.g. Amortas, or Offer: ₹{emi_diff} saved!"
+                                className="max-sm:min-h-11 w-full bg-white border border-brand-300 rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#2E2E2E] placeholder-slate-400 focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-100 font-mono transition shadow-sm"
                               />
                             </div>
 
                             {/* Clickable Quick Tokens to Insert */}
                             <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-                              <span className="text-[#64748B] font-medium">Click to insert tag:</span>
+                              <span className="text-[#737373] font-medium">Click to insert tag:</span>
                               {[
                                 { label: "+ Name", token: "{name}" },
                                 { label: "+ Current EMI", token: "{current_emi}" },
@@ -3103,7 +3103,7 @@ export default function ExcelEmiCampaign({
                                     const next = current ? `${current} ${t.token}` : t.token;
                                     updateVariableSlot(idx, { customText: next, staticValue: next });
                                   }}
-                                  className="max-sm:min-h-11 px-2.5 py-0.5 rounded-lg bg-white border border-[#CBD5E1] text-blue-700 hover:text-blue-900 hover:border-blue-400 hover:bg-blue-50 transition shadow-xs"
+                                  className="max-sm:min-h-11 px-2.5 py-0.5 rounded-lg bg-white border border-[#D4D4D4] text-brand-700 hover:text-brand-900 hover:border-brand-400 hover:bg-brand-50 transition shadow-xs"
                                 >
                                   {t.label}
                                 </button>
@@ -3137,18 +3137,18 @@ export default function ExcelEmiCampaign({
           </div>
 
           {/* STEP 4: REAL-TIME CALCULATION & DATA PREVIEW TABLE */}
-          <div className="bg-white border border-[#E2E8F0] rounded-2xl p-4 sm:p-6 shadow-sm space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E8F0] pb-3.5">
+          <div className="bg-white border border-[#E5E5E5] rounded-2xl p-4 sm:p-6 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E5E5E5] pb-3.5">
               <div className="flex items-center gap-2.5 flex-wrap">
-                <span className="w-7 h-7 rounded-lg bg-[#EAF3FF] text-[#0066FF] border border-[#BFDBFE] flex items-center justify-center text-xs font-bold shrink-0">
+                <span className="w-7 h-7 rounded-lg bg-[#F7E0D4] text-[#FF5A00] border border-[#FFD1A3] flex items-center justify-center text-xs font-bold shrink-0">
                   4
                 </span>
-                <h3 className="text-base font-bold text-[#0A2540]">
+                <h3 className="text-base font-bold text-[#2E2E2E]">
                   Calculation Preview ({filteredData.length.toLocaleString()} matching rows)
                 </h3>
                 {isColumnFilterActive && (
-                  <span className="text-[11px] px-2.5 py-1 rounded-full bg-blue-50 text-[#0066FF] border border-blue-200 font-semibold flex items-center gap-1.5 shadow-2xs">
-                    <Filter className="w-3 h-3 text-[#0066FF]" />
+                  <span className="text-[11px] px-2.5 py-1 rounded-full bg-brand-50 text-[#FF5A00] border border-brand-200 font-semibold flex items-center gap-1.5 shadow-2xs">
+                    <Filter className="w-3 h-3 text-[#FF5A00]" />
                     <span>
                       Filter: <strong>{columnFilterCol === "__ALL__" ? "All Cols" : columnFilterCol}</strong> {columnFilterCondition === "contains" ? "~" : "="} &quot;<strong>{columnFilterKeyword}</strong>&quot;
                     </span>
@@ -3176,11 +3176,11 @@ export default function ExcelEmiCampaign({
                       setCurrentPage(1);
                     }}
                     placeholder="Search name or phone..."
-                    className="max-sm:min-h-11 pl-8 pr-3 py-1.5 bg-white border border-[#CBD5E1] rounded-xl max-sm:text-base text-xs text-[#0A2540] placeholder-slate-400 focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20 w-full sm:w-48 shadow-sm font-medium"
+                    className="max-sm:min-h-11 pl-8 pr-3 py-1.5 bg-white border border-[#D4D4D4] rounded-xl max-sm:text-base text-xs text-[#2E2E2E] placeholder-slate-400 focus:outline-none focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20 w-full sm:w-48 shadow-sm font-medium"
                   />
                 </div>
 
-                <div className="flex items-center bg-[#F1F5F9] p-1 rounded-xl border border-slate-200 text-xs">
+                <div className="flex items-center bg-[#F5F0EB] p-1 rounded-xl border border-slate-200 text-xs">
                   <button
                     type="button"
                     onClick={() => {
@@ -3188,8 +3188,8 @@ export default function ExcelEmiCampaign({
                       setCurrentPage(1);
                     }}
                     className={`max-sm:min-h-11 px-2.5 py-1 rounded-lg transition ${filterMode === "all"
-                        ? "bg-[#0066FF] text-white font-semibold shadow-xs"
-                        : "text-[#64748B] hover:text-[#0A2540]"
+                        ? "bg-[#FF5A00] text-white font-semibold shadow-xs"
+                        : "text-[#737373] hover:text-[#2E2E2E]"
                       }`}
                   >
                     All ({processedData.length})
@@ -3201,8 +3201,8 @@ export default function ExcelEmiCampaign({
                       setCurrentPage(1);
                     }}
                     className={`max-sm:min-h-11 px-2.5 py-1 rounded-lg transition ${filterMode === "valid"
-                        ? "bg-[#0066FF] text-white font-semibold shadow-xs"
-                        : "text-[#64748B] hover:text-[#0A2540]"
+                        ? "bg-[#FF5A00] text-white font-semibold shadow-xs"
+                        : "text-[#737373] hover:text-[#2E2E2E]"
                       }`}
                   >
                     Valid Phone
@@ -3215,7 +3215,7 @@ export default function ExcelEmiCampaign({
                     }}
                     className={`max-sm:min-h-11 px-2.5 py-1 rounded-lg transition ${filterMode === "invalid"
                         ? "bg-red-600 text-white font-semibold shadow-xs"
-                        : "text-[#64748B] hover:text-[#0A2540]"
+                        : "text-[#737373] hover:text-[#2E2E2E]"
                       }`}
                   >
                     Invalid Phone
@@ -3227,8 +3227,8 @@ export default function ExcelEmiCampaign({
                       setCurrentPage(1);
                     }}
                     className={`max-sm:min-h-11 px-2.5 py-1 rounded-lg transition ${filterMode === "savings"
-                        ? "bg-[#0066FF] text-white font-semibold shadow-xs"
-                        : "text-[#64748B] hover:text-[#0A2540]"
+                        ? "bg-[#FF5A00] text-white font-semibold shadow-xs"
+                        : "text-[#737373] hover:text-[#2E2E2E]"
                       }`}
                   >
                     Eligible for Savings
@@ -3237,13 +3237,13 @@ export default function ExcelEmiCampaign({
 
                 {/* Quick Phone Rule Switcher directly in Table Toolbar */}
                 {phoneCol && (
-                  <div className="flex items-center gap-1.5 bg-[#F1F5F9] border border-slate-200 rounded-xl px-2.5 py-1 text-xs">
-                    <Phone className="w-3.5 h-3.5 text-[#0066FF]" />
-                    <span className="font-semibold text-[#0A2540] hidden sm:inline">Phone Rule:</span>
+                  <div className="flex items-center gap-1.5 bg-[#F5F0EB] border border-slate-200 rounded-xl px-2.5 py-1 text-xs">
+                    <Phone className="w-3.5 h-3.5 text-[#FF5A00]" />
+                    <span className="font-semibold text-[#2E2E2E] hidden sm:inline">Phone Rule:</span>
                     <select
                       value={phoneFormatMode}
                       onChange={(e) => setPhoneFormatMode(e.target.value as PhoneFormatOption)}
-                      className="max-sm:min-h-11 bg-transparent max-sm:text-base text-xs text-[#0066FF] font-semibold focus:outline-none cursor-pointer"
+                      className="max-sm:min-h-11 bg-transparent max-sm:text-base text-xs text-[#FF5A00] font-semibold focus:outline-none cursor-pointer"
                       title="Switch phone formatting rule applied to column"
                     >
                       {PHONE_FORMAT_OPTIONS.map((opt) => (
@@ -3258,10 +3258,10 @@ export default function ExcelEmiCampaign({
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto rounded-xl border border-[#E2E8F0] shadow-xs">
+            <div className="overflow-x-auto rounded-xl border border-[#E5E5E5] shadow-xs">
               <table className="w-full min-w-[720px] text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-[#F8FAFC] text-[#3C4F69] border-b border-[#E2E8F0] font-bold">
+                  <tr className="bg-[#FFF8F3] text-[#575757] border-b border-[#E5E5E5] font-bold">
                     <th className="py-3 px-3.5">#</th>
                     <th className="py-3 px-3.5">Customer Name</th>
                     <th className="py-3 px-3.5">Mobile (WhatsApp)</th>
@@ -3269,7 +3269,7 @@ export default function ExcelEmiCampaign({
                     <th className="py-3 px-3.5 text-center">Tenure</th>
                     <th className="py-3 px-3.5 text-center">Cur ROI</th>
                     <th className="py-3 px-3.5 text-right text-slate-800">Current EMI</th>
-                    <th className="py-3 px-3.5 text-right text-[#0066FF]">New EMI (@9.99%)</th>
+                    <th className="py-3 px-3.5 text-right text-[#FF5A00]">New EMI (@9.99%)</th>
                     <th className="py-3 px-3.5 text-right text-emerald-600">Monthly Savings</th>
                     <th className="py-3 px-3.5">Generated Sample String</th>
                   </tr>
@@ -3278,12 +3278,12 @@ export default function ExcelEmiCampaign({
                   {paginatedData.map((item) => (
                     <tr
                       key={item.rowIndex}
-                      className="hover:bg-[#F8FAFC]/80 transition group"
+                      className="hover:bg-[#FFF8F3]/80 transition group"
                     >
                       <td className="py-2.5 px-3.5 font-mono text-xs text-slate-500">
                         {item.rowIndex}
                       </td>
-                      <td className="py-2.5 px-3.5 font-semibold text-[#0A2540] truncate max-w-[150px]">
+                      <td className="py-2.5 px-3.5 font-semibold text-[#2E2E2E] truncate max-w-[150px]">
                         {item.name || <span className="text-slate-400 italic">No name</span>}
                       </td>
                       <td className="py-2.5 px-3.5">
@@ -3321,7 +3321,7 @@ export default function ExcelEmiCampaign({
                       <td className="py-2.5 px-3.5 text-right font-mono text-slate-900 font-bold">
                         {formatInrCurrency(item.calc.currentEmi, { showSymbol: true })}
                       </td>
-                      <td className="py-2.5 px-3.5 text-right font-mono text-[#0066FF] font-bold">
+                      <td className="py-2.5 px-3.5 text-right font-mono text-[#FF5A00] font-bold">
                         {formatInrCurrency(item.calc.newEmi, { showSymbol: true })}
                       </td>
                       <td className="py-2.5 px-3.5 text-right font-mono text-emerald-600 font-bold">
@@ -3347,8 +3347,8 @@ export default function ExcelEmiCampaign({
             {totalPages > 1 && (
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600 pt-1">
                 <div>
-                  Showing Page <strong className="text-[#0A2540]">{currentPage}</strong> of{" "}
-                  <strong className="text-[#0A2540]">{totalPages}</strong> (
+                  Showing Page <strong className="text-[#2E2E2E]">{currentPage}</strong> of{" "}
+                  <strong className="text-[#2E2E2E]">{totalPages}</strong> (
                   {filteredData.length.toLocaleString()} total rows)
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5">
@@ -3356,7 +3356,7 @@ export default function ExcelEmiCampaign({
                     type="button"
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="max-sm:min-h-11 max-sm:min-w-11 p-1.5 rounded-lg bg-white border border-[#CBD5E1] hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none text-[#0A2540] transition shadow-xs"
+                    className="max-sm:min-h-11 max-sm:min-w-11 p-1.5 rounded-lg bg-white border border-[#D4D4D4] hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none text-[#2E2E2E] transition shadow-xs"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
@@ -3364,7 +3364,7 @@ export default function ExcelEmiCampaign({
                     type="button"
                     onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className="max-sm:min-h-11 max-sm:min-w-11 p-1.5 rounded-lg bg-white border border-[#CBD5E1] hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none text-[#0A2540] transition shadow-xs"
+                    className="max-sm:min-h-11 max-sm:min-w-11 p-1.5 rounded-lg bg-white border border-[#D4D4D4] hover:bg-slate-50 disabled:opacity-30 disabled:pointer-events-none text-[#2E2E2E] transition shadow-xs"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>
@@ -3375,19 +3375,19 @@ export default function ExcelEmiCampaign({
 
           {/* DEDICATED SECTION 4.5: SINGLE TEST SANDBOX (CUSTOM DETAILS WITH PRE-FILLED DEFAULTS) */}
           <div className="bg-gradient-to-br from-white via-white to-[#F0FDF4] border border-[#BBF7D0] rounded-2xl p-4 sm:p-6 shadow-[0_4px_20px_-4px_rgba(16,185,129,0.12)] space-y-4 relative overflow-hidden">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E2E8F0] pb-3.5">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E5E5E5] pb-3.5">
               <div className="flex flex-wrap items-center gap-2.5">
                 <span className="w-8 h-8 rounded-xl bg-[#F0FDF4] text-[#15803D] border border-[#BBF7D0] flex items-center justify-center text-xs font-bold shadow-xs">
                   <FlaskConical className="w-4 h-4" />
                 </span>
                 <div>
-                  <h3 className="text-base font-bold text-[#0A2540] flex items-center gap-2">
+                  <h3 className="text-base font-bold text-[#2E2E2E] flex items-center gap-2">
                     Single Test Message Sandbox
-                    <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#EAF3FF] text-[#0066FF] font-bold border border-[#BFDBFE]">
+                    <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-[#F7E0D4] text-[#FF5A00] font-bold border border-[#FFD1A3]">
                       Custom Details with Pre-filled Defaults
                     </span>
                   </h3>
-                  <p className="text-xs text-[#64748B]">
+                  <p className="text-xs text-[#737373]">
                     Test your configured WhatsApp variables with any custom numbers before running bulk campaigns
                   </p>
                 </div>
@@ -3398,17 +3398,17 @@ export default function ExcelEmiCampaign({
                   <button
                     type="button"
                     onClick={handleLoadRowOneIntoTest}
-                    className="max-sm:min-h-11 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-slate-50 text-[#0A2540] border border-[#CBD5E1] transition flex items-center gap-1.5 shadow-xs"
+                    className="max-sm:min-h-11 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-slate-50 text-[#2E2E2E] border border-[#D4D4D4] transition flex items-center gap-1.5 shadow-xs"
                     title="Load Row 1 from uploaded Excel"
                   >
-                    <Copy className="w-3.5 h-3.5 text-[#0066FF]" />
+                    <Copy className="w-3.5 h-3.5 text-[#FF5A00]" />
                     <span>Load Row 1</span>
                   </button>
                 )}
                 <button
                   type="button"
                   onClick={handleResetTestDefaults}
-                  className="max-sm:min-h-11 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-slate-50 text-[#64748B] border border-[#CBD5E1] transition flex items-center gap-1 shadow-xs"
+                  className="max-sm:min-h-11 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-slate-50 text-[#737373] border border-[#D4D4D4] transition flex items-center gap-1 shadow-xs"
                   title="Reset to default test values"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
@@ -3417,7 +3417,7 @@ export default function ExcelEmiCampaign({
                 <button
                   type="button"
                   onClick={() => setIsTestBoxOpen(!isTestBoxOpen)}
-                  className="max-sm:min-h-11 max-sm:min-w-11 p-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-500 border border-[#CBD5E1] transition shadow-xs"
+                  className="max-sm:min-h-11 max-sm:min-w-11 p-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-500 border border-[#D4D4D4] transition shadow-xs"
                   title="Toggle Sandbox"
                 >
                   {isTestBoxOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -3431,8 +3431,8 @@ export default function ExcelEmiCampaign({
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">
                   {/* Test Recipient Phone */}
                   <div className="sm:col-span-2 lg:col-span-2 xl:col-span-2">
-                    <label className="block text-xs font-bold text-[#0A2540] mb-1.5 flex items-center gap-1.5">
-                      <Phone className="w-3.5 h-3.5 text-[#0066FF]" />
+                    <label className="block text-xs font-bold text-[#2E2E2E] mb-1.5 flex items-center gap-1.5">
+                      <Phone className="w-3.5 h-3.5 text-[#FF5A00]" />
                       Recipient Phone (WhatsApp) <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -3440,15 +3440,15 @@ export default function ExcelEmiCampaign({
                       value={testDetails.phone}
                       onChange={(e) => setTestDetails({ ...testDetails, phone: e.target.value })}
                       placeholder="e.g. 919827322519 or 10-digits"
-                      className="max-sm:min-h-11 w-full bg-white border border-[#CBD5E1] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#0A2540] font-mono placeholder-slate-400 focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20 transition shadow-sm font-medium"
+                      className="max-sm:min-h-11 w-full bg-white border border-[#D4D4D4] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#2E2E2E] font-mono placeholder-slate-400 focus:outline-none focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20 transition shadow-sm font-medium"
                     />
-                    <p className="text-[11px] text-[#64748B] mt-0.5">Auto adds 91 prefix for 10-digits</p>
+                    <p className="text-[11px] text-[#737373] mt-0.5">Auto adds 91 prefix for 10-digits</p>
                   </div>
 
                   {/* Test Customer Name */}
                   <div>
-                    <label className="block text-xs font-bold text-[#0A2540] mb-1.5 flex items-center gap-1.5">
-                      <User className="w-3.5 h-3.5 text-[#0066FF]" />
+                    <label className="block text-xs font-bold text-[#2E2E2E] mb-1.5 flex items-center gap-1.5">
+                      <User className="w-3.5 h-3.5 text-[#FF5A00]" />
                       Customer Name
                     </label>
                     <input
@@ -3456,15 +3456,15 @@ export default function ExcelEmiCampaign({
                       value={testDetails.name}
                       onChange={(e) => setTestDetails({ ...testDetails, name: e.target.value })}
                       placeholder="e.g. Rahul Sharma"
-                      className="max-sm:min-h-11 w-full bg-white border border-[#CBD5E1] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#0A2540] focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20 transition shadow-sm font-medium"
+                      className="max-sm:min-h-11 w-full bg-white border border-[#D4D4D4] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#2E2E2E] focus:outline-none focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20 transition shadow-sm font-medium"
                     />
-                    <p className="text-[11px] text-[#64748B] mt-0.5">Default: Rahul Sharma</p>
+                    <p className="text-[11px] text-[#737373] mt-0.5">Default: Rahul Sharma</p>
                   </div>
 
                   {/* Test Loan Amount */}
                   <div>
-                    <label className="block text-xs font-bold text-[#0A2540] mb-1.5 flex items-center gap-1.5">
-                      <DollarSign className="w-3.5 h-3.5 text-[#0066FF]" />
+                    <label className="block text-xs font-bold text-[#2E2E2E] mb-1.5 flex items-center gap-1.5">
+                      <DollarSign className="w-3.5 h-3.5 text-[#FF5A00]" />
                       Loan Amount (₹)
                     </label>
                     <input
@@ -3477,15 +3477,15 @@ export default function ExcelEmiCampaign({
                           amount: Math.max(0, parseFloat(e.target.value) || 0),
                         })
                       }
-                      className="max-sm:min-h-11 w-full bg-white border border-[#CBD5E1] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#0A2540] font-mono focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20 transition shadow-sm font-medium"
+                      className="max-sm:min-h-11 w-full bg-white border border-[#D4D4D4] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#2E2E2E] font-mono focus:outline-none focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20 transition shadow-sm font-medium"
                     />
-                    <p className="text-[11px] text-[#64748B] mt-0.5">Default: ₹2,00,000</p>
+                    <p className="text-[11px] text-[#737373] mt-0.5">Default: ₹2,00,000</p>
                   </div>
 
                   {/* Test Tenure */}
                   <div>
-                    <label className="block text-xs font-bold text-[#0A2540] mb-1.5 flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-[#0066FF]" />
+                    <label className="block text-xs font-bold text-[#2E2E2E] mb-1.5 flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-[#FF5A00]" />
                       Tenure (Months)
                     </label>
                     <input
@@ -3499,14 +3499,14 @@ export default function ExcelEmiCampaign({
                           tenure: Math.max(1, parseInt(e.target.value, 10) || 1),
                         })
                       }
-                      className="max-sm:min-h-11 w-full bg-white border border-[#CBD5E1] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#0A2540] font-mono focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20 transition shadow-sm font-medium"
+                      className="max-sm:min-h-11 w-full bg-white border border-[#D4D4D4] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#2E2E2E] font-mono focus:outline-none focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20 transition shadow-sm font-medium"
                     />
-                    <p className="text-[11px] text-[#64748B] mt-0.5">Default: 24 Months</p>
+                    <p className="text-[11px] text-[#737373] mt-0.5">Default: 24 Months</p>
                   </div>
 
                   {/* Test Current ROI */}
                   <div>
-                    <label className="block text-xs font-bold text-[#0A2540] mb-1.5 flex items-center gap-1.5">
+                    <label className="block text-xs font-bold text-[#2E2E2E] mb-1.5 flex items-center gap-1.5">
                       <TrendingDown className="w-3.5 h-3.5 text-amber-500" />
                       Current ROI (%)
                     </label>
@@ -3522,14 +3522,14 @@ export default function ExcelEmiCampaign({
                           currentRoi: parseFloat(e.target.value) || 0,
                         })
                       }
-                      className="max-sm:min-h-11 w-full bg-white border border-[#CBD5E1] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#0A2540] font-mono focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20 transition shadow-sm font-medium"
+                      className="max-sm:min-h-11 w-full bg-white border border-[#D4D4D4] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#2E2E2E] font-mono focus:outline-none focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20 transition shadow-sm font-medium"
                     />
-                    <p className="text-[11px] text-[#64748B] mt-0.5">Default: 23.5%</p>
+                    <p className="text-[11px] text-[#737373] mt-0.5">Default: 23.5%</p>
                   </div>
 
                   {/* Test Target ROI */}
                   <div>
-                    <label className="block text-xs font-bold text-[#0A2540] mb-1.5 flex items-center gap-1.5">
+                    <label className="block text-xs font-bold text-[#2E2E2E] mb-1.5 flex items-center gap-1.5">
                       <Percent className="w-3.5 h-3.5 text-emerald-600" />
                       Target ROI (%)
                     </label>
@@ -3545,21 +3545,21 @@ export default function ExcelEmiCampaign({
                           targetRoi: parseFloat(e.target.value) || 9.99,
                         })
                       }
-                      className="max-sm:min-h-11 w-full bg-white border border-[#CBD5E1] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#0A2540] font-mono focus:outline-none focus:border-[#0066FF] focus:ring-2 focus:ring-[#0066FF]/20 transition shadow-sm font-medium"
+                      className="max-sm:min-h-11 w-full bg-white border border-[#D4D4D4] rounded-xl px-3 py-2 max-sm:text-base text-xs text-[#2E2E2E] font-mono focus:outline-none focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20 transition shadow-sm font-medium"
                     />
-                    <p className="text-[11px] text-[#64748B] mt-0.5">Default: 9.99%</p>
+                    <p className="text-[11px] text-[#737373] mt-0.5">Default: 9.99%</p>
                   </div>
                 </div>
 
                 {/* ADDITIONAL CUSTOM FIELDS CARD */}
-                <div className="bg-white border border-[#E2E8F0] rounded-xl p-4 space-y-3 shadow-xs">
+                <div className="bg-white border border-[#E5E5E5] rounded-xl p-4 space-y-3 shadow-xs">
                   <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-xs font-bold text-[#0A2540] flex items-center gap-1.5">
-                        <Tag className="w-3.5 h-3.5 text-[#0066FF]" />
+                      <span className="text-xs font-bold text-[#2E2E2E] flex items-center gap-1.5">
+                        <Tag className="w-3.5 h-3.5 text-[#FF5A00]" />
                         Additional Test Fields & Excel Columns
                       </span>
-                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#EAF3FF] text-[#0066FF] border border-[#BFDBFE]">
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#F7E0D4] text-[#FF5A00] border border-[#FFD1A3]">
                         {testExtraFields.length} {testExtraFields.length === 1 ? "field" : "fields"}
                       </span>
                     </div>
@@ -3567,7 +3567,7 @@ export default function ExcelEmiCampaign({
                     <button
                       type="button"
                       onClick={() => addTestExtraField()}
-                      className="max-sm:min-h-11 px-3 py-1.5 rounded-xl bg-[#0066FF] hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition"
+                      className="max-sm:min-h-11 px-3 py-1.5 rounded-xl bg-[#FF5A00] hover:bg-brand-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Add Field</span>
@@ -3577,7 +3577,7 @@ export default function ExcelEmiCampaign({
                   {/* Quick Add from Uploaded Sheet Columns */}
                   {availableColumns.length > 0 && (
                     <div className="flex flex-wrap items-center gap-1.5 text-xs pt-0.5">
-                      <span className="text-[11px] text-[#64748B] font-medium">Quick add from Excel:</span>
+                      <span className="text-[11px] text-[#737373] font-medium">Quick add from Excel:</span>
                       {availableColumns
                         .filter((col) => !testExtraFields.some((f) => f.key.toLowerCase() === col.toLowerCase()))
                         .slice(0, 10)
@@ -3589,9 +3589,9 @@ export default function ExcelEmiCampaign({
                               const rowVal = processedData.length > 0 ? String(processedData[0].row[col] ?? "") : "";
                               addTestExtraField(col, rowVal);
                             }}
-                            className="px-2 py-0.5 rounded-lg bg-[#F1F5F9] border border-slate-200 text-[#0A2540] hover:bg-[#EAF3FF] hover:border-[#BFDBFE] hover:text-[#0066FF] text-[11px] font-mono transition flex items-center gap-1 shadow-2xs"
+                            className="px-2 py-0.5 rounded-lg bg-[#F5F0EB] border border-slate-200 text-[#2E2E2E] hover:bg-[#F7E0D4] hover:border-[#FFD1A3] hover:text-[#FF5A00] text-[11px] font-mono transition flex items-center gap-1 shadow-2xs"
                           >
-                            <Plus className="w-2.5 h-2.5 text-[#0066FF]" />
+                            <Plus className="w-2.5 h-2.5 text-[#FF5A00]" />
                             <span>{col}</span>
                           </button>
                         ))}
@@ -3600,12 +3600,12 @@ export default function ExcelEmiCampaign({
 
                   {/* List of Extra Fields */}
                   {testExtraFields.length === 0 ? (
-                    <div className="py-4 px-4 rounded-xl bg-slate-50 border border-dashed border-slate-200 text-center text-xs text-[#64748B]">
+                    <div className="py-4 px-4 rounded-xl bg-slate-50 border border-dashed border-slate-200 text-center text-xs text-[#737373]">
                       No additional fields added. Click{" "}
                       <button
                         type="button"
                         onClick={() => addTestExtraField()}
-                        className="max-sm:min-h-11 font-semibold text-[#0066FF] hover:underline"
+                        className="max-sm:min-h-11 font-semibold text-[#FF5A00] hover:underline"
                       >
                         + Add Field
                       </button>{" "}
@@ -3622,11 +3622,11 @@ export default function ExcelEmiCampaign({
                       {testExtraFields.map((field) => (
                         <div
                           key={field.id}
-                          className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:border-slate-300 transition"
+                          className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-2.5 rounded-xl bg-[#FFF8F3] border border-[#E5E5E5] hover:border-slate-300 transition"
                         >
                           {/* Field Key */}
                           <div className="sm:w-56 shrink-0">
-                            <label className="block text-[11px] font-semibold text-[#64748B] mb-0.5 sm:hidden">
+                            <label className="block text-[11px] font-semibold text-[#737373] mb-0.5 sm:hidden">
                               Field / Column Name
                             </label>
                             <input
@@ -3635,7 +3635,7 @@ export default function ExcelEmiCampaign({
                               value={field.key}
                               onChange={(e) => updateTestExtraField(field.id, { key: e.target.value })}
                               placeholder="e.g. City or SANCTIONAMOUNT"
-                              className="max-sm:min-h-11 w-full bg-white border border-[#CBD5E1] rounded-lg px-2.5 py-1.5 max-sm:text-base text-xs text-[#0A2540] font-mono focus:outline-none focus:border-[#0066FF] shadow-xs"
+                              className="max-sm:min-h-11 w-full bg-white border border-[#D4D4D4] rounded-lg px-2.5 py-1.5 max-sm:text-base text-xs text-[#2E2E2E] font-mono focus:outline-none focus:border-[#FF5A00] shadow-xs"
                             />
                           </div>
 
@@ -3643,7 +3643,7 @@ export default function ExcelEmiCampaign({
 
                           {/* Field Value */}
                           <div className="flex-1">
-                            <label className="block text-[11px] font-semibold text-[#64748B] mb-0.5 sm:hidden">
+                            <label className="block text-[11px] font-semibold text-[#737373] mb-0.5 sm:hidden">
                               Value
                             </label>
                             <input
@@ -3651,15 +3651,15 @@ export default function ExcelEmiCampaign({
                               value={field.value}
                               onChange={(e) => updateTestExtraField(field.id, { value: e.target.value })}
                               placeholder="Value for test message"
-                              className="max-sm:min-h-11 w-full bg-white border border-[#CBD5E1] rounded-lg px-2.5 py-1.5 max-sm:text-base text-xs text-[#0A2540] font-mono focus:outline-none focus:border-[#0066FF] shadow-xs"
+                              className="max-sm:min-h-11 w-full bg-white border border-[#D4D4D4] rounded-lg px-2.5 py-1.5 max-sm:text-base text-xs text-[#2E2E2E] font-mono focus:outline-none focus:border-[#FF5A00] shadow-xs"
                             />
                           </div>
 
                           {/* Token Hint Badge */}
                           {field.key.trim() && (
                             <div className="hidden md:flex items-center gap-1.5 text-[11px] text-slate-500 font-mono px-2 py-1 rounded-md bg-white border border-slate-200 shrink-0">
-                              <span className="text-[#64748B]">Token:</span>
-                              <span className="text-blue-600 font-bold">&#123;{field.key.trim()}&#125;</span>
+                              <span className="text-[#737373]">Token:</span>
+                              <span className="text-brand-600 font-bold">&#123;{field.key.trim()}&#125;</span>
                             </div>
                           )}
 
@@ -3684,7 +3684,7 @@ export default function ExcelEmiCampaign({
                       ? "bg-amber-50/70 border-amber-300 shadow-sm"
                       : headerFile
                         ? "bg-white border-[#BBF7D0] shadow-xs"
-                        : "bg-white border-[#E2E8F0] shadow-xs"
+                        : "bg-white border-[#E5E5E5] shadow-xs"
                     }`}
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2.5 mb-2.5">
@@ -3697,7 +3697,7 @@ export default function ExcelEmiCampaign({
                             : "text-slate-500"
                           }`}
                       />
-                      <span className="text-xs font-bold text-[#0A2540]">
+                      <span className="text-xs font-bold text-[#2E2E2E]">
                         Header Media File for Test
                       </span>
                       {isMediaTemplate ? (
@@ -3722,17 +3722,17 @@ export default function ExcelEmiCampaign({
                       <button
                         type="button"
                         onClick={handleLoadSampleHeaderImage}
-                        className="max-sm:min-h-11 px-2.5 py-1 rounded-lg bg-[#EAF3FF] hover:bg-blue-100 text-[#0066FF] border border-[#BFDBFE] text-[11px] font-semibold transition flex items-center gap-1.5 shadow-2xs"
-                        title="Load official Credit Expert India banner image from app"
+                        className="max-sm:min-h-11 px-2.5 py-1 rounded-lg bg-[#F7E0D4] hover:bg-brand-100 text-[#FF5A00] border border-[#FFD1A3] text-[11px] font-semibold transition flex items-center gap-1.5 shadow-2xs"
+                        title="Load official Amortas banner image from app"
                       >
-                        <Sparkles className="w-3.5 h-3.5 text-[#0066FF]" />
+                        <Sparkles className="w-3.5 h-3.5 text-[#FF5A00]" />
                         <span>Use Sample Banner</span>
                       </button>
                     )}
                   </div>
 
                   {headerFile ? (
-                    <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-[#F8FAFC] border border-slate-200">
+                    <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl bg-[#FFF8F3] border border-slate-200">
                       <div className="flex flex-wrap items-center gap-3">
                         {headerFilePreview ? (
                           <img
@@ -3746,10 +3746,10 @@ export default function ExcelEmiCampaign({
                           </div>
                         )}
                         <div>
-                          <div className="text-xs font-bold text-[#0A2540] truncate max-w-[280px]">
+                          <div className="text-xs font-bold text-[#2E2E2E] truncate max-w-[280px]">
                             {headerFile.name}
                           </div>
-                          <div className="text-[11px] text-[#64748B] flex items-center gap-2">
+                          <div className="text-[11px] text-[#737373] flex items-center gap-2">
                             <span>{(headerFile.size / 1024).toFixed(1)} KB</span>
                             <span>&bull;</span>
                             <span className="text-emerald-700 font-semibold">Attached to Test &amp; Batch Campaign</span>
@@ -3779,12 +3779,12 @@ export default function ExcelEmiCampaign({
                     </div>
                   ) : (
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-                      <label className="flex-1 flex items-center justify-center gap-2 p-3 border-2 border-dashed border-[#CBD5E1] hover:border-[#0066FF] rounded-xl cursor-pointer bg-white hover:bg-slate-50 transition group shadow-2xs">
-                        <UploadCloud className="w-4 h-4 text-slate-400 group-hover:text-[#0066FF] transition" />
-                        <span className="text-xs font-semibold text-[#0A2540] group-hover:text-[#0066FF] transition">
+                      <label className="flex-1 flex items-center justify-center gap-2 p-3 border-2 border-dashed border-[#D4D4D4] hover:border-[#FF5A00] rounded-xl cursor-pointer bg-white hover:bg-slate-50 transition group shadow-2xs">
+                        <UploadCloud className="w-4 h-4 text-slate-400 group-hover:text-[#FF5A00] transition" />
+                        <span className="text-xs font-semibold text-[#2E2E2E] group-hover:text-[#FF5A00] transition">
                           Click or Drag to Upload Test Header Image
                         </span>
-                        <span className="text-[11px] text-[#64748B]">
+                        <span className="text-[11px] text-[#737373]">
                           (PNG, JPG, WEBP up to 5MB)
                         </span>
                         <input
@@ -3801,37 +3801,37 @@ export default function ExcelEmiCampaign({
                 {/* Live Calculated Output & Sample Preview Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5 pt-1">
                   {/* Financial Metrics Card */}
-                  <div className="md:col-span-6 bg-white border border-[#E2E8F0] rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-3 text-xs shadow-xs">
+                  <div className="md:col-span-6 bg-white border border-[#E5E5E5] rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-3 text-xs shadow-xs">
                     <div>
-                      <div className="text-[11px] text-[#64748B] font-medium">Current Monthly EMI</div>
-                      <div className="text-sm font-bold font-mono text-[#0A2540]">
+                      <div className="text-[11px] text-[#737373] font-medium">Current Monthly EMI</div>
+                      <div className="text-sm font-bold font-mono text-[#2E2E2E]">
                         {formatInrCurrency(testCalc.currentEmi, { showSymbol: true })}
                       </div>
                     </div>
                     <div>
-                      <div className="text-[11px] text-[#64748B] font-medium">New EMI (@ {testDetails.targetRoi}%)</div>
-                      <div className="text-sm font-bold font-mono text-[#0066FF]">
+                      <div className="text-[11px] text-[#737373] font-medium">New EMI (@ {testDetails.targetRoi}%)</div>
+                      <div className="text-sm font-bold font-mono text-[#FF5A00]">
                         {formatInrCurrency(testCalc.newEmi, { showSymbol: true })}
                       </div>
                     </div>
                     <div>
-                      <div className="text-[11px] text-[#64748B] font-medium">Monthly Savings</div>
+                      <div className="text-[11px] text-[#737373] font-medium">Monthly Savings</div>
                       <div className="text-sm font-bold font-mono text-emerald-600">
                         {formatInrCurrency(testCalc.monthlySavings, { showSymbol: true })}
                       </div>
                     </div>
                     <div>
-                      <div className="text-[11px] text-[#64748B] font-medium">Total Savings ({testDetails.tenure}m)</div>
-                      <div className="text-sm font-bold font-mono text-blue-700">
+                      <div className="text-[11px] text-[#737373] font-medium">Total Savings ({testDetails.tenure}m)</div>
+                      <div className="text-sm font-bold font-mono text-brand-700">
                         {formatInrCurrency(testCalc.totalSavings, { showSymbol: true })}
                       </div>
                     </div>
                   </div>
 
                   {/* Dispatch Action & Resolved Sample Output */}
-                  <div className="md:col-span-6 flex flex-col justify-between gap-2 bg-white border border-[#E2E8F0] rounded-xl p-3.5 shadow-xs">
+                  <div className="md:col-span-6 flex flex-col justify-between gap-2 bg-white border border-[#E5E5E5] rounded-xl p-3.5 shadow-xs">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="text-[11px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-[#EAF3FF] text-[#0066FF] border border-[#BFDBFE]">
+                      <span className="text-[11px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-[#F7E0D4] text-[#FF5A00] border border-[#FFD1A3]">
                         Test Sample Output
                       </span>
                       <button
@@ -3880,7 +3880,7 @@ export default function ExcelEmiCampaign({
                       <button
                         type="button"
                         onClick={() => onTrackDlr(String(customTestResponse.campaignId))}
-                        className="max-sm:min-h-11 px-3 py-1 rounded-lg bg-[#0066FF] hover:bg-blue-700 text-white text-xs font-semibold transition flex items-center gap-1 shrink-0 shadow-xs"
+                        className="max-sm:min-h-11 px-3 py-1 rounded-lg bg-[#FF5A00] hover:bg-brand-700 text-white text-xs font-semibold transition flex items-center gap-1 shrink-0 shadow-xs"
                       >
                         <span>Track DLR</span>
                         <ExternalLink className="w-3 h-3" />
@@ -3893,35 +3893,35 @@ export default function ExcelEmiCampaign({
           </div>
 
           {/* STEP 5: BATCH DISPATCH CONTROLLER & EXECUTION ENGINE */}
-          <div className="bg-white border border-[#E2E8F0] rounded-2xl p-4 sm:p-6 shadow-sm space-y-5">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E2E8F0] pb-3.5">
+          <div className="bg-white border border-[#E5E5E5] rounded-2xl p-4 sm:p-6 shadow-sm space-y-5">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E5E5E5] pb-3.5">
               <div className="flex flex-wrap items-center gap-2.5">
-                <span className="w-7 h-7 rounded-lg bg-[#EAF3FF] text-[#0066FF] border border-[#BFDBFE] flex items-center justify-center text-xs font-bold">
+                <span className="w-7 h-7 rounded-lg bg-[#F7E0D4] text-[#FF5A00] border border-[#FFD1A3] flex items-center justify-center text-xs font-bold">
                   5
                 </span>
-                <h3 className="text-base font-bold text-[#0A2540]">Launch Bulk Batch Campaign</h3>
+                <h3 className="text-base font-bold text-[#2E2E2E]">Launch Bulk Batch Campaign</h3>
               </div>
-              <span className="text-xs text-[#64748B]">
+              <span className="text-xs text-[#737373]">
                 Safe queued dispatch with custom count &amp; rate-limiting
               </span>
             </div>
 
             {/* Active Column Keyword Filter Banner */}
             {isColumnFilterActive && (
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-50 to-blue-50 border border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-brand-50 to-brand-50 border border-brand-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
                 <div className="flex flex-wrap items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#0066FF] text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <div className="w-9 h-9 rounded-xl bg-[#FF5A00] text-white flex items-center justify-center shrink-0 shadow-sm">
                     <Filter className="w-4 h-4" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-[#0A2540] flex items-center gap-2">
+                    <p className="text-xs font-bold text-[#2E2E2E] flex items-center gap-2">
                       <span>Column Keyword Filter Active</span>
                       <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-mono font-bold">
                         {processedData.length.toLocaleString()} matching recipients
                       </span>
                     </p>
-                    <p className="text-[11px] text-[#64748B] mt-0.5">
-                      Dispatch will only send to records where <strong className="text-[#0A2540]">{columnFilterCol === "__ALL__" ? "any column" : columnFilterCol}</strong> {columnFilterCondition === "contains" ? "contains" : columnFilterCondition === "exact" ? "equals" : columnFilterCondition === "starts_with" ? "starts with" : "does not contain"} &quot;<strong className="text-[#0066FF]">{columnFilterKeyword}</strong>&quot;.
+                    <p className="text-[11px] text-[#737373] mt-0.5">
+                      Dispatch will only send to records where <strong className="text-[#2E2E2E]">{columnFilterCol === "__ALL__" ? "any column" : columnFilterCol}</strong> {columnFilterCondition === "contains" ? "contains" : columnFilterCondition === "exact" ? "equals" : columnFilterCondition === "starts_with" ? "starts with" : "does not contain"} &quot;<strong className="text-[#FF5A00]">{columnFilterKeyword}</strong>&quot;.
                       ({rawActiveRows.length - processedData.length} records excluded from this dispatch).
                     </p>
                   </div>
@@ -3929,7 +3929,7 @@ export default function ExcelEmiCampaign({
                 <button
                   type="button"
                   onClick={handleClearColumnFilter}
-                  className="max-sm:min-h-11 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-white border border-[#CBD5E1] hover:border-[#0066FF] text-[#0A2540] shrink-0 transition shadow-xs self-start sm:self-auto"
+                  className="max-sm:min-h-11 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-white border border-[#D4D4D4] hover:border-[#FF5A00] text-[#2E2E2E] shrink-0 transition shadow-xs self-start sm:self-auto"
                 >
                   Clear Filter (Send to All {rawActiveRows.length.toLocaleString()})
                 </button>
@@ -3940,7 +3940,7 @@ export default function ExcelEmiCampaign({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-5">
               {/* Range & Custom People Count Selector */}
               <div className="lg:col-span-8 space-y-3">
-                <label className="block text-xs font-bold text-[#0A2540]">
+                <label className="block text-xs font-bold text-[#2E2E2E]">
                   Select Recipients Scope / How Many People:
                 </label>
 
@@ -3950,8 +3950,8 @@ export default function ExcelEmiCampaign({
                     type="button"
                     onClick={() => setDispatchRange("count")}
                     className={`max-sm:min-h-11 px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 border ${dispatchRange === "count"
-                        ? "bg-[#0066FF] text-white border-[#0066FF] shadow-md shadow-blue-500/20"
-                        : "bg-white text-[#3C4F69] border-[#E2E8F0] hover:bg-slate-50"
+                        ? "bg-[#FF5A00] text-white border-[#FF5A00] shadow-md shadow-brand-500/20"
+                        : "bg-white text-[#575757] border-[#E5E5E5] hover:bg-slate-50"
                       }`}
                   >
                     <Users className="w-3.5 h-3.5" />
@@ -3961,8 +3961,8 @@ export default function ExcelEmiCampaign({
                     type="button"
                     onClick={() => setDispatchRange("range")}
                     className={`max-sm:min-h-11 px-3.5 py-2 rounded-xl text-xs font-semibold transition border ${dispatchRange === "range"
-                        ? "bg-[#0066FF] text-white border-[#0066FF] shadow-md shadow-blue-500/20"
-                        : "bg-white text-[#3C4F69] border-[#E2E8F0] hover:bg-slate-50"
+                        ? "bg-[#FF5A00] text-white border-[#FF5A00] shadow-md shadow-brand-500/20"
+                        : "bg-white text-[#575757] border-[#E5E5E5] hover:bg-slate-50"
                       }`}
                   >
                     Specific Row Range
@@ -3971,8 +3971,8 @@ export default function ExcelEmiCampaign({
                     type="button"
                     onClick={() => setDispatchRange("all")}
                     className={`max-sm:min-h-11 px-3.5 py-2 rounded-xl text-xs font-semibold transition border ${dispatchRange === "all"
-                        ? "bg-[#0066FF] text-white border-[#0066FF] shadow-md shadow-blue-500/20"
-                        : "bg-white text-[#3C4F69] border-[#E2E8F0] hover:bg-slate-50"
+                        ? "bg-[#FF5A00] text-white border-[#FF5A00] shadow-md shadow-brand-500/20"
+                        : "bg-white text-[#575757] border-[#E5E5E5] hover:bg-slate-50"
                       }`}
                   >
                     {isColumnFilterActive
@@ -3983,8 +3983,8 @@ export default function ExcelEmiCampaign({
                     type="button"
                     onClick={() => setDispatchRange("test")}
                     className={`max-sm:min-h-11 px-3.5 py-2 rounded-xl text-xs font-semibold transition border ${dispatchRange === "test"
-                        ? "bg-[#0066FF] text-white border-[#0066FF] shadow-md shadow-blue-500/20"
-                        : "bg-white text-[#3C4F69] border-[#E2E8F0] hover:bg-slate-50"
+                        ? "bg-[#FF5A00] text-white border-[#FF5A00] shadow-md shadow-brand-500/20"
+                        : "bg-white text-[#575757] border-[#E5E5E5] hover:bg-slate-50"
                       }`}
                   >
                     First 10 Rows
@@ -3993,10 +3993,10 @@ export default function ExcelEmiCampaign({
 
                 {/* Scope 1: CUSTOM PEOPLE COUNT CONTROLS */}
                 {dispatchRange === "count" && (
-                  <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] space-y-3 shadow-inner">
+                  <div className="p-4 rounded-xl bg-[#FFF8F3] border border-[#D4D4D4] space-y-3 shadow-inner">
                     <div className="flex flex-wrap items-center gap-3">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-xs text-[#0A2540] font-bold">Send to first:</span>
+                        <span className="text-xs text-[#2E2E2E] font-bold">Send to first:</span>
                         <input
                           type="number"
                           min={1}
@@ -4007,12 +4007,12 @@ export default function ExcelEmiCampaign({
                               Math.max(1, parseInt(e.target.value, 10) || 1)
                             )
                           }
-                          className="max-sm:min-h-11 w-24 bg-white border border-[#0066FF] rounded-lg px-2.5 py-1 max-sm:text-base text-sm font-bold text-[#0066FF] font-mono text-center focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-xs"
+                          className="max-sm:min-h-11 w-24 bg-white border border-[#FF5A00] rounded-lg px-2.5 py-1 max-sm:text-base text-sm font-bold text-[#FF5A00] font-mono text-center focus:outline-none focus:ring-2 focus:ring-brand-500/20 shadow-xs"
                         />
-                        <span className="text-xs text-[#0A2540] font-bold">people</span>
+                        <span className="text-xs text-[#2E2E2E] font-bold">people</span>
                       </div>
 
-                      <div className="flex items-center gap-1.5 text-xs text-[#64748B]">
+                      <div className="flex items-center gap-1.5 text-xs text-[#737373]">
                         <span>Starting from row:</span>
                         <input
                           type="number"
@@ -4024,22 +4024,22 @@ export default function ExcelEmiCampaign({
                               Math.max(1, parseInt(e.target.value, 10) || 1)
                             )
                           }
-                          className="max-sm:min-h-11 w-16 bg-white border border-[#CBD5E1] rounded-lg px-2 py-1 max-sm:text-base text-xs text-[#0A2540] font-mono text-center focus:outline-none focus:border-[#0066FF] shadow-xs"
+                          className="max-sm:min-h-11 w-16 bg-white border border-[#D4D4D4] rounded-lg px-2 py-1 max-sm:text-base text-xs text-[#2E2E2E] font-mono text-center focus:outline-none focus:border-[#FF5A00] shadow-xs"
                         />
                       </div>
                     </div>
 
                     {/* Quick Count Preset Buttons */}
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="text-[11px] text-[#64748B] font-medium">Quick Counts:</span>
+                      <span className="text-[11px] text-[#737373] font-medium">Quick Counts:</span>
                       {[10, 25, 50, 100, 250, 500, 1000].map((count) => (
                         <button
                           key={count}
                           type="button"
                           onClick={() => setCustomPeopleCount(count)}
                           className={`max-sm:min-h-11 px-2.5 py-0.5 rounded-lg text-xs font-mono transition border ${customPeopleCount === count
-                              ? "bg-[#0066FF] text-white border-[#0066FF] font-bold shadow-xs"
-                              : "bg-white text-[#3C4F69] border-[#CBD5E1] hover:border-[#0066FF]"
+                              ? "bg-[#FF5A00] text-white border-[#FF5A00] font-bold shadow-xs"
+                              : "bg-white text-[#575757] border-[#D4D4D4] hover:border-[#FF5A00]"
                             }`}
                         >
                           {count}
@@ -4058,26 +4058,26 @@ export default function ExcelEmiCampaign({
 
                 {/* Scope 2: CUSTOM RANGE (FROM X TO Y) */}
                 {dispatchRange === "range" && (
-                  <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] flex items-center gap-3 shadow-inner">
-                    <span className="text-xs text-[#64748B]">From Row:</span>
+                  <div className="p-4 rounded-xl bg-[#FFF8F3] border border-[#D4D4D4] flex items-center gap-3 shadow-inner">
+                    <span className="text-xs text-[#737373]">From Row:</span>
                     <input
                       type="number"
                       min={1}
                       max={processedData.length}
                       value={customRangeStart}
                       onChange={(e) => setCustomRangeStart(parseInt(e.target.value, 10) || 1)}
-                      className="max-sm:min-h-11 w-20 bg-white border border-[#CBD5E1] rounded-lg px-2.5 py-1 max-sm:text-base text-xs text-[#0A2540] font-mono focus:outline-none focus:border-[#0066FF] text-center shadow-xs"
+                      className="max-sm:min-h-11 w-20 bg-white border border-[#D4D4D4] rounded-lg px-2.5 py-1 max-sm:text-base text-xs text-[#2E2E2E] font-mono focus:outline-none focus:border-[#FF5A00] text-center shadow-xs"
                     />
-                    <span className="text-xs text-[#64748B]">To Row:</span>
+                    <span className="text-xs text-[#737373]">To Row:</span>
                     <input
                       type="number"
                       min={1}
                       max={processedData.length}
                       value={customRangeEnd}
                       onChange={(e) => setCustomRangeEnd(parseInt(e.target.value, 10) || 50)}
-                      className="max-sm:min-h-11 w-20 bg-white border border-[#CBD5E1] rounded-lg px-2.5 py-1 max-sm:text-base text-xs text-[#0A2540] font-mono focus:outline-none focus:border-[#0066FF] text-center shadow-xs"
+                      className="max-sm:min-h-11 w-20 bg-white border border-[#D4D4D4] rounded-lg px-2.5 py-1 max-sm:text-base text-xs text-[#2E2E2E] font-mono focus:outline-none focus:border-[#FF5A00] text-center shadow-xs"
                     />
-                    <span className="text-xs text-[#0066FF] font-bold">
+                    <span className="text-xs text-[#FF5A00] font-bold">
                       ({Math.max(0, customRangeEnd - customRangeStart + 1)} recipients)
                     </span>
                   </div>
@@ -4086,9 +4086,9 @@ export default function ExcelEmiCampaign({
 
               {/* Throttle Settings Side Column */}
               <div className="lg:col-span-4 space-y-3">
-                <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] space-y-2 h-full flex flex-col justify-between shadow-xs">
+                <div className="p-4 rounded-xl bg-[#FFF8F3] border border-[#D4D4D4] space-y-2 h-full flex flex-col justify-between shadow-xs">
                   <div>
-                    <label className="block text-xs font-bold text-[#0A2540] mb-1.5">
+                    <label className="block text-xs font-bold text-[#2E2E2E] mb-1.5">
                       Throttle Delay Between Calls:
                     </label>
                     <div className="flex flex-wrap items-center gap-2">
@@ -4099,12 +4099,12 @@ export default function ExcelEmiCampaign({
                         step={100}
                         value={throttleDelayMs}
                         onChange={(e) => setThrottleDelayMs(parseInt(e.target.value, 10) || 400)}
-                        className="max-sm:min-h-11 w-24 bg-white border border-[#CBD5E1] rounded-xl px-3 py-1.5 max-sm:text-base text-xs text-[#0A2540] font-mono focus:outline-none focus:border-[#0066FF] text-center font-bold shadow-xs"
+                        className="max-sm:min-h-11 w-24 bg-white border border-[#D4D4D4] rounded-xl px-3 py-1.5 max-sm:text-base text-xs text-[#2E2E2E] font-mono focus:outline-none focus:border-[#FF5A00] text-center font-bold shadow-xs"
                       />
-                      <span className="text-xs text-[#64748B]">ms (400ms recommended)</span>
+                      <span className="text-xs text-[#737373]">ms (400ms recommended)</span>
                     </div>
                   </div>
-                  <p className="text-[11px] text-[#64748B]">
+                  <p className="text-[11px] text-[#737373]">
                     Paces requests to prevent WhatsApp rate limits &amp; carrier blocking
                   </p>
                 </div>
@@ -4112,7 +4112,7 @@ export default function ExcelEmiCampaign({
             </div>
 
             {/* Launch / Pause / Resume / Cancel Controls */}
-            <div className="flex flex-wrap items-center justify-between gap-4 pt-3.5 border-t border-[#E2E8F0]">
+            <div className="flex flex-wrap items-center justify-between gap-4 pt-3.5 border-t border-[#E5E5E5]">
               <div className="flex flex-wrap items-center gap-3">
                 {dispatchStatus === "idle" ||
                   dispatchStatus === "completed" ||
@@ -4185,7 +4185,7 @@ export default function ExcelEmiCampaign({
 
               {/* Progress Summary Pills */}
               <div className="flex items-center gap-2 text-xs">
-                <span className="px-3 py-1 rounded-lg bg-[#F8FAFC] border border-[#CBD5E1] text-[#0A2540] font-mono shadow-xs">
+                <span className="px-3 py-1 rounded-lg bg-[#FFF8F3] border border-[#D4D4D4] text-[#2E2E2E] font-mono shadow-xs">
                   Progress: <strong>{progressIndex}</strong> / {totalToProcess}
                 </span>
                 <span className="px-3 py-1 rounded-lg bg-[#F0FDF4] border border-[#BBF7D0] text-[#15803D] font-mono shadow-xs">
@@ -4205,7 +4205,7 @@ export default function ExcelEmiCampaign({
             {/* Visual Progress Bar */}
             {totalToProcess > 0 && (
               <div className="space-y-1.5 pt-2">
-                <div className="w-full bg-[#E2E8F0] h-2.5 rounded-full overflow-hidden shadow-inner">
+                <div className="w-full bg-[#E5E5E5] h-2.5 rounded-full overflow-hidden shadow-inner">
                   <div
                     className={`h-full transition-all duration-300 ${dispatchStatus === "completed"
                         ? "bg-[#15803D]"
@@ -4220,7 +4220,7 @@ export default function ExcelEmiCampaign({
                     }}
                   />
                 </div>
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#64748B]">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#737373]">
                   <span>
                     Status:{" "}
                     <strong
@@ -4236,7 +4236,7 @@ export default function ExcelEmiCampaign({
                       {dispatchStatus}
                     </strong>
                   </span>
-                  <span className="font-bold text-[#0A2540]">
+                  <span className="font-bold text-[#2E2E2E]">
                     {((progressIndex / totalToProcess) * 100 || 0).toFixed(1)}% Completed
                   </span>
                 </div>
@@ -4245,27 +4245,27 @@ export default function ExcelEmiCampaign({
 
             {/* Execution Activity Log */}
             {dispatchLogs.length > 0 && (
-              <div className="space-y-2 pt-2 border-t border-[#E2E8F0]">
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-[#0A2540]">
+              <div className="space-y-2 pt-2 border-t border-[#E5E5E5]">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-[#2E2E2E]">
                   <span>Real-Time Execution Log (Recent 50 items)</span>
-                  <span className="text-[11px] text-[#64748B] font-normal">
+                  <span className="text-[11px] text-[#737373] font-normal">
                     Automatically logged to Sent Messages history
                   </span>
                 </div>
 
-                <div className="rounded-xl border border-[#CBD5E1] bg-white max-h-60 overflow-y-auto divide-y divide-slate-100 font-mono text-xs shadow-inner">
+                <div className="rounded-xl border border-[#D4D4D4] bg-white max-h-60 overflow-y-auto divide-y divide-slate-100 font-mono text-xs shadow-inner">
                   {dispatchLogs.map((log) => (
                     <div
                       key={log.id}
-                      className="px-3.5 py-2.5 flex flex-wrap items-center justify-between gap-3 hover:bg-[#F8FAFC] transition"
+                      className="px-3.5 py-2.5 flex flex-wrap items-center justify-between gap-3 hover:bg-[#FFF8F3] transition"
                     >
                       <div className="flex items-center gap-2.5 truncate">
-                        <span className="text-[11px] text-[#94A3B8]">{log.timestamp}</span>
-                        <span className="text-xs text-[#64748B]">Row #{log.rowIndex}</span>
-                        <span className="font-semibold text-[#0A2540] truncate max-w-[140px]">
+                        <span className="text-[11px] text-[#A3A3A3]">{log.timestamp}</span>
+                        <span className="text-xs text-[#737373]">Row #{log.rowIndex}</span>
+                        <span className="font-semibold text-[#2E2E2E] truncate max-w-[140px]">
                           {log.name}
                         </span>
-                        <span className="text-[#64748B] text-xs">+{log.phone}</span>
+                        <span className="text-[#737373] text-xs">+{log.phone}</span>
                       </div>
 
                       <div className="flex items-center gap-3 shrink-0">
@@ -4278,7 +4278,7 @@ export default function ExcelEmiCampaign({
                               <button
                                 type="button"
                                 onClick={() => onTrackDlr(String(log.campaignId))}
-                                className="max-sm:min-h-11 text-xs text-[#0066FF] hover:underline flex items-center gap-0.5 font-semibold"
+                                className="max-sm:min-h-11 text-xs text-[#FF5A00] hover:underline flex items-center gap-0.5 font-semibold"
                               >
                                 DLR <ExternalLink className="w-2.5 h-2.5" />
                               </button>

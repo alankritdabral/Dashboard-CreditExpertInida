@@ -346,7 +346,7 @@ const addHeaderToAllPages = async (doc: any, bureauColor: [number, number, numbe
 
     doc.setFontSize(7);
     doc.setTextColor(150, 150, 150);
-    doc.text('Generated through Credit Expert India. This report is strictly confidential.', 40, doc.internal.pageSize.getHeight() - 20);
+    doc.text('Generated through Amortas. This report is strictly confidential.', 40, doc.internal.pageSize.getHeight() - 20);
   }
 };
 

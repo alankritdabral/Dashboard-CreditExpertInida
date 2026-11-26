@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { Logo } from "@/components/Logo";
 import { motion } from "framer-motion";
 import { useAuth } from "@/lib/auth-context";
 import { Building2, ShieldCheck, LogOut, LucideIcon, ExternalLink, Menu, X } from "lucide-react";
@@ -51,32 +51,25 @@ export function DashboardHeader({
             href={isAdmin ? "/admin" : "/branch"}
             className="flex items-center gap-2 group transition-transform active:scale-[0.99]"
           >
-            <Image
-              src="/img/logo_with_name.webp"
-              alt="Credit Expert India"
-              width={195}
-              height={46}
-              priority
-              className="h-7 min-[400px]:h-8 sm:h-9 w-auto max-w-none object-contain group-hover:opacity-90 transition-opacity"
-            />
+            <Logo size="md" className="group-hover:opacity-90 transition-opacity" />
           </Link>
 
           {/* Role / Branch Pill Badge */}
           <div
             className={`hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border shadow-2xs ${
               isAdmin
-                ? "bg-[#0A2540] text-white border-slate-800"
-                : "bg-blue-50 text-[#3F8EFC] border-blue-200"
+                ? "bg-[#2E2E2E] text-white border-slate-800"
+                : "bg-brand-50 text-[#FF5A00] border-brand-200"
             }`}
           >
             {isAdmin ? (
               <>
-                <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
+                <ShieldCheck className="w-3.5 h-3.5 text-brand-400" />
                 <span>Executive Admin</span>
               </>
             ) : (
               <>
-                <Building2 className="w-3.5 h-3.5 text-[#3F8EFC]" />
+                <Building2 className="w-3.5 h-3.5 text-[#FF5A00]" />
                 <span>{badgeLabel || `${user?.branch || "Branch"} Workplace`}</span>
               </>
             )}
@@ -97,13 +90,13 @@ export function DashboardHeader({
                     className={`relative px-3 sm:px-4 min-h-[44px] sm:min-h-[36px] py-1.5 text-xs sm:text-[13px] font-semibold transition-all rounded-full flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
                       isActive
                         ? "text-white"
-                        : "text-[#3C4F69] hover:text-[#0A2540] hover:bg-white/60"
+                        : "text-[#575757] hover:text-[#2E2E2E] hover:bg-white/60"
                     }`}
                   >
                     {isActive && (
                       <motion.div
                         layoutId="dashboard-header-active-pill"
-                        className="absolute inset-0 bg-[#3F8EFC] rounded-full shadow-md shadow-[#3F8EFC]/30"
+                        className="absolute inset-0 bg-[#FF5A00] rounded-full shadow-md shadow-[#FF5A00]/30"
                         transition={{ type: "spring", stiffness: 450, damping: 35 }}
                       />
                     )}
@@ -132,7 +125,7 @@ export function DashboardHeader({
         {/* Right: Quick Website Link, User Profile & Sign Out Button */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
           {activeLabel && tabs.length > 0 && (
-            <span className="md:hidden max-w-[40vw] truncate text-xs font-bold text-[#3F8EFC]">
+            <span className="md:hidden max-w-[40vw] truncate text-xs font-bold text-[#FF5A00]">
               {activeLabel}
             </span>
           )}
@@ -140,8 +133,8 @@ export function DashboardHeader({
             href="https://creditexpertindia.com"
             target="_blank"
             rel="noreferrer"
-            className="hidden xl:inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-[#3F8EFC] transition-colors px-2 py-1"
-            title="Open Credit Expert India customer website in a new tab"
+            className="hidden xl:inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-[#FF5A00] transition-colors px-2 py-1"
+            title="Open Amortas customer website in a new tab"
           >
             <span>Visit Website</span>
             <ExternalLink className="w-3 h-3 text-slate-400" />
@@ -195,8 +188,8 @@ export function DashboardHeader({
               <span
                 className={`shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${
                   isAdmin
-                    ? "bg-[#0A2540] text-white border-slate-800"
-                    : "bg-blue-50 text-[#3F8EFC] border-blue-200"
+                    ? "bg-[#2E2E2E] text-white border-slate-800"
+                    : "bg-brand-50 text-[#FF5A00] border-brand-200"
                 }`}
               >
                 {isAdmin ? <ShieldCheck className="w-3.5 h-3.5" /> : <Building2 className="w-3.5 h-3.5" />}
@@ -218,8 +211,8 @@ export function DashboardHeader({
                       }}
                       className={`w-full min-h-[48px] px-4 rounded-xl flex items-center gap-3 text-sm font-semibold text-left cursor-pointer transition-colors ${
                         isActive
-                          ? "bg-[#3F8EFC] text-white shadow-md shadow-[#3F8EFC]/25"
-                          : "text-[#3C4F69] hover:bg-slate-100"
+                          ? "bg-[#FF5A00] text-white shadow-md shadow-[#FF5A00]/25"
+                          : "text-[#575757] hover:bg-slate-100"
                       }`}
                     >
                       {Icon && <Icon className="w-4 h-4 shrink-0" />}
