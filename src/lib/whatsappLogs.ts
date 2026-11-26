@@ -56,14 +56,14 @@ export function invalidateWhatsappMessagesCache() {
 }
 
 /**
- * 1. Save WhatsApp Message Log into Firestore
+ * 1. Save WhatsApp Message Log into RDS
  */
 export async function saveWhatsappMessageLog(
   data: Partial<WhatsappMessageRecord>
 ): Promise<string | null> {
   try {
     if (!adminDb || typeof (adminDb as any).collection !== "function") {
-      console.warn("[whatsappLogs] Firestore adminDb is not initialized.");
+      console.warn("[whatsappLogs] RDS adminDb is not initialized.");
       return null;
     }
 
@@ -248,7 +248,7 @@ export async function getWhatsappMessageLogs(options?: {
 }
 
 /**
- * 3. Sync live DLR delivery status and costing from MessageBot API into Firestore
+ * 3. Sync live DLR delivery status and costing from MessageBot API into RDS
  */
 export async function syncWhatsappMessageDlr(
   campaignId: number | string,
@@ -310,7 +310,7 @@ export async function syncWhatsappMessageDlr(
           } as WhatsappMessageRecord,
         };
       } else {
-        // If not yet in Firestore, auto-create an entry for this campaign
+        // If not yet in RDS, auto-create an entry for this campaign
         const newDocId = await saveWhatsappMessageLog({
           campaignId: cIdNum,
           type: "MESSAGE",

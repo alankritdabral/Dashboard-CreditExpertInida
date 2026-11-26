@@ -57,7 +57,7 @@ SEED_USERS.forEach((u) => inMemoryUsers.set(u.email.toLowerCase(), u));
 
 // Session checks hit getUserByEmail on every page load; cache hits for five minutes
 // (invalidated on any account change made on this instance).
-// Only found users are cached, so failed lookups always re-check Firestore.
+// Only found users are cached, so failed lookups always re-check RDS.
 const userByEmailCache = new TtlCache<UserAccount>(5 * 60_000, 200);
 const allUsersCache = new TtlCache<UserAccount[]>(30_000, 1);
 
@@ -80,7 +80,7 @@ export async function getUserByEmail(email: string): Promise<UserAccount | null>
 
 async function lookupUserByEmail(normalized: string, rawEmail: string): Promise<UserAccount | null> {
 
-  // Try Firestore if available
+  // Try RDS if available
   if (adminDb && typeof adminDb.collection === "function") {
     try {
       // 1. Check primary "users" collection (supports both normalized and original casing)
@@ -127,7 +127,7 @@ async function lookupUserByEmail(normalized: string, rawEmail: string): Promise<
         return { id: doc.id, ...doc.data() } as UserAccount;
       }
     } catch (err) {
-      console.warn("Firestore lookup failed, falling back to memory store:", err);
+      console.warn("RDS lookup failed, falling back to memory store:", err);
     }
   }
 
@@ -178,7 +178,7 @@ async function loadAllBranchUsers(): Promise<UserAccount[]> {
         return list;
       }
     } catch (err) {
-      console.warn("Firestore getAllBranchUsers failed, falling back to memory store:", err);
+      console.warn("RDS getAllBranchUsers failed, falling back to memory store:", err);
     }
   }
 
@@ -210,12 +210,12 @@ export async function createBranchAccount(accountData: {
   inMemoryUsers.set(normalizedEmail, newAccount);
   invalidateUserCaches();
 
-  // Save to Firestore
+  // Save to RDS
   if (adminDb && typeof adminDb.collection === "function") {
     try {
       await adminDb.collection("dashboard_users").doc(newAccount.id).set(newAccount);
     } catch (err) {
-      console.error("Failed to write user to Firestore:", err);
+      console.error("Failed to write user to RDS:", err);
     }
   }
 
@@ -239,7 +239,7 @@ export async function updateUserAccount(
       await adminDb.collection("dashboard_users").doc(id).update(updates);
       return true;
     } catch (err) {
-      console.error("Failed to update user in Firestore:", err);
+      console.error("Failed to update user in RDS:", err);
     }
   }
 
@@ -282,7 +282,7 @@ export async function updateUserPassword(email: string, plainPassword: string): 
         await adminDb.collection("dashboard_users").doc(user.id).set({ ...user, password: newPassword });
       }
     } catch (err) {
-      console.error("Failed to update password in Firestore:", err);
+      console.error("Failed to update password in RDS:", err);
     }
   }
 
@@ -303,7 +303,7 @@ export async function deleteBranchUser(id: string): Promise<boolean> {
       await adminDb.collection("dashboard_users").doc(id).delete();
       return true;
     } catch (err) {
-      console.error("Failed to delete user in Firestore:", err);
+      console.error("Failed to delete user in RDS:", err);
     }
   }
 
