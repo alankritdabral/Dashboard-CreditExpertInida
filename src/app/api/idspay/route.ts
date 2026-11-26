@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/lib/firebaseAdmin";
+import { adminDb } from "@/lib/staffStore";
 import { bureauFailureReason, bureauKind } from "@/lib/cibil/bureau";
 
 export async function POST(req: NextRequest) {

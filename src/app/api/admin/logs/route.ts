@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb } from "@/lib/firebaseAdmin";
+import { adminDb } from "@/lib/staffStore";
 import { verifySessionToken } from "@/lib/user-service";
 import { systemLogsCache } from "@/lib/api-caches";
 
