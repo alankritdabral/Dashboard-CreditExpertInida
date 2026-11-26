@@ -32,7 +32,7 @@ interface Employee {
 
 const KIND_STYLE: Record<LeadKind, string> = {
   eligibility: "bg-violet-50 text-violet-700 border-violet-200",
-  details: "bg-sky-50 text-sky-700 border-sky-200",
+  details: "bg-brand-50 text-brand-700 border-brand-200",
   other: "bg-slate-100 text-slate-600 border-slate-200",
 };
 type KindTab = "all" | LeadKind;
@@ -313,7 +313,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
   const unassigned = leads.filter((l) => !l.assignedToEmail).length;
   const perEmployee = pickedEmps.size ? Math.ceil(selected.size / pickedEmps.size) : 0;
   const field =
-    "min-h-[44px] bg-slate-50 border border-slate-200 rounded-xl px-3 text-base sm:text-xs font-medium text-slate-900 focus:outline-none focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20";
+    "min-h-[44px] bg-slate-50 border border-slate-200 rounded-xl px-3 text-base sm:text-xs font-medium text-slate-900 focus:outline-none focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20";
 
   return (
     <div className="space-y-4 animate-fadeIn">
@@ -329,10 +329,10 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
           <button
             key={c.label}
             onClick={c.onClick}
-            className="min-h-[44px] text-left bg-white border border-slate-200/90 rounded-2xl px-4 py-3 shadow-sm cursor-pointer hover:border-[#3F8EFC]/50"
+            className="min-h-[44px] text-left bg-white border border-slate-200/90 rounded-2xl px-4 py-3 shadow-sm cursor-pointer hover:border-[#FF5A00]/50"
           >
             <span className="block text-[11px] font-semibold text-slate-500">{c.label}</span>
-            <span className={`block text-2xl font-bold ${c.hot ? "text-orange-600" : c.warn ? "text-red-600" : "text-[#0A2540]"}`}>{c.value}</span>
+            <span className={`block text-2xl font-bold ${c.hot ? "text-orange-600" : c.warn ? "text-red-600" : "text-[#2E2E2E]"}`}>{c.value}</span>
           </button>
         ))}
       </div>
@@ -352,7 +352,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
             aria-selected={kindTab === k}
             onClick={() => setKindTab(k)}
             className={`shrink-0 whitespace-nowrap min-h-[44px] px-4 inline-flex items-center gap-2 rounded-full text-xs font-bold cursor-pointer border transition-colors ${
-              kindTab === k ? "bg-[#0A2540] text-white border-[#0A2540]" : "bg-white text-slate-700 border-slate-200 hover:border-[#3F8EFC]/50"
+              kindTab === k ? "bg-[#2E2E2E] text-white border-[#2E2E2E]" : "bg-white text-slate-700 border-slate-200 hover:border-[#FF5A00]/50"
             }`}
           >
             {label}
@@ -437,7 +437,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
           onClick={() => setReportOnly((v) => !v)}
           aria-pressed={reportOnly}
           className={`min-h-[44px] px-4 inline-flex items-center gap-1.5 rounded-xl text-xs font-bold cursor-pointer border ${
-            reportOnly ? "bg-[#3F8EFC] text-white border-[#3F8EFC]" : "bg-white text-slate-700 border-slate-200"
+            reportOnly ? "bg-[#FF5A00] text-white border-[#FF5A00]" : "bg-white text-slate-700 border-slate-200"
           }`}
         >
           <FileText className="w-3.5 h-3.5" /> Has CIBIL report
@@ -445,7 +445,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
         {(statusF !== "all" || tierF !== "all" || range !== "all" || query || reportOnly || kindTab !== "all" || filter !== "all") && (
           <button
             onClick={() => { setStatusF("all"); setTierF("all"); setRange("all"); setQuery(""); setReportOnly(false); setKindTab("all"); setFilter("all"); }}
-            className="min-h-[44px] px-3 text-xs font-bold text-[#3F8EFC] cursor-pointer"
+            className="min-h-[44px] px-3 text-xs font-bold text-[#FF5A00] cursor-pointer"
           >
             Reset filters
           </button>
@@ -467,11 +467,11 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
       )}
 
       {fresh.size > 0 && (
-        <p className="flex items-center justify-between gap-3 text-sm font-semibold text-[#0A2540] bg-[#3F8EFC]/10 border border-[#3F8EFC]/30 rounded-xl px-4 py-3" role="status">
+        <p className="flex items-center justify-between gap-3 text-sm font-semibold text-[#2E2E2E] bg-[#FF5A00]/10 border border-[#FF5A00]/30 rounded-xl px-4 py-3" role="status">
           <span>
             {fresh.size} new lead{fresh.size > 1 ? "s" : ""} just arrived
           </span>
-          <button onClick={() => setFresh(new Set())} className="min-h-[44px] px-2 text-xs font-bold text-[#3F8EFC] cursor-pointer">
+          <button onClick={() => setFresh(new Set())} className="min-h-[44px] px-2 text-xs font-bold text-[#FF5A00] cursor-pointer">
             Mark as seen
           </button>
         </p>
@@ -493,7 +493,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                 return n;
               })
             }
-            className="min-h-[44px] px-2 text-xs font-bold text-[#3F8EFC] cursor-pointer"
+            className="min-h-[44px] px-2 text-xs font-bold text-[#FF5A00] cursor-pointer"
           >
             {visible.every((l) => selected.has(l.id)) ? "Clear selection" : `Select all shown (${visible.length})`}
           </button>
@@ -525,7 +525,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
             <li
               key={l.id}
               className={`bg-white border rounded-3xl p-4 sm:p-5 shadow-sm ${
-                fresh.has(l.id) ? "border-[#3F8EFC] ring-2 ring-[#3F8EFC]/20" : selected.has(l.id) ? "border-[#3F8EFC]/60" : "border-slate-200/90"
+                fresh.has(l.id) ? "border-[#FF5A00] ring-2 ring-[#FF5A00]/20" : selected.has(l.id) ? "border-[#FF5A00]/60" : "border-slate-200/90"
               }`}
             >
               <div className="flex items-start gap-2 sm:gap-3">
@@ -536,13 +536,13 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                       checked={selected.has(l.id)}
                       onChange={() => toggle(l.id)}
                       aria-label={`Select ${l.name}`}
-                      className="w-4 h-4 accent-[#3F8EFC]"
+                      className="w-4 h-4 accent-[#FF5A00]"
                     />
                   </label>
                 )}
                 <div className="min-w-0 flex-1 flex flex-col xl:flex-row xl:items-start xl:justify-between gap-4">
                 <div className="min-w-0 flex-1 space-y-1">
-                  <p className="font-bold text-[#0A2540] break-words">
+                  <p className="font-bold text-[#2E2E2E] break-words">
                     {l.name}
                     {scored.get(l.id)?.tier === "hot" && (
                       <span className="ml-2 align-middle inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide bg-orange-100 text-orange-700 rounded-full px-2 py-0.5">
@@ -556,7 +556,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                       <span className="ml-2 align-middle text-[10px] font-bold uppercase tracking-wide bg-red-50 text-red-600 rounded-full px-2 py-0.5">Untouched 24h+</span>
                     )}
                     {fresh.has(l.id) && (
-                      <span className="ml-2 align-middle text-[10px] font-bold uppercase tracking-wide bg-[#3F8EFC] text-white rounded-full px-2 py-0.5">New</span>
+                      <span className="ml-2 align-middle text-[10px] font-bold uppercase tracking-wide bg-[#FF5A00] text-white rounded-full px-2 py-0.5">New</span>
                     )}
                   </p>
                   <p className="text-xs text-slate-600">
@@ -623,7 +623,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                         <button
                           onClick={() => checkDelivery(l.id)}
                           disabled={busyId === l.id}
-                          className="min-h-[44px] sm:min-h-0 text-xs font-bold text-[#3F8EFC] hover:underline cursor-pointer disabled:opacity-60"
+                          className="min-h-[44px] sm:min-h-0 text-xs font-bold text-[#FF5A00] hover:underline cursor-pointer disabled:opacity-60"
                         >
                           {delivery[l.id] ? `Delivery: ${delivery[l.id]}` : "Check delivery"}
                         </button>
@@ -631,7 +631,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                       <button
                         onClick={() => patch(l.id, { resendWelcome: true })}
                         disabled={busyId === l.id}
-                        className="min-h-[44px] sm:min-h-0 text-xs font-bold text-[#3F8EFC] hover:underline cursor-pointer disabled:opacity-60"
+                        className="min-h-[44px] sm:min-h-0 text-xs font-bold text-[#FF5A00] hover:underline cursor-pointer disabled:opacity-60"
                       >
                         {l.welcomeStatus === "SENT" && l.employeeNotifyStatus === "SENT" ? "Send both again" : "Send now"}
                       </button>
@@ -649,7 +649,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                           key={r.id}
                           onClick={() => openReport(l.id, r.id)}
                           disabled={openingReport === r.id}
-                          className="min-h-[44px] sm:min-h-0 inline-flex items-center gap-1.5 text-xs font-bold text-[#0A2540] bg-[#3F8EFC]/10 hover:bg-[#3F8EFC]/20 rounded-full px-3 py-1.5 cursor-pointer disabled:opacity-60"
+                          className="min-h-[44px] sm:min-h-0 inline-flex items-center gap-1.5 text-xs font-bold text-[#2E2E2E] bg-[#FF5A00]/10 hover:bg-[#FF5A00]/20 rounded-full px-3 py-1.5 cursor-pointer disabled:opacity-60"
                         >
                           {openingReport === r.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
                           {r.bureau ? r.bureau.toUpperCase() : "Report"} {r.creditScore ?? "—"} · {fmtDate(r.createdAt)} · View
@@ -674,20 +674,20 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                   {digits && (
                     <a
                       href={`tel:+91${digits}`}
-                      className="inline-flex items-center gap-1.5 mt-1 min-h-[44px] sm:min-h-0 text-xs font-bold text-[#3F8EFC]"
+                      className="inline-flex items-center gap-1.5 mt-1 min-h-[44px] sm:min-h-0 text-xs font-bold text-[#FF5A00]"
                     >
                       <Phone className="w-3.5 h-3.5" /> {l.phone}
                     </a>
                   )}
                 </div>
 
-                <div className="flex gap-2 xl:shrink-0 xl:self-start">
+                <div className="flex flex-wrap sm:flex-nowrap gap-2 xl:shrink-0 xl:self-start">
                   {isAdmin && (
                     <select
                       value={l.assignedToEmail || ""}
                       disabled={busyId === l.id}
                       onChange={(e) => assignOne(l, e.target.value)}
-                      className={`${field} flex-1 min-w-0 xl:flex-none xl:w-44`}
+                      className={`${field} flex-1 basis-full sm:basis-0 xl:basis-auto min-w-0 xl:flex-none xl:w-44`}
                       aria-label={`Assign ${l.name}`}
                     >
                       <option value="">Unassigned</option>
@@ -745,7 +745,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                 <AlertTriangle className="w-4 h-4" />
               </span>
               <div className="min-w-0">
-                <h3 className="font-bold text-sm text-[#0A2540] break-words">Delete {confirmDelete.label}?</h3>
+                <h3 className="font-bold text-sm text-[#2E2E2E] break-words">Delete {confirmDelete.label}?</h3>
                 <p className="text-xs text-slate-600 mt-1">Removes the enquiries and assignment. This cannot be undone. Credit reports are kept.</p>
               </div>
             </div>
@@ -768,7 +768,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
               <div className="min-w-0">
                 <h3 className="text-base sm:text-lg font-bold text-slate-900 break-words">Bureau report: {viewingReport.name}</h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Bureau: <strong className="uppercase text-[#3F8EFC]">{viewingReport.bureau}</strong> · {viewingReport.created_at?.seconds ? fmtDate(new Date(viewingReport.created_at.seconds * 1000).toISOString()) : "—"}
+                  Bureau: <strong className="uppercase text-[#FF5A00]">{viewingReport.bureau}</strong> · {viewingReport.created_at?.seconds ? fmtDate(new Date(viewingReport.created_at.seconds * 1000).toISOString()) : "—"}
                 </p>
               </div>
               <button
@@ -804,7 +804,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
         document.body
       )}
       {isAdmin && selected.size > 0 && (
-        <div className="sticky bottom-3 z-20 bg-[#0A2540] text-white rounded-2xl shadow-xl p-3 sm:p-4 space-y-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="sticky bottom-3 z-20 bg-[#2E2E2E] text-white rounded-2xl shadow-xl p-3 sm:p-4 space-y-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-sm font-bold">{selected.size} selected</span>
             <div className="flex flex-wrap gap-2">
@@ -822,7 +822,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                   setPicking((v) => !v);
                   if (!pickedEmps.size) setPickedEmps(new Set(employees.map((e) => e.email.toLowerCase())));
                 }}
-                className="min-h-[44px] px-4 inline-flex items-center gap-1.5 bg-[#3F8EFC] text-xs font-bold rounded-xl cursor-pointer"
+                className="min-h-[44px] px-4 inline-flex items-center gap-1.5 bg-[#FF5A00] text-xs font-bold rounded-xl cursor-pointer"
               >
                 <Users className="w-3.5 h-3.5" /> Assign…
               </button>
@@ -848,7 +848,7 @@ export function LeadsPanel({ isAdmin }: { isAdmin: boolean }) {
                       }
                       aria-pressed={on}
                       className={`min-h-[44px] px-3.5 rounded-full text-xs font-semibold cursor-pointer border ${
-                        on ? "bg-white text-[#0A2540] border-white" : "bg-transparent text-white/80 border-white/30"
+                        on ? "bg-white text-[#2E2E2E] border-white" : "bg-transparent text-white/80 border-white/30"
                       }`}
                     >
                       {e.name}
@@ -897,7 +897,7 @@ function LeadNotesEditor({ lead, disabled, onSave }: { lead: Lead; disabled: boo
             aria-pressed={lead.employmentType === v}
             onClick={() => onSave({ employmentType: lead.employmentType === v ? null : v })}
             className={`min-h-[36px] px-3 text-xs font-bold rounded-full border cursor-pointer ${
-              lead.employmentType === v ? "bg-[#0A2540] text-white border-[#0A2540]" : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
+              lead.employmentType === v ? "bg-[#2E2E2E] text-white border-[#2E2E2E]" : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
             }`}
           >
             {label}

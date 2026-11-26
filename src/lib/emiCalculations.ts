@@ -638,8 +638,8 @@ export const VARIABLE_SOURCE_OPTIONS: {
   {
     value: "static_text",
     label: "Fixed / Static Text",
-    description: "Custom fixed text (e.g. Credit Expert India)",
-    example: "Credit Expert India",
+    description: "Custom fixed text (e.g. Amortas)",
+    example: "Amortas",
   },
   {
     value: "custom_column",
@@ -781,7 +781,7 @@ export function resolveVariableValue(
     text = text.replace(/\{tenure\}|\{\{tenure\}\}/gi, tenureVal);
     text = text.replace(/\{roi\}|\{current_roi\}|\{\{roi\}\}/gi, isNaN(curRoiVal) ? "" : `${curRoiVal}%`);
     text = text.replace(/\{new_roi\}|\{target_roi\}|\{\{new_roi\}\}/gi, `${targetRoi}%`);
-    text = text.replace(/\{company\}|\{\{company\}\}/gi, "Credit Expert India");
+    text = text.replace(/\{company\}|\{\{company\}\}/gi, "Amortas");
 
     // Replace difference expressions e.g. {diff:current_emi-new_emi} or {diff:col:A-col:B}
     text = text.replace(/\{diff:([A-Za-z0-9_:-]+)-([A-Za-z0-9_:-]+)\}/gi, (_, opA, opB) => {
@@ -914,8 +914,8 @@ export const VARIABLE_PRESETS: Record<string, VariableSlotConfig[]> = {
       id: "var-2",
       sourceType: "static_text",
       mode: "custom",
-      customText: "Credit Expert India",
-      staticValue: "Credit Expert India",
+      customText: "Amortas",
+      staticValue: "Amortas",
     },
     {
       id: "var-3",
@@ -970,8 +970,8 @@ export const VARIABLE_PRESETS: Record<string, VariableSlotConfig[]> = {
       id: "var-4",
       sourceType: "static_text",
       mode: "custom",
-      customText: "Credit Expert India",
-      staticValue: "Credit Expert India",
+      customText: "Amortas",
+      staticValue: "Amortas",
     },
   ],
 

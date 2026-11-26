@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { Logo } from "@/components/Logo";
 import {
   Mail,
   Lock,
@@ -127,22 +127,15 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-dvh bg-[#F6F9FC] flex flex-col items-center justify-center px-4 py-6 sm:p-6 relative overflow-hidden">
+    <div className="min-h-dvh bg-[#FFF8F3] flex flex-col items-center justify-center px-4 py-6 sm:p-6 relative overflow-hidden">
       {/* Background glow matching website */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[26rem] sm:w-[34rem] h-[26rem] sm:h-[34rem] bg-blue-200/40 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[26rem] sm:w-[34rem] h-[26rem] sm:h-[34rem] bg-brand-200/40 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10 space-y-6">
         {/* Brand Logo & Header */}
         <div className="text-center space-y-3">
           <Link href="/login" className="inline-block group">
-            <Image
-              src="/img/logo_with_name.webp"
-              alt="Credit Expert India"
-              width={200}
-              height={48}
-              priority
-              className="h-10 w-auto object-contain mx-auto group-hover:opacity-90 transition-opacity"
-            />
+            <Logo size="lg" className="mx-auto group-hover:opacity-90 transition-opacity" />
           </Link>
           <div className="flex items-center justify-center gap-2">
             {[1, 2, 3, 4].map((s) => (
@@ -150,7 +143,7 @@ export default function ForgotPasswordPage() {
                 key={s}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
                   step === s
-                    ? "w-8 bg-[#3F8EFC]"
+                    ? "w-8 bg-[#FF5A00]"
                     : step > s
                     ? "w-4 bg-emerald-500"
                     : "w-4 bg-slate-200"
@@ -180,7 +173,7 @@ export default function ForgotPasswordPage() {
           {step === 1 && (
             <form onSubmit={handleSendOtp} className="space-y-5">
               <div className="text-center space-y-2">
-                <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 text-[#3F8EFC] mx-auto flex items-center justify-center">
+                <div className="w-12 h-12 rounded-2xl bg-brand-50 border border-brand-100 text-[#FF5A00] mx-auto flex items-center justify-center">
                   <KeyRound className="w-6 h-6" />
                 </div>
                 <h2 className="text-xl font-bold text-slate-900">Reset Your Password</h2>
@@ -201,7 +194,7 @@ export default function ForgotPasswordPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="branch@creditexpertindia.com"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 min-h-[44px] text-base sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-medium"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 min-h-[44px] text-base sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20 transition-all font-medium"
                   />
                 </div>
               </div>
@@ -210,7 +203,7 @@ export default function ForgotPasswordPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full min-h-[48px] py-3.5 rounded-xl bg-[#3F8EFC] hover:bg-blue-600 text-white text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#3F8EFC]/25 cursor-pointer"
+                  className="w-full min-h-[48px] py-3.5 rounded-xl bg-[#FF5A00] hover:bg-brand-600 text-white text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#FF5A00]/25 cursor-pointer"
                 >
                   {isLoading ? (
                     <>
@@ -241,7 +234,7 @@ export default function ForgotPasswordPage() {
           {step === 2 && (
             <form onSubmit={handleVerifyOtp} className="space-y-5">
               <div className="text-center space-y-2">
-                <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 text-[#3F8EFC] mx-auto flex items-center justify-center">
+                <div className="w-12 h-12 rounded-2xl bg-brand-50 border border-brand-100 text-[#FF5A00] mx-auto flex items-center justify-center">
                   <ShieldAlert className="w-6 h-6" />
                 </div>
                 <h2 className="text-xl font-bold text-slate-900">Enter Security Code</h2>
@@ -277,7 +270,7 @@ export default function ForgotPasswordPage() {
                   value={otpCode}
                   onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
                   placeholder="••••••"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 min-h-[44px] text-center text-2xl font-mono tracking-widest text-slate-900 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-bold"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 min-h-[44px] text-center text-2xl font-mono tracking-widest text-slate-900 focus:outline-none focus:bg-white focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20 transition-all font-bold"
                 />
               </div>
 
@@ -285,7 +278,7 @@ export default function ForgotPasswordPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full min-h-[48px] py-3.5 rounded-xl bg-[#3F8EFC] hover:bg-blue-600 text-white text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#3F8EFC]/25 cursor-pointer"
+                  className="w-full min-h-[48px] py-3.5 rounded-xl bg-[#FF5A00] hover:bg-brand-600 text-white text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#FF5A00]/25 cursor-pointer"
                 >
                   {isLoading ? (
                     <>
@@ -316,7 +309,7 @@ export default function ForgotPasswordPage() {
                     type="button"
                     disabled={isLoading}
                     onClick={handleSendOtp}
-                    className="text-[#3F8EFC] hover:text-blue-700 font-semibold underline cursor-pointer min-h-[44px] pl-3"
+                    className="text-[#FF5A00] hover:text-brand-700 font-semibold underline cursor-pointer min-h-[44px] pl-3"
                   >
                     Resend Code
                   </button>
@@ -329,7 +322,7 @@ export default function ForgotPasswordPage() {
           {step === 3 && (
             <form onSubmit={handleResetPassword} className="space-y-5">
               <div className="text-center space-y-2">
-                <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 text-[#3F8EFC] mx-auto flex items-center justify-center">
+                <div className="w-12 h-12 rounded-2xl bg-brand-50 border border-brand-100 text-[#FF5A00] mx-auto flex items-center justify-center">
                   <Lock className="w-6 h-6" />
                 </div>
                 <h2 className="text-xl font-bold text-slate-900">Set New Password</h2>
@@ -351,7 +344,7 @@ export default function ForgotPasswordPage() {
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="••••••••••••"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 min-h-[44px] text-base sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-medium"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 min-h-[44px] text-base sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20 transition-all font-medium"
                     />
                   </div>
                 </div>
@@ -368,7 +361,7 @@ export default function ForgotPasswordPage() {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="••••••••••••"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 min-h-[44px] text-base sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-medium"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 min-h-[44px] text-base sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20 transition-all font-medium"
                     />
                   </div>
                 </div>
@@ -377,7 +370,7 @@ export default function ForgotPasswordPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full min-h-[48px] py-3.5 rounded-xl bg-[#3F8EFC] hover:bg-blue-600 text-white text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#3F8EFC]/25 cursor-pointer"
+                className="w-full min-h-[48px] py-3.5 rounded-xl bg-[#FF5A00] hover:bg-brand-600 text-white text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#FF5A00]/25 cursor-pointer"
               >
                 {isLoading ? (
                   <>
@@ -413,7 +406,7 @@ export default function ForgotPasswordPage() {
 
               <Link
                 href="/login"
-                className="inline-flex w-full min-h-[48px] py-3.5 rounded-xl bg-[#3F8EFC] hover:bg-blue-600 text-white text-sm font-bold items-center justify-center gap-2 shadow-lg shadow-[#3F8EFC]/25 transition-all"
+                className="inline-flex w-full min-h-[48px] py-3.5 rounded-xl bg-[#FF5A00] hover:bg-brand-600 text-white text-sm font-bold items-center justify-center gap-2 shadow-lg shadow-[#FF5A00]/25 transition-all"
               >
                 Proceed to Sign In
                 <ArrowRight className="w-4 h-4" />

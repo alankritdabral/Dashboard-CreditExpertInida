@@ -147,10 +147,10 @@ function useCalc(i: CalcInput) {
 /* ------------------------------------------------------------------ */
 
 const inputCls =
-  "w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 min-h-[44px] text-base sm:text-sm text-slate-900 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-medium";
+  "w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 min-h-[44px] text-base sm:text-sm text-slate-900 focus:outline-none focus:bg-white focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20 transition-all font-medium";
 const labelCls = "block text-xs font-semibold text-slate-600 mb-1.5";
 const primaryBtn =
-  "inline-flex items-center justify-center gap-2 min-h-[44px] px-4 rounded-xl bg-[#3F8EFC] hover:bg-[#2f7ae6] text-white text-sm font-semibold cursor-pointer transition-colors disabled:opacity-60 disabled:cursor-not-allowed";
+  "inline-flex items-center justify-center gap-2 min-h-[44px] px-4 rounded-xl bg-[#FF5A00] hover:bg-[#2f7ae6] text-white text-sm font-semibold cursor-pointer transition-colors disabled:opacity-60 disabled:cursor-not-allowed";
 const subBtn =
   "inline-flex items-center justify-center gap-2 min-h-[44px] px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold cursor-pointer transition-colors disabled:opacity-60 disabled:cursor-not-allowed";
 
@@ -376,10 +376,10 @@ Thanks & Regards`;
   return (
     <div className="space-y-6 animate-fadeIn max-w-3xl mx-auto">
       <header className="text-center">
-        <div className="inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-[#3F8EFC]/10 text-[#3F8EFC] mb-3">
+        <div className="inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-[#FF5A00]/10 text-[#FF5A00] mb-3">
           <Calculator className="w-5 h-5" />
         </div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#0A2540]">EMI &amp; Refinance Calculator</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#2E2E2E]">EMI &amp; Refinance Calculator</h1>
         <p className="text-sm text-slate-500 mt-1.5">
           Calculate your outstanding loan balance &amp; compare with special offer rates
         </p>
@@ -403,7 +403,7 @@ Thanks & Regards`;
             <label className={labelCls} htmlFor="emi-tenure">Original Tenure</label>
             <div className="flex mb-1.5 rounded-full border border-slate-200 overflow-hidden text-[11px] font-semibold">
               {(["months", "years"] as const).map((u) => (
-                <button key={u} type="button" onClick={() => switchUnit(u)} className={`px-2.5 py-0.5 cursor-pointer ${unit === u ? "bg-[#3F8EFC] text-white" : "text-slate-500 bg-white"}`}>
+                <button key={u} type="button" onClick={() => switchUnit(u)} className={`px-2.5 py-0.5 cursor-pointer ${unit === u ? "bg-[#FF5A00] text-white" : "text-slate-500 bg-white"}`}>
                   {u === "months" ? "Mo" : "Yr"}
                 </button>
               ))}
@@ -498,7 +498,7 @@ Thanks & Regards`;
       )}
 
       {toast && (
-        <div role="alert" className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[10000] max-w-[92vw] bg-[#0A2540] text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-lg">
+        <div role="alert" className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[10000] max-w-[92vw] bg-[#2E2E2E] text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-lg">
           {toast}
         </div>
       )}
@@ -514,7 +514,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center">
       <div className="text-[11px] font-semibold text-slate-500">{label}</div>
-      <div className="text-sm sm:text-base font-bold text-[#0A2540] mt-0.5 break-words">{value}</div>
+      <div className="text-sm sm:text-base font-bold text-[#2E2E2E] mt-0.5 break-words">{value}</div>
     </div>
   );
 }
@@ -543,8 +543,8 @@ function Results({
     <div className="space-y-6 animate-fadeIn">
       <section className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
         <div className="flex items-center justify-between gap-2 flex-wrap">
-          <h2 className="text-sm font-bold text-[#0A2540]">Loan Status</h2>
-          <span className="text-[11px] font-semibold bg-[#3F8EFC]/10 text-[#3F8EFC] rounded-full px-2.5 py-1 max-w-full break-words">
+          <h2 className="text-sm font-bold text-[#2E2E2E]">Loan Status</h2>
+          <span className="text-[11px] font-semibold bg-[#FF5A00]/10 text-[#FF5A00] rounded-full px-2.5 py-1 max-w-full break-words">
             As of {r.today.toLocaleDateString("en-IN", { month: "short", year: "numeric" })}{bank !== "None" ? ` · ${bank}` : ""}
           </span>
         </div>
@@ -555,7 +555,7 @@ function Results({
         </div>
         <div>
           <div className="h-2.5 rounded-full bg-slate-100 overflow-hidden">
-            <div className="h-full rounded-full bg-gradient-to-r from-[#3F8EFC] to-emerald-400" style={{ width: `${r.percentPaid}%` }} />
+            <div className="h-full rounded-full bg-gradient-to-r from-[#FF5A00] to-emerald-400" style={{ width: `${r.percentPaid}%` }} />
           </div>
           <div className="flex justify-between text-[11px] font-semibold text-slate-500 mt-1.5">
             <span>{r.percentPaid}% Completed ({r.elapsed} Paid)</span>
@@ -564,7 +564,7 @@ function Results({
         </div>
         <div className="text-center">
           <div className="text-xs font-semibold text-slate-500">Outstanding Loan Balance</div>
-          <div className="text-3xl font-bold text-[#0A2540] mt-1">{formatCurrency(r.outstandingBalance)}</div>
+          <div className="text-3xl font-bold text-[#2E2E2E] mt-1">{formatCurrency(r.outstandingBalance)}</div>
         </div>
         <div className="grid grid-cols-1 min-[440px]:grid-cols-3 gap-2.5 sm:gap-3">
           <Stat label="Monthly EMI" value={formatCurrency(r.monthlyEmi)} />
@@ -574,7 +574,7 @@ function Results({
       </section>
 
       <section className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-4">
-        <h2 className="text-sm font-bold text-[#0A2540]">
+        <h2 className="text-sm font-bold text-[#2E2E2E]">
           {r.specialRate}% Special Offer Rate
           <span className="font-medium text-slate-500"> · Tenure: {r.specialMonths} Mo ({years} Yrs)</span>
         </h2>
@@ -604,7 +604,7 @@ function Results({
       </section>
 
       <section className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/90 shadow-xs space-y-3">
-        <h2 className="text-sm font-bold text-[#0A2540]">Share with Customer</h2>
+        <h2 className="text-sm font-bold text-[#2E2E2E]">Share with Customer</h2>
         <button type="button" onClick={onShare} className={`${primaryBtn} w-full !bg-[#25D366] hover:!bg-[#1fb757]`}>
           <MessageCircle className="w-4 h-4" /> Send Summary to Customer
         </button>
@@ -637,7 +637,7 @@ function ModalInner({ title, subtitle, onClose, wide, full, children }: ModalPro
         <div className="mx-auto w-full max-w-6xl min-h-full lg:h-full lg:min-h-0 p-4 sm:p-5 flex flex-col">
           <div className="flex items-start justify-between gap-3 mb-3 shrink-0">
             <div>
-              <h2 className="text-lg font-bold text-[#0A2540]">{title}</h2>
+              <h2 className="text-lg font-bold text-[#2E2E2E]">{title}</h2>
               {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
             </div>
             <button type="button" aria-label="Close" onClick={onClose} className="min-w-[44px] min-h-[44px] -m-2 flex items-center justify-center text-slate-400 hover:text-slate-700 cursor-pointer">
@@ -654,7 +654,7 @@ function ModalInner({ title, subtitle, onClose, wide, full, children }: ModalPro
       <div role="dialog" aria-modal="true" aria-label={title} className={`bg-white rounded-2xl shadow-2xl w-full ${wide ? "max-w-xl" : "max-w-sm"} p-4 sm:p-6 my-auto max-h-[calc(100dvh-1.5rem)] overflow-y-auto`}>
         <div className="flex items-start justify-between gap-3 mb-4">
           <div>
-            <h2 className="text-base font-bold text-[#0A2540]">{title}</h2>
+            <h2 className="text-base font-bold text-[#2E2E2E]">{title}</h2>
             {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
           </div>
           <button type="button" aria-label="Close" onClick={onClose} className="min-w-[44px] min-h-[44px] -m-2 flex items-center justify-center text-slate-400 hover:text-slate-700 cursor-pointer">

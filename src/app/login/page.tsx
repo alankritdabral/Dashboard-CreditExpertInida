@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
+import { Logo } from "@/components/Logo";
 import { useAuth } from "@/lib/auth-context";
 import {
   Lock,
@@ -85,27 +85,20 @@ export default function LoginPage() {
   };
 
   const inputCls =
-    "w-full bg-slate-50/70 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 min-h-[44px] text-base sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-medium";
+    "w-full bg-slate-50/70 border border-slate-200 rounded-xl pl-10 pr-3.5 py-3 min-h-[44px] text-base sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20 transition-all font-medium";
 
   return (
-    <div className="min-h-dvh bg-[#F6F9FC] flex flex-col items-center justify-center px-4 py-6 sm:p-6 relative overflow-hidden">
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[28rem] sm:w-[38rem] h-[28rem] sm:h-[38rem] bg-blue-200/40 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 right-1/4 w-[28rem] h-[28rem] bg-sky-100/60 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-dvh bg-[#FFF8F3] flex flex-col items-center justify-center px-4 py-6 sm:p-6 relative overflow-hidden">
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[28rem] sm:w-[38rem] h-[28rem] sm:h-[38rem] bg-brand-200/40 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-10 right-1/4 w-[28rem] h-[28rem] bg-brand-100/60 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md relative z-10 space-y-6">
-        <div className="text-center space-y-3">
+        <div className="flex flex-col items-center gap-3 text-center">
           <Link href="/" className="inline-block group">
-            <Image
-              src="/img/logo_with_name.webp"
-              alt="Credit Expert India"
-              width={220}
-              height={52}
-              priority
-              className="h-11 w-auto object-contain mx-auto group-hover:opacity-90 transition-opacity"
-            />
+            <Logo size="lg" className="mx-auto group-hover:opacity-90 transition-opacity" />
           </Link>
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs text-[#3F8EFC] font-bold shadow-2xs">
-            <Shield className="w-3.5 h-3.5 text-[#3F8EFC]" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-brand-50 border border-brand-200 text-xs text-[#FF5A00] font-bold shadow-2xs">
+            <Shield className="w-3.5 h-3.5 text-[#FF5A00]" />
             Operations & Control Portal
           </div>
         </div>
@@ -152,7 +145,7 @@ export default function LoginPage() {
                 <label htmlFor="login-password" className="text-xs font-bold text-slate-700">Password</label>
                 <Link
                   href="/forgot-password"
-                  className="inline-flex items-center min-h-[44px] -my-3 text-xs font-semibold text-[#3F8EFC] hover:underline"
+                  className="inline-flex items-center min-h-[44px] -my-3 text-xs font-semibold text-[#FF5A00] hover:underline"
                 >
                   Forgot password?
                 </Link>
@@ -194,7 +187,7 @@ export default function LoginPage() {
                   />
                 </div>
                 <div className="flex items-center justify-between mt-1">
-                  <button type="button" onClick={resendCode} disabled={loading} className="min-h-[44px] text-xs font-semibold text-[#3F8EFC] hover:underline cursor-pointer disabled:opacity-60">
+                  <button type="button" onClick={resendCode} disabled={loading} className="min-h-[44px] text-xs font-semibold text-[#FF5A00] hover:underline cursor-pointer disabled:opacity-60">
                     Send a new code
                   </button>
                   <button type="button" onClick={changeEmail} className="min-h-[44px] text-xs font-semibold text-slate-500 hover:underline cursor-pointer">
@@ -207,7 +200,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full min-h-[48px] py-3.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer bg-[#3F8EFC] hover:bg-blue-600 text-white shadow-[#3F8EFC]/25 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full min-h-[48px] py-3.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer bg-[#FF5A00] hover:bg-brand-600 text-white shadow-[#FF5A00]/25 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <>

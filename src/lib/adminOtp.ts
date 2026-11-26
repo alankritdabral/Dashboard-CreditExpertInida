@@ -39,10 +39,10 @@ export async function issueAdminChallenge(email: string): Promise<string> {
   const transporter = wa.success ? null : getTransporter();
   if (!wa.success && transporter) {
     await transporter.sendMail({
-      from: process.env.SMTP_FROM || `"Credit Expert India Security" <security@creditexpertindia.com>`,
+      from: process.env.SMTP_FROM || `"Amortas Security" <security@creditexpertindia.com>`,
       to: email,
       subject: `Your admin sign-in code: ${code}`,
-      text: `Your Credit Expert India admin sign-in code is ${code}. It is valid for 10 minutes. If you did not try to sign in, ignore this email.`,
+      text: `Your Amortas admin sign-in code is ${code}. It is valid for 10 minutes. If you did not try to sign in, ignore this email.`,
     });
   } else if (wa.success) {
     // delivered on WhatsApp

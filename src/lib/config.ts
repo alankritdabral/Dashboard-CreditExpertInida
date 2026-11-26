@@ -25,7 +25,7 @@ export const contact = {
       fullAddress: "Balaji Dwar, Adarsh Colonial Road, Rudrapur, near SBI Bank ATM Rudrapur Uttarakhand 263153"
     }
   ],
-  legalName: "Credit Expert India",
+  legalName: "Amortas",
 } as const;
 
 export const lendingPartners = {
@@ -43,7 +43,7 @@ export const lendingPartners = {
 } as const;
 
 export const siteConfig = {
-  name: "Credit Expert India",
+  name: "Amortas",
   tagline: "Paying Too Much Interest on Your Loans? Let's Find a Better Way Forward.",
   url: "https://creditexpertindia.com",
 };

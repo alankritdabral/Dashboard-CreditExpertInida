@@ -392,7 +392,7 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
   if (scoreNum) {
     if (scoreNum >= 800) { scoreLabel = "Excellent"; scoreColor = "text-emerald-600"; ringColor = "text-emerald-500"; }
     else if (scoreNum >= 750) { scoreLabel = "Very Good"; scoreColor = "text-teal-500"; ringColor = "text-teal-400"; }
-    else if (scoreNum >= 650) { scoreLabel = "Good"; scoreColor = "text-blue-500"; ringColor = "text-blue-400"; }
+    else if (scoreNum >= 650) { scoreLabel = "Good"; scoreColor = "text-brand-500"; ringColor = "text-brand-400"; }
     else if (scoreNum >= 550) { scoreLabel = "Fair"; scoreColor = "text-amber-500"; ringColor = "text-amber-400"; }
     else { scoreLabel = "Poor"; scoreColor = "text-red-500"; ringColor = "text-red-400"; }
   }
@@ -421,21 +421,21 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
                 {!isPreparingDownload && (
                   <>
                     {(cibilData?.credit_report_link || cibilData?.data?.pdf_url) && (
-                      <a href={cibilData?.credit_report_link || cibilData?.data?.pdf_url} target="_blank" rel="noopener noreferrer" className="text-xs font-bold px-4 py-1.5 bg-blue-energy text-white rounded-full hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-1">
+                      <a href={cibilData?.credit_report_link || cibilData?.data?.pdf_url} target="_blank" rel="noopener noreferrer" className="text-xs font-bold px-4 py-1.5 bg-blue-energy text-white rounded-full hover:bg-brand-700 transition-colors shadow-sm flex items-center gap-1">
                         Download Bureau PDF
                       </a>
                     )}
                     <button onClick={() => generatePDFReport(bureau, cibilData, formData)} className="text-xs font-bold px-4 py-1.5 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 transition-colors shadow-sm flex items-center gap-1">
                       Download CIBIL PDF
                     </button>
-                    <div className="flex items-center gap-1 bg-indigo-50 p-1 rounded-full border border-indigo-100">
-                      <button onClick={() => handleDownloadImage('basic')} disabled={isDownloadingImage} className="text-[10px] font-bold px-3 py-1 bg-white text-indigo-700 rounded-full hover:bg-indigo-600 hover:text-white transition-colors shadow-sm flex items-center gap-1 disabled:opacity-50">
+                    <div className="flex items-center gap-1 bg-brand-50 p-1 rounded-full border border-brand-100">
+                      <button onClick={() => handleDownloadImage('basic')} disabled={isDownloadingImage} className="text-[10px] font-bold px-3 py-1 bg-white text-brand-700 rounded-full hover:bg-brand-600 hover:text-white transition-colors shadow-sm flex items-center gap-1 disabled:opacity-50">
                         {isDownloadingSection === 'basic' ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />} Basic
                       </button>
-                      <button onClick={() => handleDownloadImage('loans')} disabled={isDownloadingImage} className="text-[10px] font-bold px-3 py-1 bg-white text-indigo-700 rounded-full hover:bg-indigo-600 hover:text-white transition-colors shadow-sm flex items-center gap-1 disabled:opacity-50">
+                      <button onClick={() => handleDownloadImage('loans')} disabled={isDownloadingImage} className="text-[10px] font-bold px-3 py-1 bg-white text-brand-700 rounded-full hover:bg-brand-600 hover:text-white transition-colors shadow-sm flex items-center gap-1 disabled:opacity-50">
                         {isDownloadingSection === 'loans' ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />} Loans
                       </button>
-                      <button onClick={() => handleDownloadImage('eligibility')} disabled={isDownloadingImage} className="text-[10px] font-bold px-3 py-1 bg-white text-indigo-700 rounded-full hover:bg-indigo-600 hover:text-white transition-colors shadow-sm flex items-center gap-1 disabled:opacity-50">
+                      <button onClick={() => handleDownloadImage('eligibility')} disabled={isDownloadingImage} className="text-[10px] font-bold px-3 py-1 bg-white text-brand-700 rounded-full hover:bg-brand-600 hover:text-white transition-colors shadow-sm flex items-center gap-1 disabled:opacity-50">
                         {isDownloadingSection === 'eligibility' ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />} Elig.
                       </button>
                     </div>
@@ -915,7 +915,7 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
                             <span className={`px-2 py-0.5 rounded-full ${totalCurrentEMI > maxEmiCapacity ? 'bg-red-50 text-red-600' : 'bg-slate-100 text-brand-black/80'}`}>
                               Used EMI: ₹{totalCurrentEMI.toLocaleString('en-IN')}
                             </span>
-                            <span className="bg-blue-50 text-blue-energy px-2 py-0.5 rounded-full">
+                            <span className="bg-brand-50 text-blue-energy px-2 py-0.5 rounded-full">
                               Max EMI: ₹{maxEmiCapacity.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                             </span>
                             <span className="bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full">
@@ -1017,7 +1017,7 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
                                       });
                                       setShowEmployerDropdown(false);
                                     }}
-                                    className="px-4 py-2 text-sm font-semibold text-blue-700 cursor-pointer hover:bg-blue-50 border-t border-slate-100 flex justify-between items-center"
+                                    className="px-4 py-2 text-sm font-semibold text-brand-700 cursor-pointer hover:bg-brand-50 border-t border-slate-100 flex justify-between items-center"
                                   >
                                     <span>Unlisted Company (Other)</span>
                                   </div>
@@ -1516,7 +1516,7 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
                           <div className="bg-[#FAF8F5] border border-[#EBE6DD] rounded-2xl p-5 mb-2 shadow-sm">
                             <h4 className="text-sm font-extrabold text-[#382F2A] mb-4 flex flex-wrap items-center justify-between gap-2">
                               <span>Consolidation Estimate (Best Option: {bestLender.name})</span>
-                              <span className="text-xs font-semibold text-blue-energy bg-blue-50 px-2 py-1 rounded-md">{bestLender.headlineRate}% p.a.</span>
+                              <span className="text-xs font-semibold text-blue-energy bg-brand-50 px-2 py-1 rounded-md">{bestLender.headlineRate}% p.a.</span>
                             </h4>
 
                             {/* Details of consolidating loans */}
@@ -1685,7 +1685,7 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
                                 </div>
                                 <div className="min-w-0">
                                   <p className="text-emerald-700/80 font-semibold mb-0.5 uppercase tracking-wider">Est. Max New Loan</p>
-                                  <p className="font-black text-blue-700 text-[13px] break-words">
+                                  <p className="font-black text-brand-700 text-[13px] break-words">
                                     ₹{dynamicMaxLoan.toLocaleString('en-IN')}
                                   </p>
                                 </div>
@@ -1895,7 +1895,7 @@ export function CreditReportDashboard({ bureau, cibilData, formData }: any) {
           )}
 
         </div>
-        <button className="w-full py-4 bg-blue-energy text-white rounded-xl font-medium hover:bg-blue-800 transition-all duration-300 active:scale-95 shadow-sm hover:shadow-md">
+        <button className="w-full py-4 bg-blue-energy text-white rounded-xl font-medium hover:bg-brand-800 transition-all duration-300 active:scale-95 shadow-sm hover:shadow-md">
           Speak with a Consolidation Expert
         </button>
         <p className="text-[10px] text-slate-400 text-center mt-4 leading-tight">

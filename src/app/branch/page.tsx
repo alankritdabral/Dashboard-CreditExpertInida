@@ -119,14 +119,14 @@ export default function BranchPortalPage() {
 
   if (loading || !user) {
     return (
-      <div className="min-h-dvh bg-[#F6F9FC] flex items-center justify-center text-slate-500">
-        <Loader2 className="w-8 h-8 animate-spin text-[#3F8EFC]" />
+      <div className="min-h-dvh bg-[#FFF8F3] flex items-center justify-center text-slate-500">
+        <Loader2 className="w-8 h-8 animate-spin text-[#FF5A00]" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-dvh bg-[#F6F9FC] text-[#0A2540] flex flex-col font-sans">
+    <div className="min-h-dvh bg-[#FFF8F3] text-[#2E2E2E] flex flex-col font-sans">
       {/* Website-Style Navigation Header */}
       <DashboardHeader
         tabs={tabs}
@@ -160,7 +160,7 @@ export default function BranchPortalPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search by PAN, Name, or Mobile..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 min-h-[44px] text-base sm:text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#3F8EFC] focus:ring-2 focus:ring-[#3F8EFC]/20 transition-all font-medium"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-2.5 min-h-[44px] text-base sm:text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#FF5A00] focus:ring-2 focus:ring-[#FF5A00]/20 transition-all font-medium"
                 />
               </div>
 
@@ -232,7 +232,7 @@ export default function BranchPortalPage() {
                           <td className="p-4 text-right">
                             <button
                               onClick={() => handleOpenReportModal(report.id)}
-                              className="px-3.5 py-2.5 min-h-[44px] whitespace-nowrap bg-[#3F8EFC] hover:bg-blue-600 text-white rounded-lg text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-sm shadow-[#3F8EFC]/20"
+                              className="px-3.5 py-2.5 min-h-[44px] whitespace-nowrap bg-[#FF5A00] hover:bg-brand-600 text-white rounded-lg text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-sm shadow-[#FF5A00]/20"
                             >
                               <Eye className="w-3.5 h-3.5" /> View Report
                             </button>
@@ -246,7 +246,7 @@ export default function BranchPortalPage() {
                         <td colSpan={6} className="p-12 text-center text-slate-500">
                           {reportsLoading ? (
                             <div className="flex items-center justify-center gap-2">
-                              <Loader2 className="w-4 h-4 animate-spin text-[#3F8EFC]" />
+                              <Loader2 className="w-4 h-4 animate-spin text-[#FF5A00]" />
                               Loading branch reports...
                             </div>
                           ) : (
@@ -294,12 +294,12 @@ export default function BranchPortalPage() {
             <div className="flex items-center justify-between gap-3 p-4 sm:p-5 border-b border-slate-100 bg-slate-50 sticky top-0 z-10">
               <div className="min-w-0">
                 <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2 break-words">
-                  <CreditCard className="w-5 h-5 text-[#3F8EFC]" />
+                  <CreditCard className="w-5 h-5 text-[#FF5A00]" />
                   Applicant Bureau Report: {viewingReport.name}
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
                   PAN: <strong className="font-mono text-slate-800">{viewingReport.pan}</strong> · Bureau:{" "}
-                  <strong className="uppercase text-[#3F8EFC]">{viewingReport.bureau}</strong> · Branch:{" "}
+                  <strong className="uppercase text-[#FF5A00]">{viewingReport.bureau}</strong> · Branch:{" "}
                   <strong className="text-slate-800">{viewingReport.branch}</strong>
                 </p>
               </div>

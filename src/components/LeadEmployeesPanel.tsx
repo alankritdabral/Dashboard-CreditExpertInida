@@ -60,7 +60,7 @@ export function LeadEmployeesPanel() {
   return (
     <section className="space-y-4">
       <div>
-        <h2 className="text-lg font-bold text-[#0A2540]">Lead team</h2>
+        <h2 className="text-lg font-bold text-[#2E2E2E]">Lead team</h2>
         <p className="text-sm text-slate-600">
           New website leads go automatically to the active person with the fewest open customers, and the customer gets a WhatsApp with that
           person&apos;s name and number. {activeCount} active.
@@ -83,7 +83,7 @@ export function LeadEmployeesPanel() {
           </thead>
           <tbody>
             {loading && (
-              <tr><td colSpan={6} className="px-4 py-6 text-center text-slate-500"><Loader2 className="w-5 h-5 animate-spin inline text-[#3F8EFC]" /></td></tr>
+              <tr><td colSpan={6} className="px-4 py-6 text-center text-slate-500"><Loader2 className="w-5 h-5 animate-spin inline text-[#FF5A00]" /></td></tr>
             )}
             {!loading && rows.length === 0 && (
               <tr><td colSpan={6} className="px-4 py-6 text-center text-slate-500">No employees yet. Add one below, or run the seed script.</td></tr>
@@ -123,7 +123,7 @@ export function LeadEmployeesPanel() {
             <option>Delhi</option><option>Dehradun</option><option>Rudrapur</option>
           </select>
         </label>
-        <button disabled={busy === "new"} className="min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#0A2540] text-white text-sm font-bold px-4 cursor-pointer disabled:opacity-60">
+        <button disabled={busy === "new"} className="min-h-[44px] inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#2E2E2E] text-white text-sm font-bold px-4 cursor-pointer disabled:opacity-60">
           {busy === "new" ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Add / update
         </button>
       </form>
