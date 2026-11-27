@@ -272,7 +272,8 @@ The rate of interest will be reduce to ${rate}% onwards.
 
 Kindly check calculation and confirm when can i call you
 
-Thanks & Regards`;
+Thanks & Regards
+www.amortas.com`;
   };
 
   // Pre-render the PNG when the modal opens so the click handler can use it instantly
