@@ -692,6 +692,13 @@ export default function WhatsAppHubPage() {
             </button>
 
             <Link
+              href="/admin/whatsapp/meta"
+              className="max-sm:min-h-11 inline-flex items-center px-3.5 py-1.5 text-xs font-semibold text-white bg-[#25D366] hover:bg-[#1fb757] rounded-xl transition shadow-sm"
+            >
+              Meta Cloud API (new)
+            </Link>
+
+            <Link
               href="/admin"
               className="max-sm:min-h-11 inline-flex items-center px-3.5 py-1.5 text-xs font-semibold text-[#2E2E2E] hover:text-[#FF5A00] bg-white hover:bg-slate-50 rounded-xl border border-[#E5E5E5] transition shadow-sm"
             >
